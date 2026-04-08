@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -1579,8 +1582,6 @@ function fbLogin() {
 async function fbLogout() {
   _locClipboard = null;  // 清除地點複製記憶
   const { auth, signOut } = window._fb;
-  await deleteMyChatMsgs();   // 刪除本次對話訊息
-  closeAllChatWindows();       // 關閉所有聊天視窗
   signOut(auth);
 }
 
@@ -3954,7 +3955,6 @@ function _startFirebase() {
       });
       presenceRef = null;
     }
-    closeAllChatWindows();
     renderOnlineUsers([]);
   }
 
