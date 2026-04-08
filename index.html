@@ -3910,8 +3910,15 @@ function startWhenReady() {
 }
 
 function _startFirebase() {
-  const { auth, onAuthStateChanged } = window._fb;
+  const { auth, onAuthStateChanged, signOut } = window._fb;
   let appInitialized = false;
+
+  // ── 強制登出舊 session，確保每次都需要輸入密碼 ──
+  signOut(auth).catch(() => {}).finally(() => {
+    _startAuthListener();
+  });
+
+  function _startAuthListener() {
 
   // ── Presence（在線狀態）管理 ──
   let presenceRef = null;
@@ -4037,6 +4044,7 @@ function _startFirebase() {
       await initApp();
     }
   });
+  } // end _startAuthListener
 
 }
 
