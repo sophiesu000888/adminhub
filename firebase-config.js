@@ -21,7 +21,7 @@
 //    }
 // ================================================================
 
-const FIREBASECONFIG = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBlv5DjkPUgsQIQXVX4eo83T9InmuOy8VE",
   authDomain: "adminhub-897b4.firebaseapp.com",
   projectId: "adminhub-897b4",
