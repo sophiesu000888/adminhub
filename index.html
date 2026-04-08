@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>菜單管理系統 - 密碼版</title>
+  <style>
+    /* 這裡保留你原本檔案中所有的 CSS 樣式 */
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f1f5f9;
+      --accent: #38bdf8;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #334155;
+    }
+    .auth-section { display: flex; align-items: center; gap: 10px; }
+    .btn-login, .btn-logout {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .btn-login { background: var(--success); color: white; }
+    .btn-logout { background: #475569; color: white; }
+    
+    /* 遮罩樣式 */
+    #accessOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      display: none; justify-content: center; align-items: center; z-index: 1000;
+    }
+    #accessOverlay.active { display: flex; }
+    .overlay-card {
+      background: var(--card-bg); padding: 40px; border-radius: 16px;
+      text-align: center; max-width: 320px; width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+    }
+    input[type="password"] {
+      width: 100%; padding: 12px; margin: 15px 0;
+      border-radius: 8px; border: 1px solid #334155;
+      background: #0f172a; color: white; text-align: center; font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📋 菜單管理系統</h1>
+    <div class="auth-section">
+      <div id="authLoggedOut" style="display:none;">
+        <button class="btn-login" onclick="showAccessOverlay('nologin')">🔑 系統登入</button>
+      </div>
+      <div id="authLoggedIn" style="display:none; align-items:center; gap:12px;">
+        <span id="userEmail" style="font-size:0.9rem; color:#94a3b8;">系統已解鎖</span>
+        <button class="btn-logout" onclick="fbLogout()">登出</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <p style="text-align:center; color:#94a3b8;">請登入以編輯或同步菜單資料</p>
+    </main>
+</div>
+
+<div id="accessOverlay">
+  <div class="overlay-card">
+    <div id="accessIcon" style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+    <h2 id="accessTitle">系統鎖定中</h2>
+    <p id="accessMsg">請輸入密碼以進行存取</p>
+    <div id="accessActions"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, set, get, onValue } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB_tAxuexFYMzQ8F2NKNVAVxh_k4H8oTzU",
+    authDomain: "chiayumenu.firebaseapp.com",
+    projectId: "chiayumenu",
+    storageBucket: "chiayumenu.firebasestorage.app",
+    messagingSenderId: "735229444243",
+    appId: "1:735229444243:web:c4d5fa2a3383323e444d66",
+    databaseURL: "https://chiayumenu-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  // 暴露給外部全域使用
+  window._fb = { auth, db, ref, set, get, onValue, signInWithEmailAndPassword, signOut, onAuthStateChanged };
+  window._fbReady = true;
+</script>
+
+<script>
+// 2. 登入邏輯
+function fbLogin() {
+  const passInput = document.getElementById("sysPassword");
+  const password = passInput ? passInput.value : "";
+  if (!password) { alert("請輸入密碼"); return; }
+
+  const email = "sophiesu000@gmail.com"; // 固定的管理員帳號
+  const { auth, signInWithEmailAndPassword } = window._fb;
+
+  if (passInput) passInput.disabled = true;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      console.log("登入成功");
+      hideAccessOverlay();
+    })
+    .catch((error) => {
+      console.error(error);
+      alert("密碼錯誤，請重新輸入！");
+      if (passInput) {
+        passInput.disabled = false;
+        passInput.value = "";
+        passInput.focus();
+      }
+    });
+}
+
+// 3. 登出邏輯
+function fbLogout() {
+  if(confirm("確定要登出系統嗎？")) {
+    window._fb.signOut(window._fb.auth).then(() => {
+      location.reload();
+    });
+  }
+}
+
+// 4. 遮罩切換
+function showAccessOverlay(mode) {
+  const overlay = document.getElementById("accessOverlay");
+  const icon    = document.getElementById("accessIcon");
+  const title   = document.getElementById("accessTitle");
+  const msg     = document.getElementById("accessMsg");
+  const actions = document.getElementById("accessActions");
+
+  if (mode === "nologin") {
+    icon.textContent  = "🔒";
+    title.textContent = "請輸入系統密碼";
+    msg.textContent   = "此系統需要密碼才能同步雲端資料。";
+    actions.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input type="password" id="sysPassword" placeholder="輸入密碼" 
+               onkeydown="if(event.key==='Enter')fbLogin()">
+        <button onclick="fbLogin()" 
+                style="background:#22c55e;color:white;border:none;padding:12px;border-radius:8px;font-weight:bold;cursor:pointer;">
+                解鎖系統
+        </button>
+      </div>`;
+    setTimeout(() => document.getElementById("sysPassword").focus(), 300);
+  } else if (mode === "denied") {
+    icon.textContent  = "🚫";
+    title.textContent = "權限不足";
+    msg.textContent   = "您目前的帳號無權存取此系統。";
+    actions.innerHTML = `<button onclick="fbLogout()" style="background:#ef4444;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">切換帳號</button>`;
+  }
+  overlay.classList.add("active");
+}
+
+function hideAccessOverlay() {
+  document.getElementById("accessOverlay").classList.remove("active");
+}
+
+// 5. 監聽 Firebase 狀態
+function _startFirebase() {
+  if (!window._fbReady) return;
+  const { auth, onAuthStateChanged } = window._fb;
+
+  onAuthStateChanged(auth, (user) => {
+    const outBtn = document.getElementById("authLoggedOut");
+    const inBtn  = document.getElementById("authLoggedIn");
+
+    if (user) {
+      if (user.email === "sophiesu000@gmail.com") {
+        outBtn.style.display = "none";
+        inBtn.style.display  = "flex";
+        hideAccessOverlay();
+        // 如果你有 syncFromFirebase() 函式請在此執行
+        if (typeof syncFromFirebase === 'function') syncFromFirebase();
+      } else {
+        showAccessOverlay("denied");
+      }
+    } else {
+      outBtn.style.display = "flex";
+      inBtn.style.display  = "none";
+      showAccessOverlay("nologin");
+    }
+  });
+}
+
+// 6. 輪詢確保 SDK 載入後啟動
+const checkFbReady = setInterval(() => {
+  if (window._fbReady) {
+    _startFirebase();
+    clearInterval(checkFbReady);
+  }
+}, 200);
+</script>
+
+</body>
+</html>
