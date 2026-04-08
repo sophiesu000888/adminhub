@@ -1147,7 +1147,7 @@ button {
   <div style="background:#1c2a30;border-radius:16px;padding:36px 40px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.6);border:1.5px solid #37474f;">
     <div style="font-size:3rem;margin-bottom:12px;" id="overlayIcon">🔒</div>
     <div style="font-size:1.1rem;font-weight:700;color:#eceff1;margin-bottom:10px;" id="overlayTitle">存取受限</div>
-    <div style="font-size:0.85rem;color:#90a4ae;line-height:1.7;margin-bottom:24px;" id="overlayMsg">請使用授權的 Google 帳號登入才能使用此系統。</div>
+    <div style="font-size:0.85rem;color:#90a4ae;line-height:1.7;margin-bottom:24px;" id="overlayMsg">請輸入密碼以存取此系統。</div>
     <div id="overlayActions" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"></div>
   </div>
 </div>
@@ -1485,17 +1485,6 @@ let _locClipboard = null;
 
 const STORAGE_KEY = "yupin_menu_v2";
 const HISTORY_KEY = "yupin_menu_history_v1";
-
-// ===== 允許使用的 Google 帳號白名單 =====
-const ALLOWED_EMAILS = [
-  "sophiesu000@gmail.com",   // ← 在此填入允許的帳號
-  "s802316s@gmail.com",
-];
-
-function isAllowed(user) {
-  if (!user) return false;
-  return ALLOWED_EMAILS.map(e => e.trim().toLowerCase()).includes((user.email || "").toLowerCase());
-}
 
 function showAccessOverlay(mode) {
   // mode: 'nologin' | 'denied'
