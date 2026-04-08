@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>後台 — Admin Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'PingFang TC', sans-serif;
+      background: #f9f9f7; color: #1a1a1a;
+      padding-top: 60px; min-height: 100vh;
+    }
+    .page { max-width: 720px; margin: 0 auto; padding: 28px 20px 60px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+
+    .section {
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      padding: 22px 24px; margin-bottom: 18px;
+    }
+    .section h2 {
+      font-size: 14px; font-weight: 700; color: #888;
+      letter-spacing: .08em; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* 使用者資訊 */
+    .user-row {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    }
+    .avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: #1a1a1a; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; flex-shrink: 0;
+    }
+    .user-info .name { font-size: 17px; font-weight: 700; }
+    .user-info .email { font-size: 13px; color: #999; margin-top: 2px; }
+
+    .logout-btn {
+      padding: 7px 18px; border-radius: 6px;
+      border: 1.5px solid #e53935; background: #fff;
+      color: #e53935; font-size: 14px; cursor: pointer;
+      margin-top: 4px;
+    }
+    .logout-btn:hover { background: #fdecea; }
+
+    /* 系統資訊 */
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .info-item {
+      background: #f9f9f7; border-radius: 6px; padding: 10px 14px;
+    }
+    .info-item .label { font-size: 11px; color: #aaa; margin-bottom: 3px; }
+    .info-item .value { font-size: 14px; font-weight: 600; }
+    .dot-green { color: #4caf50; }
+    .dot-grey  { color: #ccc; }
+
+    /* 備忘 */
+    .memo-area {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 6px;
+      font-size: 14px; resize: vertical; min-height: 100px;
+      font-family: inherit; outline: none; color: #333;
+    }
+    .memo-area:focus { border-color: #3b6fd4; }
+
+    /* 危險區 */
+    .danger-section h2 { color: #e53935 !important; }
+    .danger-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+    .danger-btn {
+      padding: 8px 18px; border-radius: 6px;
+      border: 1.5px solid #e53935; background: #fff;
+      color: #e53935; font-size: 14px; cursor: pointer;
+    }
+    .danger-btn:hover { background: #fdecea; }
+
+    /* 在線狀態 */
+    .online-list { list-style: none; }
+    .online-list li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; border-bottom: 1px solid #f5f5f5;
+      font-size: 14px;
+    }
+    .online-list li:last-child { border-bottom: none; }
+    .online-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #4caf50; flex-shrink: 0;
+    }
+    .online-dot.offline { background: #ddd; }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <h1>⚙️ 後台管理</h1>
+
+    <!-- 登入使用者 -->
+    <div class="section">
+      <h2>目前使用者</h2>
+      <div class="user-row">
+        <div class="avatar" id="avatar">?</div>
+        <div class="user-info">
+          <div class="name" id="user-name">—</div>
+          <div class="email" id="user-email">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">登出</button>
+    </div>
+
+    <!-- 在線狀態 -->
+    <div class="section">
+      <h2>使用者狀態</h2>
+      <ul class="online-list" id="online-list">
+        <li><span class="online-dot offline"></span>載入中…</li>
+      </ul>
+    </div>
+
+    <!-- 系統資訊 -->
+    <div class="section">
+      <h2>系統資訊</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Firebase 連線</div>
+          <div class="value dot-green" id="fb-status">⬤ 連線中</div>
+        </div>
+        <div class="info-item">
+          <div class="label">最後同步</div>
+          <div class="value" id="last-sync">—</div>
+        </div>
+        <div class="info-item">
+          <div class="label">專案 ID</div>
+          <div class="value" id="proj-id" style="font-size:12px;word-break:break-all">—</div>
+        </div>
+        <div class="info-item">
+          <div class="label">瀏覽器</div>
+          <div class="value" style="font-size:12px" id="browser-info">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 備忘錄 -->
+    <div class="section">
+      <h2>共用備忘錄</h2>
+      <textarea class="memo-area" id="memo" placeholder="兩人共用的備忘空間…"></textarea>
+    </div>
+
+    <!-- 危險操作 -->
+    <div class="section danger-section">
+      <h2>資料管理</h2>
+      <div class="danger-grid">
+        <button class="danger-btn" onclick="clearModule('menu')">清除 菜單</button>
+        <button class="danger-btn" onclick="clearModule('schedule')">清除 班表</button>
+        <button class="danger-btn" onclick="clearModule('estimate')">清除 預估</button>
+        <button class="danger-btn" onclick="clearModule('price')">清除 查價</button>
+        <button class="danger-btn" onclick="clearModule('items')">清除 品項</button>
+      </div>
+      <p style="font-size:12px;color:#aaa;margin-top:10px">清除後無法復原，請謹慎操作</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    let autoSave;
+    let _remoteUpdate = false;
+
+    requireAuth((user) => {
+      injectStatusBar('admin');
+
+      // 顯示使用者資訊
+      const name  = user.displayName || user.email;
+      const email = user.email;
+      document.getElementById('avatar').textContent     = name.charAt(0).toUpperCase();
+      document.getElementById('user-name').textContent  = name;
+      document.getElementById('user-email').textContent = email;
+
+      // 系統資訊
+      document.getElementById('proj-id').textContent    = FIREBASE_CONFIG.projectId || '—';
+      document.getElementById('browser-info').textContent =
+        navigator.userAgent.split(' ').slice(-2).join(' ');
+
+      // 備忘自動儲存
+      autoSave = makeAutoSave('admin', () => ({
+        memo: document.getElementById('memo').value
+      }));
+
+      startSync('admin', user, (content) => {
+        if (!content) return;
+        _remoteUpdate = true;
+        if (content.memo !== undefined) document.getElementById('memo').value = content.memo;
+        document.getElementById('last-sync').textContent = new Date().toLocaleTimeString('zh-TW');
+        _remoteUpdate = false;
+      });
+
+      document.getElementById('memo').addEventListener('input', () => {
+        if (_remoteUpdate) return;
+        autoSave();
+      });
+
+      // 在線狀態（presence via Firestore heartbeat）
+      setupPresence(user);
+    });
+
+    async function setupPresence(user) {
+      const { db } = initFirebase();
+      const me = user.displayName || user.email;
+
+      // 寫入自己的心跳
+      const presRef = db.collection('presence').doc(user.uid);
+      await presRef.set({ name: me, online: true, ts: firebase.firestore.FieldValue.serverTimestamp() });
+
+      // 離開時標記離線（盡力而為）
+      window.addEventListener('beforeunload', () => {
+        presRef.set({ name: me, online: false, ts: firebase.firestore.FieldValue.serverTimestamp() });
+      });
+
+      // 監聽所有在線狀態
+      db.collection('presence').onSnapshot((snap) => {
+        const ul = document.getElementById('online-list');
+        ul.innerHTML = '';
+        if (snap.empty) {
+          ul.innerHTML = '<li><span class="online-dot offline"></span>無資料</li>';
+          return;
+        }
+        snap.docs.forEach(doc => {
+          const d = doc.data();
+          const isOnline = d.online && d.ts &&
+            (Date.now() - (d.ts.toMillis ? d.ts.toMillis() : Date.now())) < 120000;
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="online-dot ${isOnline ? '' : 'offline'}"></span>
+            <span>${d.name || doc.id}</span>
+            <span style="font-size:12px;color:#bbb;margin-left:auto">${isOnline ? '在線' : '離線'}</span>`;
+          ul.appendChild(li);
+        });
+      });
+    }
+
+    async function doLogout() {
+      if (!confirm('確定要登出嗎？')) return;
+      // 清除本機測試模式
+      localStorage.removeItem('adminhub_test_user');
+      const { auth, db } = initFirebase();
+      const user = auth.currentUser;
+      if (user) {
+        await db.collection('presence').doc(user.uid).set({
+          name: user.displayName || user.email,
+          online: false,
+          ts: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      await auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    async function clearModule(name) {
+      if (!confirm(`確定要清除「${name}」的所有資料？此操作無法復原。`)) return;
+      const { db } = initFirebase();
+      await db.collection('modules').doc(name).delete();
+      alert(`已清除 ${name}`);
+    }
+  </script>
+</body>
+</html>

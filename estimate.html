@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>烤鴨預估 — Admin Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'PingFang TC', sans-serif;
+      background: #f9f9f7; color: #1a1a1a;
+      padding-top: 60px; min-height: 100vh;
+    }
+    .page { max-width: 700px; margin: 0 auto; padding: 28px 20px 60px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 22px; }
+
+    .date-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .date-row label { font-size: 14px; color: #555; white-space: nowrap; }
+    .date-row input[type="date"] {
+      padding: 7px 12px; border: 1.5px solid #ddd; border-radius: 6px;
+      font-size: 14px; outline: none; font-family: inherit;
+    }
+    .date-row input[type="date"]:focus { border-color: #3b6fd4; }
+
+    .card {
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      padding: 20px 24px; margin-bottom: 18px;
+    }
+    .card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: #333; }
+
+    .slot-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+    .slot {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .slot label { font-size: 12px; color: #888; }
+    .slot input {
+      padding: 8px 10px; border: 1.5px solid #e0e0e0; border-radius: 6px;
+      font-size: 20px; font-weight: 700; text-align: center;
+      outline: none; width: 100%; color: #1a1a1a;
+    }
+    .slot input:focus { border-color: #3b6fd4; background: #ebf0ff; }
+
+    .total-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0 0; border-top: 1px solid #f0f0f0; margin-top: 14px;
+    }
+    .total-row .label { font-size: 15px; font-weight: 600; }
+    .total-row .num {
+      font-size: 28px; font-weight: 800; color: #3b6fd4;
+    }
+    .total-row .unit { font-size: 14px; color: #999; margin-left: 4px; }
+
+    .notes-card { background: #fff; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07); padding: 20px 24px; }
+    .notes-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #333; }
+    .notes-card textarea {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 6px;
+      font-size: 14px; resize: vertical; min-height: 90px;
+      font-family: inherit; outline: none;
+    }
+    .notes-card textarea:focus { border-color: #3b6fd4; }
+
+    .history-card {
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      padding: 20px 24px; margin-top: 18px;
+    }
+    .history-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #333; }
+    .history-list { list-style: none; }
+    .history-list li {
+      display: flex; justify-content: space-between;
+      padding: 7px 0; border-bottom: 1px solid #f5f5f5;
+      font-size: 13px;
+    }
+    .history-list li:last-child { border-bottom: none; }
+    .h-date { color: #555; }
+    .h-total { font-weight: 700; color: #3b6fd4; }
+    .btn-save {
+      margin-top: 14px; padding: 8px 20px;
+      border: 1.5px solid #1a1a1a; border-radius: 6px;
+      background: #1a1a1a; color: #fff; font-size: 14px;
+      cursor: pointer;
+    }
+    .btn-save:hover { background: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <h1>🦆 烤鴨預估</h1>
+
+    <div class="date-row">
+      <label>日期</label>
+      <input type="date" id="est-date">
+    </div>
+
+    <div class="card">
+      <h2>各時段數量</h2>
+      <div class="slot-grid" id="slots-grid"></div>
+      <div class="total-row">
+        <span class="label">今日合計</span>
+        <span><span class="num" id="total-num">0</span><span class="unit">隻</span></span>
+      </div>
+    </div>
+
+    <div class="notes-card">
+      <h2>備註</h2>
+      <textarea id="est-notes" placeholder="特殊狀況、備料備忘…"></textarea>
+    </div>
+
+    <div class="history-card">
+      <h2>近期紀錄</h2>
+      <ul class="history-list" id="hist-list">
+        <li style="color:#bbb;font-size:13px">尚無紀錄</li>
+      </ul>
+      <button class="btn-save" onclick="saveToHistory()">📌 儲存今日紀錄</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    const SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+    let data = { date: '', slots: {}, notes: '', history: [] };
+    let autoSave;
+    let _remoteUpdate = false;
+
+    // Set today's date as default
+    const todayStr = new Date().toISOString().slice(0,10);
+    document.getElementById('est-date').value = todayStr;
+
+    requireAuth((user) => {
+      injectStatusBar('estimate');
+      autoSave = makeAutoSave('estimate', () => data);
+      startSync('estimate', user, (content) => {
+        if (!content) return;
+        _remoteUpdate = true;
+        data = content;
+        populateUI();
+        _remoteUpdate = false;
+      });
+      buildSlots();
+      populateUI();
+    });
+
+    function buildSlots() {
+      const grid = document.getElementById('slots-grid');
+      grid.innerHTML = '';
+      SLOTS.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'slot';
+        div.innerHTML = `<label>${s}</label><input type="number" min="0" id="slot-${s.replace(':','')}">`;
+        grid.appendChild(div);
+        div.querySelector('input').addEventListener('input', onSlotChange);
+      });
+    }
+
+    function onSlotChange() {
+      if (_remoteUpdate) return;
+      SLOTS.forEach(s => {
+        const el = document.getElementById(`slot-${s.replace(':','')}`);
+        data.slots[s] = parseInt(el.value) || 0;
+      });
+      data.date = document.getElementById('est-date').value;
+      updateTotal();
+      autoSave();
+    }
+
+    function populateUI() {
+      if (data.date) document.getElementById('est-date').value = data.date;
+      SLOTS.forEach(s => {
+        const el = document.getElementById(`slot-${s.replace(':','')}`);
+        if (el) el.value = data.slots[s] || '';
+      });
+      document.getElementById('est-notes').value = data.notes || '';
+      renderHistory();
+      updateTotal();
+    }
+
+    function updateTotal() {
+      const total = SLOTS.reduce((sum, s) => sum + (parseInt(data.slots[s]) || 0), 0);
+      document.getElementById('total-num').textContent = total;
+    }
+
+    document.getElementById('est-date').addEventListener('change', () => {
+      if (_remoteUpdate) return;
+      data.date = document.getElementById('est-date').value;
+      autoSave();
+    });
+
+    document.getElementById('est-notes').addEventListener('input', () => {
+      if (_remoteUpdate) return;
+      data.notes = document.getElementById('est-notes').value;
+      autoSave();
+    });
+
+    function saveToHistory() {
+      const total = SLOTS.reduce((sum, s) => sum + (parseInt(data.slots[s]) || 0), 0);
+      const entry = { date: data.date || todayStr, total, notes: data.notes };
+      if (!data.history) data.history = [];
+      // Replace if same date
+      const idx = data.history.findIndex(h => h.date === entry.date);
+      if (idx >= 0) data.history[idx] = entry; else data.history.unshift(entry);
+      data.history = data.history.slice(0, 20); // keep 20
+      renderHistory();
+      autoSave();
+    }
+
+    function renderHistory() {
+      const ul = document.getElementById('hist-list');
+      if (!data.history || !data.history.length) {
+        ul.innerHTML = '<li style="color:#bbb;font-size:13px">尚無紀錄</li>';
+        return;
+      }
+      ul.innerHTML = data.history.map(h =>
+        `<li><span class="h-date">${h.date}</span><span class="h-total">${h.total} 隻</span></li>`
+      ).join('');
+    }
+  </script>
+</body>
+</html>

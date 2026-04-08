@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查價 — Admin Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'PingFang TC', sans-serif;
+      background: #f9f9f7; color: #1a1a1a;
+      padding-top: 60px; min-height: 100vh;
+    }
+    .page { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+
+    .toolbar {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 160px; }
+    .search-wrap input {
+      width: 100%; padding: 7px 12px 7px 34px;
+      border: 1.5px solid #ddd; border-radius: 6px; font-size: 14px;
+      outline: none;
+    }
+    .search-wrap input:focus { border-color: #3b6fd4; }
+    .search-wrap .icon {
+      position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%); color: #aaa; font-size: 14px;
+    }
+    .btn {
+      padding: 7px 16px; border-radius: 6px; border: 1.5px solid #1a1a1a;
+      background: #1a1a1a; color: #fff; font-size: 14px;
+      cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover { background: #333; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      background: #fff; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    thead th {
+      background: #1a1a1a; color: #fff;
+      padding: 10px 12px; text-align: left; font-size: 13px;
+      cursor: pointer; user-select: none;
+    }
+    thead th:hover { background: #333; }
+    thead th .sort { opacity: .4; margin-left: 4px; }
+    thead th.sorted .sort { opacity: 1; }
+
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+    td { padding: 0; }
+    td.idx { padding: 10px 12px; font-size: 12px; color: #ccc; width: 32px; }
+
+    td [contenteditable] {
+      display: block; width: 100%; padding: 10px 12px;
+      font-size: 14px; outline: none; min-height: 38px;
+    }
+    td [contenteditable]:focus { background: #ebf0ff; }
+    td [contenteditable][data-ph]:empty::before {
+      content: attr(data-ph); color: #bbb; pointer-events: none;
+    }
+
+    .col-item     { min-width: 120px; }
+    .col-unit     { width: 70px; }
+    .col-price    { width: 90px; }
+    .col-supplier { width: 130px; }
+    .col-date     { width: 110px; }
+    .col-note     { min-width: 150px; }
+    .col-del      { width: 44px; text-align: center; }
+
+    .del-btn {
+      background: none; border: none; cursor: pointer;
+      color: #ccc; font-size: 16px; padding: 6px;
+    }
+    .del-btn:hover { color: #e53935; }
+
+    .no-result {
+      text-align: center; padding: 40px; color: #bbb; font-size: 14px;
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr 70px 90px 130px 110px 1fr auto;
+      gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .add-form input {
+      padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px;
+      font-size: 13px; outline: none;
+    }
+    .add-form input:focus { border-color: #3b6fd4; }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <h1>🔍 價格查詢</h1>
+
+    <div class="add-form" id="add-form">
+      <input id="f-item"     placeholder="品項名稱">
+      <input id="f-unit"     placeholder="單位">
+      <input id="f-price"    placeholder="單價" type="number">
+      <input id="f-supplier" placeholder="供應商">
+      <input id="f-date"     placeholder="更新日期" type="date">
+      <input id="f-note"     placeholder="備註">
+      <button class="btn" onclick="addRow()">＋ 新增</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="icon">🔍</span>
+        <input type="text" id="search" placeholder="搜尋品項、供應商…">
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th class="col-item"     onclick="sortBy('item')">品項<span class="sort">↕</span></th>
+          <th class="col-unit">單位</th>
+          <th class="col-price"    onclick="sortBy('price')">單價<span class="sort">↕</span></th>
+          <th class="col-supplier" onclick="sortBy('supplier')">供應商<span class="sort">↕</span></th>
+          <th class="col-date"     onclick="sortBy('date')">更新日期<span class="sort">↕</span></th>
+          <th class="col-note">備註</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="price-body"></tbody>
+    </table>
+    <div id="no-result" class="no-result" style="display:none">找不到符合結果</div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    const FIELDS = ['item','unit','price','supplier','date','note'];
+    let rows = [];
+    let autoSave;
+    let sortField = '', sortAsc = true;
+    let _remoteUpdate = false;
+
+    requireAuth((user) => {
+      injectStatusBar('price');
+      autoSave = makeAutoSave('price', () => rows);
+      startSync('price', user, (content) => {
+        if (!content) return;
+        _remoteUpdate = true;
+        rows = content;
+        renderTable();
+        _remoteUpdate = false;
+      });
+    });
+
+    document.getElementById('search').addEventListener('input', renderTable);
+
+    function sortBy(field) {
+      if (sortField === field) sortAsc = !sortAsc; else { sortField = field; sortAsc = true; }
+      renderTable();
+    }
+
+    function renderTable() {
+      const q = document.getElementById('search').value.toLowerCase();
+      let filtered = rows.filter(r =>
+        FIELDS.some(f => (r[f]||'').toLowerCase().includes(q))
+      );
+      if (sortField) {
+        filtered.sort((a,b) => {
+          const va = a[sortField]||'', vb = b[sortField]||'';
+          if (sortField === 'price') return sortAsc ? (+va)-(+vb) : (+vb)-(+va);
+          return sortAsc ? va.localeCompare(vb,'zh') : vb.localeCompare(va,'zh');
+        });
+      }
+      document.getElementById('no-result').style.display = filtered.length ? 'none' : 'block';
+
+      const tbody = document.getElementById('price-body');
+      tbody.innerHTML = '';
+      filtered.forEach((r, vi) => {
+        const ri = rows.indexOf(r);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="idx">${vi+1}</td>
+          ${FIELDS.map(f => `<td class="col-${f}"><div contenteditable data-field="${f}" data-idx="${ri}"
+            data-ph="${phMap[f]}">${esc(r[f])}</div></td>`).join('')}
+          <td class="col-del"><button class="del-btn" onclick="delRow(${ri})">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('[contenteditable]').forEach(el => {
+        el.addEventListener('input', () => {
+          if (_remoteUpdate) return;
+          rows[+el.dataset.idx][el.dataset.field] = el.textContent.trim();
+          autoSave();
+        });
+      });
+    }
+
+    const phMap = { item:'品項', unit:'單位', price:'單價', supplier:'供應商', date:'日期', note:'備註' };
+
+    function addRow() {
+      const r = {};
+      FIELDS.forEach(f => {
+        r[f] = (document.getElementById('f-'+f)||{}).value || '';
+      });
+      rows.unshift(r);
+      renderTable();
+      autoSave();
+      FIELDS.forEach(f => { const el = document.getElementById('f-'+f); if(el) el.value=''; });
+    }
+
+    function delRow(i) {
+      rows.splice(i, 1);
+      renderTable();
+      autoSave();
+    }
+
+    function esc(s) {
+      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>班表 — Admin Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'PingFang TC', sans-serif;
+      background: #f9f9f7; color: #1a1a1a;
+      padding-top: 60px; min-height: 100vh;
+    }
+    .page { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+
+    .week-nav {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+    .week-label { font-size: 15px; font-weight: 600; color: #444; }
+    .nav-btn {
+      padding: 5px 12px; border: 1.5px solid #ccc; border-radius: 6px;
+      background: #fff; cursor: pointer; font-size: 13px;
+    }
+    .nav-btn:hover { background: #f0f0f0; }
+
+    .notes-row {
+      margin-bottom: 16px;
+    }
+    .notes-row label { font-size: 13px; color: #888; display: block; margin-bottom: 4px; }
+    .notes-row textarea {
+      width: 100%; padding: 8px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 6px;
+      font-size: 14px; resize: vertical; min-height: 56px;
+      font-family: inherit; outline: none;
+    }
+    .notes-row textarea:focus { border-color: #3b6fd4; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      background: #fff; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    thead th {
+      padding: 10px 8px; text-align: center; font-size: 13px;
+      background: #1a1a1a; color: #fff;
+    }
+    thead th.th-name { background: #333; }
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:last-child { border-bottom: none; }
+    td {
+      padding: 0; text-align: center; vertical-align: middle;
+      border-right: 1px solid #f0f0f0;
+    }
+    td:last-child { border-right: none; }
+    td.name-cell {
+      padding: 10px 14px; font-size: 14px; font-weight: 600;
+      background: #fafafa; min-width: 64px; text-align: left;
+    }
+    td [contenteditable] {
+      display: block; width: 100%; min-height: 42px;
+      padding: 8px 6px; font-size: 13px; outline: none;
+      transition: background .1s;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    td [contenteditable]:focus { background: #ebf0ff; }
+    td [contenteditable][data-ph]:empty::before {
+      content: attr(data-ph); color: #ddd; pointer-events: none;
+    }
+
+    .today-col { background: #fffde7 !important; }
+    .today-head { background: #f5a623 !important; }
+
+    .legend {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      margin-top: 16px; font-size: 12px; color: #888;
+    }
+    .legend span::before { content: '●'; margin-right: 4px; }
+    .l-morning::before  { color: #4caf50; }
+    .l-evening::before  { color: #2196f3; }
+    .l-off::before      { color: #bbb; }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <h1>📅 班表</h1>
+
+    <div class="week-nav">
+      <button class="nav-btn" onclick="shiftWeek(-1)">◀ 上週</button>
+      <span class="week-label" id="week-label"></span>
+      <button class="nav-btn" onclick="shiftWeek(1)">下週 ▶</button>
+      <button class="nav-btn" onclick="goToday()">本週</button>
+    </div>
+
+    <div class="notes-row">
+      <label>本週備註</label>
+      <textarea id="week-notes" placeholder="輸入本週補充事項…"></textarea>
+    </div>
+
+    <table>
+      <thead id="sched-head"></thead>
+      <tbody id="sched-body"></tbody>
+    </table>
+
+    <div class="legend">
+      <span class="l-morning">早班</span>
+      <span class="l-evening">晚班</span>
+      <span class="l-off">休假</span>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    const DAYS = ['一','二','三','四','五','六','日'];
+    const PEOPLE = ['Shu', 'Su'];
+    let weekOffset = 0;
+    // data[weekKey][person][dayIdx] = text
+    let data = {};
+    let autoSave;
+    let _remoteUpdate = false;
+
+    requireAuth((user) => {
+      injectStatusBar('schedule');
+      autoSave = makeAutoSave('schedule', () => data);
+      startSync('schedule', user, (content) => {
+        if (!content) return;
+        _remoteUpdate = true;
+        data = content;
+        render();
+        _remoteUpdate = false;
+      });
+      render();
+    });
+
+    function getMonday(offset) {
+      const d = new Date();
+      const day = d.getDay() || 7;
+      d.setDate(d.getDate() - day + 1 + offset * 7);
+      d.setHours(0,0,0,0);
+      return d;
+    }
+
+    function weekKey(offset) {
+      const m = getMonday(offset);
+      return `${m.getFullYear()}-W${String(isoWeek(m)).padStart(2,'0')}`;
+    }
+
+    function isoWeek(d) {
+      const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay()||7));
+      return Math.ceil((((tmp - new Date(Date.UTC(tmp.getUTCFullYear(),0,1)))/86400000)+1)/7);
+    }
+
+    function shiftWeek(n) { weekOffset += n; render(); }
+    function goToday()    { weekOffset = 0; render(); }
+
+    function render() {
+      const mon = getMonday(weekOffset);
+      const wk  = weekKey(weekOffset);
+      const today = new Date(); today.setHours(0,0,0,0);
+
+      // Week label
+      const fri = new Date(mon); fri.setDate(fri.getDate()+6);
+      document.getElementById('week-label').textContent =
+        `${mon.getMonth()+1}/${mon.getDate()} — ${fri.getMonth()+1}/${fri.getDate()}`;
+
+      // Ensure structure
+      if (!data[wk]) data[wk] = { notes: '', rows: {} };
+      if (!data[wk].rows) data[wk].rows = {};
+      PEOPLE.forEach(p => { if (!data[wk].rows[p]) data[wk].rows[p] = Array(7).fill(''); });
+
+      // Notes
+      const notesEl = document.getElementById('week-notes');
+      notesEl.value = data[wk].notes || '';
+      notesEl.oninput = () => {
+        if (_remoteUpdate) return;
+        data[wk].notes = notesEl.value;
+        autoSave();
+      };
+
+      // Header
+      const thead = document.getElementById('sched-head');
+      thead.innerHTML = '';
+      const hr = document.createElement('tr');
+      hr.innerHTML = `<th class="th-name">人員</th>`;
+      DAYS.forEach((d, i) => {
+        const dt = new Date(mon); dt.setDate(dt.getDate()+i);
+        const isToday = dt.getTime() === today.getTime();
+        hr.innerHTML += `<th class="${isToday ? 'today-head' : ''}">${d}<br><span style="font-weight:400;font-size:11px">${dt.getMonth()+1}/${dt.getDate()}</span></th>`;
+      });
+      thead.appendChild(hr);
+
+      // Body
+      const tbody = document.getElementById('sched-body');
+      tbody.innerHTML = '';
+      PEOPLE.forEach(person => {
+        const tr = document.createElement('tr');
+        let html = `<td class="name-cell">${person}</td>`;
+        DAYS.forEach((d, i) => {
+          const dt = new Date(mon); dt.setDate(dt.getDate()+i);
+          const isToday = dt.getTime() === today.getTime();
+          const val = data[wk].rows[person][i] || '';
+          html += `<td class="${isToday ? 'today-col' : ''}">
+            <div contenteditable data-wk="${wk}" data-person="${person}" data-day="${i}"
+              data-ph="—">${esc(val)}</div></td>`;
+        });
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('[contenteditable]').forEach(el => {
+        el.addEventListener('input', () => {
+          if (_remoteUpdate) return;
+          const { wk, person, day } = el.dataset;
+          if (!data[wk]) data[wk] = { notes:'', rows:{} };
+          if (!data[wk].rows[person]) data[wk].rows[person] = Array(7).fill('');
+          data[wk].rows[person][+day] = el.textContent.trim();
+          autoSave();
+        });
+      });
+    }
+
+    function esc(s) {
+      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>

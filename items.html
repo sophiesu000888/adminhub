@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>便當品項 — Admin Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'PingFang TC', sans-serif;
+      background: #f9f9f7; color: #1a1a1a;
+      padding-top: 60px; min-height: 100vh;
+    }
+    .page { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+
+    .top-bar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .top-bar input[type="text"] {
+      flex: 1; min-width: 160px; padding: 7px 12px;
+      border: 1.5px solid #ddd; border-radius: 6px; font-size: 14px;
+      outline: none;
+    }
+    .top-bar input:focus { border-color: #3b6fd4; }
+    .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 5px 12px; border: 1.5px solid #ccc; border-radius: 20px;
+      background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: #3b6fd4; color: #3b6fd4; }
+    .filter-btn.active { border-color: #3b6fd4; background: #ebf0ff; color: #3b6fd4; font-weight: 600; }
+    .btn {
+      padding: 7px 16px; border-radius: 6px; border: 1.5px solid #1a1a1a;
+      background: #1a1a1a; color: #fff; font-size: 14px;
+      cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover { background: #333; }
+
+    /* 新增表單 */
+    .add-form {
+      display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .add-form input, .add-form select {
+      padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px;
+      font-size: 13px; outline: none; font-family: inherit;
+    }
+    .add-form input:focus, .add-form select:focus { border-color: #3b6fd4; }
+    .add-form .f-name  { flex: 2; min-width: 110px; }
+    .add-form .f-cat   { flex: 1; min-width: 90px; }
+    .add-form .f-price { width: 80px; }
+    .add-form .f-note  { flex: 2; min-width: 110px; }
+
+    /* 卡片格線 */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .item-card {
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      padding: 14px 16px; position: relative;
+      border-left: 4px solid #e0e0e0;
+      transition: box-shadow .15s;
+    }
+    .item-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .item-card.avail  { border-left-color: #4caf50; }
+    .item-card.unavail { border-left-color: #ccc; opacity: .65; }
+
+    .ic-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 6px;
+    }
+    .ic-name {
+      font-size: 15px; font-weight: 700;
+      outline: none; flex: 1; margin-right: 6px;
+      min-height: 22px;
+    }
+    .ic-name:focus { background: #ebf0ff; border-radius: 3px; }
+    .ic-actions { display: flex; gap: 4px; }
+    .ic-toggle {
+      font-size: 11px; padding: 3px 7px;
+      border-radius: 4px; border: 1.5px solid #ccc;
+      background: #fff; cursor: pointer; white-space: nowrap;
+    }
+    .avail  .ic-toggle { border-color: #4caf50; color: #4caf50; }
+    .unavail .ic-toggle { border-color: #bbb; color: #bbb; }
+    .ic-del {
+      background: none; border: none; cursor: pointer;
+      color: #ddd; font-size: 14px; padding: 2px;
+    }
+    .ic-del:hover { color: #e53935; }
+
+    .ic-meta {
+      display: flex; gap: 8px; font-size: 12px; color: #888;
+      flex-wrap: wrap; margin-bottom: 4px;
+    }
+    .ic-cat {
+      background: #f0f0f0; border-radius: 4px;
+      padding: 1px 6px; font-size: 11px;
+    }
+    .ic-price { font-weight: 600; color: #3b6fd4; font-size: 14px; }
+
+    .ic-note {
+      font-size: 12px; color: #999;
+      outline: none; display: block; width: 100%;
+      min-height: 16px; margin-top: 4px;
+    }
+    .ic-note:focus { background: #ebf0ff; border-radius: 3px; }
+    .ic-note[data-ph]:empty::before { content: attr(data-ph); color: #ddd; }
+
+    .empty-msg {
+      text-align: center; padding: 48px; color: #ccc; font-size: 15px;
+    }
+
+    /* 統計 */
+    .stats {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 16px; font-size: 13px; color: #888;
+    }
+    .stats strong { color: #1a1a1a; }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <h1>🍱 便當品項一覽</h1>
+
+    <div class="add-form">
+      <input class="f-name"  id="f-name"  placeholder="品名">
+      <input class="f-cat"   id="f-cat"   placeholder="分類">
+      <input class="f-price" id="f-price" placeholder="售價" type="number">
+      <input class="f-note"  id="f-note"  placeholder="備註">
+      <button class="btn" onclick="addItem()">＋ 新增</button>
+    </div>
+
+    <div class="top-bar">
+      <input type="text" id="search" placeholder="搜尋品項…">
+      <div class="filter-btns" id="filter-btns">
+        <button class="filter-btn active" data-f="all">全部</button>
+        <button class="filter-btn" data-f="avail">供應中</button>
+        <button class="filter-btn" data-f="unavail">暫停</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <div class="items-grid" id="items-grid"></div>
+    <div class="empty-msg" id="empty-msg" style="display:none">沒有符合的品項</div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    let items = [];
+    let autoSave;
+    let filterMode = 'all';
+    let _remoteUpdate = false;
+
+    requireAuth((user) => {
+      injectStatusBar('items');
+      autoSave = makeAutoSave('items', () => items);
+      startSync('items', user, (content) => {
+        if (!content) return;
+        _remoteUpdate = true;
+        items = content;
+        render();
+        _remoteUpdate = false;
+      });
+    });
+
+    document.getElementById('search').addEventListener('input', render);
+    document.getElementById('filter-btns').addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      filterMode = btn.dataset.f;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+
+    function render() {
+      const q = document.getElementById('search').value.toLowerCase();
+      let list = items.filter(it => {
+        const matchQ = (it.name||'').toLowerCase().includes(q) ||
+                       (it.cat||'').toLowerCase().includes(q);
+        const matchF = filterMode === 'all' ||
+                       (filterMode === 'avail'   && it.avail !== false) ||
+                       (filterMode === 'unavail' && it.avail === false);
+        return matchQ && matchF;
+      });
+
+      // Stats
+      const total  = items.length;
+      const avail  = items.filter(i => i.avail !== false).length;
+      document.getElementById('stats').innerHTML =
+        `<span>全部 <strong>${total}</strong></span>
+         <span>供應中 <strong style="color:#4caf50">${avail}</strong></span>
+         <span>暫停 <strong>${total - avail}</strong></span>`;
+
+      const grid = document.getElementById('items-grid');
+      const empty = document.getElementById('empty-msg');
+      grid.innerHTML = '';
+      empty.style.display = list.length ? 'none' : 'block';
+
+      list.forEach((it) => {
+        const ri = items.indexOf(it);
+        const isAvail = it.avail !== false;
+        const card = document.createElement('div');
+        card.className = `item-card ${isAvail ? 'avail' : 'unavail'}`;
+        card.innerHTML = `
+          <div class="ic-top">
+            <div class="ic-name" contenteditable data-idx="${ri}" data-field="name">${esc(it.name)}</div>
+            <div class="ic-actions">
+              <button class="ic-toggle" onclick="toggleAvail(${ri})">${isAvail ? '供應中' : '已暫停'}</button>
+              <button class="ic-del" onclick="delItem(${ri})">✕</button>
+            </div>
+          </div>
+          <div class="ic-meta">
+            <span class="ic-cat">${esc(it.cat||'未分類')}</span>
+            <span class="ic-price">${it.price ? '$' + it.price : '—'}</span>
+          </div>
+          <div class="ic-note" contenteditable data-idx="${ri}" data-field="note"
+               data-ph="備註…">${esc(it.note)}</div>
+        `;
+        grid.appendChild(card);
+      });
+
+      grid.querySelectorAll('[contenteditable]').forEach(el => {
+        el.addEventListener('input', () => {
+          if (_remoteUpdate) return;
+          items[+el.dataset.idx][el.dataset.field] = el.textContent.trim();
+          autoSave();
+        });
+      });
+    }
+
+    function addItem() {
+      items.unshift({
+        name:  document.getElementById('f-name').value.trim(),
+        cat:   document.getElementById('f-cat').value.trim(),
+        price: document.getElementById('f-price').value.trim(),
+        note:  document.getElementById('f-note').value.trim(),
+        avail: true
+      });
+      render(); autoSave();
+      ['f-name','f-cat','f-price','f-note'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function toggleAvail(i) {
+      items[i].avail = items[i].avail === false ? true : false;
+      render(); autoSave();
+    }
+
+    function delItem(i) { items.splice(i,1); render(); autoSave(); }
+
+    function esc(s) {
+      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>
