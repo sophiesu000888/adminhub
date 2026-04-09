@@ -31,6 +31,7 @@
       transition: opacity .3s;
     }
     #login-overlay.hidden { opacity: 0; pointer-events: none; }
+    #login-overlay.gone   { display: none; }
 
     .login-box {
       background: #fff;
@@ -119,7 +120,6 @@
       width: 104px; height: 120px;
       cursor: pointer;
     }
-    /* 堆疊陰影層 */
     .card-wrap::after {
       content: '';
       position: absolute;
@@ -232,7 +232,7 @@
   <script src="firebase-config.js"></script>
 
   <script>
-    // ── 使用者選擇（先綁定，不依賴 Firebase）────────
+    // ── 使用者選擇 ────────────────────────────
     let selectedUser = 'Shu';
     function selectUser(name) {
       selectedUser = name;
@@ -246,7 +246,7 @@
       btn.addEventListener('click', () => selectUser(btn.dataset.user));
     });
 
-    // ── Firebase 初始化 ───────────────────────────
+    // ── Firebase 初始化 ───────────────────────
     let auth;
     try {
       firebase.initializeApp(FIREBASE_CONFIG);
@@ -255,14 +255,14 @@
       console.error('Firebase 初始化失敗', e);
     }
 
-    // ── 還原登入狀態 ──────────────────────────────
+    // ── 還原登入狀態 ──────────────────────────
     if (localStorage.getItem('adminhub_test_user')) {
       showMain();
     } else if (auth) {
       auth.onAuthStateChanged((user) => { if (user) showMain(); });
     }
 
-    // ── 登入 ─────────────────────────────────────
+    // ── 登入 ──────────────────────────────────
     document.getElementById('login-btn').addEventListener('click', doLogin);
     document.getElementById('pw-input').addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();
@@ -274,7 +274,6 @@
       if (!pw) { errEl.textContent = '請輸入密碼'; return; }
       errEl.textContent = '';
 
-      // ── 本機測試模式：只在 localhost / file:// 允許 ok 密碼 ──
       const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
       if (isLocal && pw.toLowerCase() === 'ok') {
         localStorage.setItem('adminhub_test_user', JSON.stringify({
@@ -286,7 +285,6 @@
         return;
       }
 
-      // ── 正式登入：Firebase Authentication ──
       const email = USERS[selectedUser];
       document.getElementById('login-btn').textContent = '登入中…';
       try {
@@ -295,10 +293,10 @@
       } catch (e) {
         document.getElementById('login-btn').textContent = '登入';
         const msg = {
-          'auth/wrong-password':       '密碼錯誤，請再試一次',
-          'auth/user-not-found':       '找不到此帳號',
-          'auth/invalid-credential':   '帳號或密碼錯誤',
-          'auth/unauthorized-domain':  '網域未授權，請在 Firebase Console → Authentication → Settings → 已授權網域 加入此網站網址',
+          'auth/wrong-password':         '密碼錯誤，請再試一次',
+          'auth/user-not-found':         '找不到此帳號',
+          'auth/invalid-credential':     '帳號或密碼錯誤',
+          'auth/unauthorized-domain':    '網域未授權，請在 Firebase Console → Authentication → Settings → 已授權網域 加入此網站網址',
           'auth/network-request-failed': '網路錯誤，請檢查連線',
         }[e.code] || `錯誤：${e.code}`;
         errEl.textContent = msg;
@@ -310,7 +308,8 @@
     function showMain() {
       const overlay = document.getElementById('login-overlay');
       overlay.classList.add('hidden');
-      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+      // 加 gone class 確保 overlay 完全從排版中消失，不影響卡片顯示
+      setTimeout(() => { overlay.classList.add('gone'); }, 300);
       document.getElementById('main').classList.add('visible');
     }
 
