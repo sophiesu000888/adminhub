@@ -9,6 +9,15 @@ function _testUser() {
   try { return JSON.parse(localStorage.getItem(_TEST_KEY)); } catch(e) { return null; }
 }
 
+// Email 對應暱稱
+function _getNickname(emailOrName) {
+  const map = {
+    's802316s@gmail.com': 'shu',
+    'sophiesu000@gmail.com': 'su'
+  };
+  return map[emailOrName] || emailOrName;
+}
+
 let _db = null;
 let _auth = null;
 
@@ -92,7 +101,7 @@ function setSyncStatus(text, type) {
 function setLastSaved(displayName, isMe, timestamp) {
   const el = document.getElementById('sb-last');
   if (!el) return;
-  const who = isMe ? '你' : displayName;
+  const who = isMe ? '你' : _getNickname(displayName);
   const time = timestamp ? _fmtTime(timestamp.toDate ? timestamp.toDate() : new Date(timestamp)) : '剛剛';
   el.textContent = `最後儲存：${who}　${time}`;
 }
@@ -117,7 +126,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
         localStorage.setItem('adminhub_data_' + moduleName, JSON.stringify(getDataFn()));
         const tu = _testUser();
         const el = document.getElementById('sb-last');
-        if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}（本機）`;
+        if (el) el.textContent = `最後儲存：${tu ? _getNickname(tu.email || tu.displayName) : '你'}（本機）`;
         setSyncStatus('✓ 已儲存', 'saved');
       }, debounceMs);
     };
@@ -135,7 +144,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
         content: getDataFn(),
         lastSaved: {
           uid: user.uid,
-          displayName: user.displayName || user.email,
+          displayName: user.email,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }
       };
