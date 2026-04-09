@@ -168,17 +168,26 @@
   <script src="firebase-config.js"></script>
   <script src="shared.js"></script>
   <script>
+    // Email 對應暱稱（與 shared.js 保持一致）
+    const NICKNAME_MAP = {
+      's802316s@gmail.com': 'Shu',
+      'sophiesu000@gmail.com': 'Su'
+    };
+    function getNickname(email) {
+      return NICKNAME_MAP[email] || email;
+    }
+
     let autoSave;
     let _remoteUpdate = false;
 
     requireAuth((user) => {
       injectStatusBar('admin');
 
-      // 顯示使用者資訊
-      const name  = user.displayName || user.email;
-      const email = user.email;
-      document.getElementById('avatar').textContent     = name.charAt(0).toUpperCase();
-      document.getElementById('user-name').textContent  = name;
+      // 顯示使用者資訊（用暱稱取代 email）
+      const email    = user.email;
+      const nickname = getNickname(email);
+      document.getElementById('avatar').textContent     = nickname.charAt(0).toUpperCase();
+      document.getElementById('user-name').textContent  = nickname;
       document.getElementById('user-email').textContent = email;
 
       // 系統資訊
@@ -210,18 +219,18 @@
 
     async function setupPresence(user) {
       const { db } = initFirebase();
-      const me = user.displayName || user.email;
+      const nickname = getNickname(user.email);
 
-      // 寫入自己的心跳
+      // 寫入自己的心跳（存暱稱）
       const presRef = db.collection('presence').doc(user.uid);
-      await presRef.set({ name: me, online: true, ts: firebase.firestore.FieldValue.serverTimestamp() });
+      await presRef.set({ name: nickname, email: user.email, online: true, ts: firebase.firestore.FieldValue.serverTimestamp() });
 
-      // 離開時標記離線（盡力而為）
+      // 離開時標記離線
       window.addEventListener('beforeunload', () => {
-        presRef.set({ name: me, online: false, ts: firebase.firestore.FieldValue.serverTimestamp() });
+        presRef.set({ name: nickname, email: user.email, online: false, ts: firebase.firestore.FieldValue.serverTimestamp() });
       });
 
-      // 監聽所有在線狀態
+      // 監聽所有在線狀態（顯示暱稱）
       db.collection('presence').onSnapshot((snap) => {
         const ul = document.getElementById('online-list');
         ul.innerHTML = '';
@@ -233,9 +242,10 @@
           const d = doc.data();
           const isOnline = d.online && d.ts &&
             (Date.now() - (d.ts.toMillis ? d.ts.toMillis() : Date.now())) < 120000;
+          const displayName = getNickname(d.email || '') || d.name || doc.id;
           const li = document.createElement('li');
           li.innerHTML = `<span class="online-dot ${isOnline ? '' : 'offline'}"></span>
-            <span>${d.name || doc.id}</span>
+            <span>${displayName}</span>
             <span style="font-size:12px;color:#bbb;margin-left:auto">${isOnline ? '在線' : '離線'}</span>`;
           ul.appendChild(li);
         });
@@ -244,13 +254,13 @@
 
     async function doLogout() {
       if (!confirm('確定要登出嗎？')) return;
-      // 清除本機測試模式
       localStorage.removeItem('adminhub_test_user');
       const { auth, db } = initFirebase();
       const user = auth.currentUser;
       if (user) {
         await db.collection('presence').doc(user.uid).set({
-          name: user.displayName || user.email,
+          name: getNickname(user.email),
+          email: user.email,
           online: false,
           ts: firebase.firestore.FieldValue.serverTimestamp()
         });
