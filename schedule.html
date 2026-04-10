@@ -26,6 +26,7 @@ body {
   background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
   background-size: 24px 24px;
   color: var(--ink); display: flex; flex-direction: column;
+  padding-top: 44px; /* status bar height */
 }
 
 
@@ -245,7 +246,7 @@ th.week-b { background: #e8eeff; }
 #drawerOverlay.open { display: block; }
 
 #overviewDrawer {
-  position: fixed; top: 0; right: -340px; width: 320px; height: 100%;
+  position: fixed; top: 44px; right: -340px; width: 320px; height: calc(100% - 44px);
   background: var(--card-bg);
   border-left: 3px solid var(--border-dark);
   box-shadow: -4px 0 16px rgba(0,0,0,0.15);
@@ -346,7 +347,7 @@ th.week-b { background: #e8eeff; }
 }
 #sideOverlay.open { display: block; }
 .side-drawer {
-  position: fixed; top: 0; right: -360px; width: 340px; height: 100%;
+  position: fixed; top: 44px; right: -360px; width: 340px; height: calc(100% - 44px);
   background: var(--card-bg); border-left: 3px solid var(--border-dark);
   box-shadow: -4px 0 16px rgba(0,0,0,0.15);
   z-index: 700; display: flex; flex-direction: column;
@@ -371,6 +372,10 @@ th.week-b { background: #e8eeff; }
 }
 .drawer-close-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--shadow); }
 .drawer-body { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; }
+/* 抽屜內部字型統一 */
+.drawer-body, .drawer-body * { font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif !important; }
+/* 側邊標籤按鈕樣式修正 */
+.side-tab-btn, #overviewBtn { appearance: none; -webkit-appearance: none; }
 
 /* #overviewBtn 樣式已併入 .side-tab-btn, #overviewBtn 共用規則 */
 </style>
@@ -1311,8 +1316,7 @@ requireAuth((user) => {
   startSync('schedule', user, (content) => {
     const loaded = applyData(content);
     if (!loaded) {
-      const now = new Date();
-      addMonth(now.getFullYear(), now.getMonth());
+      addMonth(2026, 2); // 預設 2026年3月
     }
     const curMo = state.months[state.curMoIdx];
     if (curMo) { state.calY = curMo.y; state.calM = curMo.m; }
