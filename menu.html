@@ -538,7 +538,7 @@ input.sel-l2-inp:disabled {
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
-  width: 8em;
+  width: calc((100% - 20px) / 5);
   text-align: center;
   display: inline-block;
   box-shadow: 2px 2px 0 0 rgba(45,45,45,0.3);
@@ -550,9 +550,9 @@ input.sel-l2-inp:disabled {
 .cat-items-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }
 .cat-item-chip {
   padding: 4px 6px; border-radius: 6px;
-  font-size: 0.85rem; font-weight: 500;
+  font-size: 1.1rem; font-weight: 700;
   border: 1.5px solid rgba(45,45,45,0.2);
-  white-space: nowrap;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   width: 12em;
   text-align: center;
   display: inline-block;
@@ -727,7 +727,7 @@ input.sel-l2-inp:disabled {
 
 /* ===== 顏色分類 & 類別分組：品項 chip 2x ===== */
 #drawer-colors .color-item-chip,
-#drawer-cats   .cat-item-chip   { font-size: 1.56rem; padding: 8px 10px; width: auto; min-width: 4em; }
+#drawer-cats   .cat-item-chip   { font-size: 1.1rem; font-weight: 700; padding: 8px 10px; width: calc((100% - 30px) / 4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #drawer-colors .cat-items-grid,
 #drawer-cats   .cat-items-grid  { gap: 10px; }
 /* 類別分組：分組標題（主菜 等） 2x */
@@ -1117,29 +1117,10 @@ button {
 <div class="side-drawer" id="drawer-mgmt">
   <div class="drawer-header">
     <span>⚙️</span>
-    <h2>資料庫管理</h2>
+    <h2>其他功能</h2>
     <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
   </div>
   <div class="drawer-body">
-    <div class="quick-add-box">
-      <h3>⚡ 快速新增品項</h3>
-      <div class="quick-add-row">
-        <label>品項名稱
-          <input type="text" id="qa-name" placeholder="例：柳丁" oninput="qaUpdatePreview()" onkeydown="if(event.key==='Enter')qaAddItem()">
-        </label>
-        <label>類別
-          <select class="qa-sel" id="qa-cat" onchange="qaUpdatePreview()"></select>
-        </label>
-        <label>顏色組
-          <select class="qa-sel" id="qa-color" onchange="qaUpdatePreview()">
-            <option value="">— 不設定 —</option>
-          </select>
-        </label>
-        <button class="btn-qa-add" onclick="qaAddItem()">➕ 新增</button>
-      </div>
-      <div class="qa-preview" id="qa-preview"></div>
-    </div>
-
     <div id="mgmt-rowcats">
       <p style="font-size:0.85rem;color:#90a4ae;margin-bottom:12px;">設定每個列可選用哪些類別。點擊列名展開，可新增或移除類別。</p>
       <div id="mgmt-rowcats-all"></div>
@@ -1273,6 +1254,24 @@ button {
     <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
   </div>
   <div class="drawer-body" style="padding:10px 12px 20px;">
+    <div class="quick-add-box">
+      <h3>⚡ 快速新增品項</h3>
+      <div class="quick-add-row">
+        <label>品項名稱
+          <input type="text" id="qa-name" placeholder="例：柳丁" oninput="qaUpdatePreview()" onkeydown="if(event.key==='Enter')qaAddItem()">
+        </label>
+        <label>類別
+          <select class="qa-sel" id="qa-cat" onchange="qaUpdatePreview()"></select>
+        </label>
+        <label>顏色組
+          <select class="qa-sel" id="qa-color" onchange="qaUpdatePreview()">
+            <option value="">— 不設定 —</option>
+          </select>
+        </label>
+        <button class="btn-qa-add" onclick="qaAddItem()">➕ 新增</button>
+      </div>
+      <div class="qa-preview" id="qa-preview"></div>
+    </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
       <button onclick="addNewCategoryFromPanel()" style="background:#43a047;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➕ 新增類別</button>
       <button onclick="deleteCurrentCategoryFromPanel()" style="background:#c62828;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🗑️ 刪除類別</button>
@@ -1388,6 +1387,7 @@ const HISTORY_KEY = "yupin_menu_history_v1";
 
 let currentUser = null;   // 由 requireAuth 設定
 let _menuAutoSave = null; // 由 initApp 設定（makeAutoSave 回傳）
+let _dbAutoSave = null;   // 儲存 DB / MENU_GROUPS / COLOR_GROUPS / FOOD_COLOR
 
 
 // ===== 歷史紀錄資料 =====
@@ -1416,6 +1416,38 @@ function showSaveToast(msg, duration) {
 function scheduleAutoSave() {
   if (_isLoading) return;
   if (_menuAutoSave) _menuAutoSave();
+  if (_dbAutoSave) _dbAutoSave();
+}
+
+function collectDbData() {
+  return {
+    DB: JSON.parse(JSON.stringify(DB)),
+    MENU_GROUPS: JSON.parse(JSON.stringify(MENU_GROUPS)),
+    COLOR_GROUPS: JSON.parse(JSON.stringify(COLOR_GROUPS)),
+    FOOD_COLOR: JSON.parse(JSON.stringify(FOOD_COLOR))
+  };
+}
+
+function applyDbData(saved) {
+  if (!saved) return;
+  if (saved.DB) {
+    Object.keys(DB).forEach(k => delete DB[k]);
+    Object.assign(DB, saved.DB);
+  }
+  if (saved.MENU_GROUPS) {
+    Object.keys(MENU_GROUPS).forEach(k => delete MENU_GROUPS[k]);
+    Object.assign(MENU_GROUPS, saved.MENU_GROUPS);
+  }
+  if (saved.COLOR_GROUPS) {
+    Object.keys(COLOR_GROUPS).forEach(k => delete COLOR_GROUPS[k]);
+    Object.assign(COLOR_GROUPS, saved.COLOR_GROUPS);
+  }
+  if (saved.FOOD_COLOR) {
+    Object.keys(FOOD_COLOR).forEach(k => delete FOOD_COLOR[k]);
+    Object.assign(FOOD_COLOR, saved.FOOD_COLOR);
+  }
+  rerenderDBPanels();
+  initMgmtItems();
 }
 
 function collectMenuData() {
@@ -3456,8 +3488,15 @@ function renderCatDB() {
   tabsBar.innerHTML = "";
   tabContent.innerHTML = "";
 
-  const cats = Object.entries(DB);
-  const catKeys = Object.keys(DB);
+  const CAT_ORDER = ["主菜","副主菜","米飯","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他","輔料"];
+  const cats = Object.entries(DB).sort(([a],[b]) => {
+    const ai = CAT_ORDER.indexOf(a), bi = CAT_ORDER.indexOf(b);
+    if (ai === -1 && bi === -1) return 0;
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+  const catKeys = cats.map(([k]) => k);
   if (!_catPanelActiveCat || !DB[_catPanelActiveCat]) {
     _catPanelActiveCat = catKeys[0] || null;
   }
@@ -3500,7 +3539,7 @@ function renderCatDB() {
     if (cat === "主菜") {
       const hint = document.createElement("div");
       hint.style.cssText = 'font-size:0.95rem;font-weight:700;color:#2e7d32;background:#f1f8f1;border:1.5px solid #a5d6a7;border-radius:6px;padding:5px 10px;margin-bottom:8px;';
-      hint.textContent = '🌿 有 * 為可做健康餐';
+      hint.textContent = '🌿 有 * 為健康餐';
       panel.appendChild(hint);
     }
 
@@ -3565,10 +3604,13 @@ async function initApp() {
   requireAuth(async (user) => {
     currentUser = user;
     injectStatusBar('menu');
+    initPresence(user);
     await loadHistory();
 
     _menuAutoSave = makeAutoSave('menu', collectMenuData, 800);
+    _dbAutoSave   = makeAutoSave('menudb', collectDbData, 800);
 
+    startSync('menudb', user, applyDbData);
     startSync('menu', user, async (content) => {
       const loaded = await applyMenuData(content);
       if (!loaded) { addWeek(); addWeek(); }
@@ -4080,11 +4122,14 @@ function openColorItemPopup(key, itemName, anchorEl) {
   // 定位浮層在 chip 旁
   const rect = anchorEl.getBoundingClientRect();
   popup.style.display = "block";
-  let left = rect.left + window.scrollX;
-  let top = rect.bottom + window.scrollY + 6;
-  // 防止超出螢幕右側
-  const pw = 300;
+  const pw = popup.offsetWidth || 300;
+  const ph = popup.offsetHeight;
+  let left = rect.left;
+  let top = rect.bottom + 6;
   if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
+  if (left < 10) left = 10;
+  if (top + ph > window.innerHeight - 10) top = rect.top - ph - 6;
+  if (top < 10) top = 10;
   popup.style.left = left + "px";
   popup.style.top = top + "px";
 
@@ -4217,10 +4262,14 @@ function openCatItemPopup(cat, itemName, anchorEl) {
   // 定位浮層
   const rect = anchorEl.getBoundingClientRect();
   popup.style.display = "block";
-  let left = rect.left + window.scrollX;
-  let top = rect.bottom + window.scrollY + 6;
-  const pw = 300;
+  const pw = popup.offsetWidth || 300;
+  const ph = popup.offsetHeight;
+  let left = rect.left;
+  let top = rect.bottom + 6;
   if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
+  if (left < 10) left = 10;
+  if (top + ph > window.innerHeight - 10) top = rect.top - ph - 6;
+  if (top < 10) top = 10;
   popup.style.left = left + "px";
   popup.style.top = top + "px";
 
@@ -4242,6 +4291,13 @@ function catPopupToggleStar() {
     const cg = COLOR_GROUPS[colorKey];
     if (cg) { const ci = cg.items.indexOf(_catPopupItem); if (ci >= 0) cg.items[ci] = newName; }
   }
+  // 同步 MENU_GROUPS
+  Object.values(MENU_GROUPS).forEach(groups => {
+    groups.forEach(g => {
+      const gi = g.items.indexOf(_catPopupItem);
+      if (gi >= 0) g.items[gi] = newName;
+    });
+  });
   scheduleAutoSave();
   rerenderDBPanels();
   initMgmtItems();

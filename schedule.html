@@ -420,6 +420,9 @@ th.week-b { background: #e8eeff; }
 
   .shift-badge { font-size: 0.85rem; padding: 2px 5px; }
   .leave-badge { font-size: 0.85rem; padding: 2px 5px; }
+
+  /* 避免右側固定按鈕（48px）蓋住表格內容的刪除鈕 */
+  .table-wrapper { margin-right: 52px; }
 }
 </style>
 </head>
@@ -519,7 +522,7 @@ th.week-b { background: #e8eeff; }
   </div>
   <div class="drawer-body">
     <div class="cat-bar" id="siteTabs" style="margin-bottom:10px;"></div>
-    <div style="font-size:10px;color:#888;margin-bottom:5px;flex-shrink:0;">📌 平日點擊選整週（藍）・假日逐天點選（紅）</div>
+    <div style="font-size:10px;color:#888;margin-bottom:5px;flex-shrink:0;">📌 平日點擊選整週・假日逐天點選(紅)<br>📌 藍色20:00・綠色20:30</div>
     <div class="cal-hdr">
       <button class="styled-btn" onclick="changeCal(-1)">‹</button>
       <span id="calMonthTitle" style="font-weight:900;font-size:26px;"></span>

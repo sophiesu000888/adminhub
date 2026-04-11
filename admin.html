@@ -4,11 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>後台 — Admin Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, 'PingFang TC', sans-serif;
-      background: #f9f9f7; color: #1a1a1a;
+      font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+      background-color: #f5f3ee;
+      background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
+      background-size: 22px 22px;
+      color: #1a1a1a;
       padding-top: 60px; min-height: 100vh;
     }
     .page { max-width: 720px; margin: 0 auto; padding: 28px 20px 60px; }
@@ -25,10 +30,12 @@
       margin-bottom: 16px;
     }
 
+    /* 兩欄並排 */
+    .two-col-row { display: flex; gap: 18px; margin-bottom: 18px; align-items: stretch; }
+    .two-col-row > .section { flex: 1; margin-bottom: 0; }
+
     /* 使用者資訊 */
-    .user-row {
-      display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
-    }
+    .user-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
     .avatar {
       width: 46px; height: 46px; border-radius: 50%;
       background: #1a1a1a; color: #fff;
@@ -37,36 +44,19 @@
     }
     .user-info .name { font-size: 17px; font-weight: 700; }
     .user-info .email { font-size: 13px; color: #999; margin-top: 2px; }
-
     .logout-btn {
       padding: 7px 18px; border-radius: 6px;
       border: 1.5px solid #e53935; background: #fff;
-      color: #e53935; font-size: 14px; cursor: pointer;
-      margin-top: 4px;
+      color: #e53935; font-size: 14px; cursor: pointer; margin-top: 4px;
     }
     .logout-btn:hover { background: #fdecea; }
 
     /* 系統資訊 */
-    .info-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .info-item {
-      background: #f9f9f7; border-radius: 6px; padding: 10px 14px;
-    }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .info-item { background: #f9f9f7; border-radius: 6px; padding: 10px 14px; }
     .info-item .label { font-size: 11px; color: #aaa; margin-bottom: 3px; }
     .info-item .value { font-size: 14px; font-weight: 600; }
     .dot-green { color: #4caf50; }
-    .dot-grey  { color: #ccc; }
-
-    /* 備忘 */
-    .memo-area {
-      width: 100%; padding: 10px 12px;
-      border: 1.5px solid #e0e0e0; border-radius: 6px;
-      font-size: 14px; resize: vertical; min-height: 100px;
-      font-family: inherit; outline: none; color: #333;
-    }
-    .memo-area:focus { border-color: #3b6fd4; }
 
     /* 危險區 */
     .danger-section h2 { color: #e53935 !important; }
@@ -74,7 +64,7 @@
     .danger-btn {
       padding: 8px 18px; border-radius: 6px;
       border: 1.5px solid #e53935; background: #fff;
-      color: #e53935; font-size: 14px; cursor: pointer;
+      color: #e53935; font-size: 14px; cursor: pointer; font-family: inherit;
     }
     .danger-btn:hover { background: #fdecea; }
 
@@ -82,15 +72,185 @@
     .online-list { list-style: none; }
     .online-list li {
       display: flex; align-items: center; gap: 10px;
-      padding: 6px 0; border-bottom: 1px solid #f5f5f5;
-      font-size: 14px;
+      padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px;
     }
     .online-list li:last-child { border-bottom: none; }
-    .online-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #4caf50; flex-shrink: 0;
-    }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf50; flex-shrink: 0; }
     .online-dot.offline { background: #ddd; }
+
+    /* 活動欄位 */
+    .act-col-label {
+      font-size: 12px; font-weight: 700; color: #888;
+      letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1.5px solid #eee;
+    }
+
+    /* ── 備忘錄抽屜 ─────────────────────────────────────── */
+    #memo-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.25);
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    #memo-overlay.open { opacity: 1; pointer-events: auto; }
+
+    #memo-drawer {
+      position: fixed; top: 44px; right: 0; bottom: 0;
+      width: 320px; background: #fff;
+      box-shadow: -3px 0 16px rgba(0,0,0,.12);
+      display: flex; flex-direction: column;
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    #memo-drawer.open { transform: translateX(0); }
+
+    .memo-drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+    .memo-drawer-header span {
+      font-size: 14px; font-weight: 700; color: #555;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .memo-drawer-close {
+      width: 28px; height: 28px; border: none; background: none;
+      cursor: pointer; font-size: 18px; color: #aaa;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; transition: background .1s;
+    }
+    .memo-drawer-close:hover { background: #f5f5f5; color: #555; }
+
+    /* 對話區 */
+    #memo-chat {
+      flex: 1; overflow-y: auto;
+      padding: 14px 14px 6px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .memo-empty { font-size: 13px; color: #bbb; text-align: center; margin-top: 24px; }
+
+    /* 氣泡 */
+    .bubble-wrap {
+      display: flex; flex-direction: column;
+    }
+    .bubble-wrap.own { align-items: flex-end; }
+    .bubble-wrap.other { align-items: flex-start; }
+
+    .bubble-author-name {
+      font-size: 11px; font-weight: 700;
+      margin-bottom: 3px; padding: 0 4px;
+    }
+
+    .bubble-body {
+      display: flex; align-items: flex-end; gap: 5px;
+    }
+    .bubble-wrap.own .bubble-body { flex-direction: row-reverse; }
+
+    .bubble {
+      max-width: 210px; padding: 8px 12px;
+      font-size: 14px; line-height: 1.45; word-break: break-all;
+      border-radius: 16px;
+    }
+    .bubble-wrap.own  .bubble {
+      background: #3b6fd4; color: #fff;
+      border-radius: 16px 16px 4px 16px;
+    }
+    .bubble-wrap.other .bubble {
+      background: #f0f0ee; color: #333;
+      border-radius: 16px 16px 16px 4px;
+    }
+
+    /* Su 的顏色 */
+    .bubble-wrap.su-own .bubble { background: #388e3c; }
+    .bubble-wrap.su-other .bubble { background: #edf7ee; color: #333; }
+
+    .bubble-edit-btn {
+      flex-shrink: 0; width: 22px; height: 22px;
+      border: none; background: none; cursor: pointer;
+      color: #ccc; font-size: 13px; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; transition: background .1s, color .1s;
+      margin-bottom: 2px;
+    }
+    .bubble-edit-btn:hover { background: #f0f0f0; color: #555; }
+
+    /* 編輯氣泡 */
+    .bubble-edit-wrap {
+      display: flex; flex-direction: column;
+      align-items: flex-end; gap: 5px;
+      max-width: 230px;
+    }
+    .bubble-edit-input {
+      width: 100%; padding: 7px 10px;
+      border: 1.5px solid #3b6fd4; border-radius: 8px;
+      font-size: 14px; font-family: inherit; outline: none; color: #333;
+    }
+    .bubble-edit-actions { display: flex; gap: 4px; }
+    .be-save {
+      padding: 3px 10px; border-radius: 5px;
+      border: 1.5px solid #4caf50; background: #fff;
+      color: #4caf50; font-size: 12px; cursor: pointer; font-family: inherit;
+    }
+    .be-save:hover { background: #f1f8f1; }
+    .be-del {
+      padding: 3px 10px; border-radius: 5px;
+      border: 1.5px solid #e53935; background: #fff;
+      color: #e53935; font-size: 12px; cursor: pointer; font-family: inherit;
+    }
+    .be-del:hover { background: #fdecea; }
+    .be-cancel {
+      padding: 3px 8px; border-radius: 5px;
+      border: 1.5px solid #ccc; background: #fff;
+      color: #888; font-size: 12px; cursor: pointer; font-family: inherit;
+    }
+
+    /* 輸入列 */
+    .memo-input-row {
+      display: flex; gap: 8px; padding: 10px 12px;
+      border-top: 1px solid #eee; flex-shrink: 0;
+    }
+    .memo-chat-input {
+      flex: 1; padding: 8px 12px;
+      border: 1.5px solid #e0e0e0; border-radius: 20px;
+      font-size: 14px; font-family: inherit; outline: none; color: #333;
+      transition: border-color .15s;
+    }
+    .memo-chat-input:focus { border-color: #3b6fd4; }
+    .memo-send-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: none; background: #3b6fd4; color: #fff;
+      font-size: 16px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .memo-send-btn:hover { background: #2f5cb8; }
+
+    /* Su 送出按鈕 */
+    .memo-send-btn.su { background: #388e3c; }
+    .memo-send-btn.su:hover { background: #2e7d32; }
+
+    /* FAB */
+    #memo-fab {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 10px 18px; border-radius: 24px;
+      background: #1a1a1a; color: #fff;
+      border: none; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 14px rgba(0,0,0,.2);
+      display: flex; align-items: center; gap: 7px;
+      z-index: 100; transition: background .15s, transform .1s;
+    }
+    #memo-fab:hover { background: #333; transform: translateY(-1px); }
+    #memo-fab:active { transform: translateY(0); }
+    #memo-badge {
+      background: #e53935; color: #fff;
+      font-size: 11px; font-weight: 700;
+      min-width: 18px; height: 18px; border-radius: 9px;
+      display: none; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+    #memo-badge.show { display: flex; }
   </style>
 </head>
 <body>
@@ -98,25 +258,53 @@
   <div class="page">
     <h1>⚙️ 後台管理</h1>
 
-    <!-- 登入使用者 -->
-    <div class="section">
-      <h2>目前使用者</h2>
-      <div class="user-row">
-        <div class="avatar" id="avatar">?</div>
-        <div class="user-info">
-          <div class="name" id="user-name">—</div>
-          <div class="email" id="user-email">—</div>
+    <!-- 目前使用者 + 使用者狀態（左右並排） -->
+    <div class="two-col-row">
+      <div class="section">
+        <h2>目前使用者</h2>
+        <div class="user-row">
+          <div class="avatar" id="avatar">?</div>
+          <div class="user-info">
+            <div class="name" id="user-name">—</div>
+            <div class="email" id="user-email">—</div>
+          </div>
         </div>
+        <button class="logout-btn" onclick="doLogout()">登出</button>
       </div>
-      <button class="logout-btn" onclick="doLogout()">登出</button>
+      <div class="section">
+        <h2>使用者狀態</h2>
+        <ul class="online-list" id="online-list">
+          <li><span class="online-dot offline"></span>載入中…</li>
+        </ul>
+      </div>
     </div>
 
-    <!-- 在線狀態 -->
+    <!-- 最近活動（Shu / Su 左右並排） -->
     <div class="section">
-      <h2>使用者狀態</h2>
-      <ul class="online-list" id="online-list">
-        <li><span class="online-dot offline"></span>載入中…</li>
-      </ul>
+      <h2>最近活動</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div class="act-col-label">Shu</div>
+          <div id="activity-shu"><span style="font-size:13px;color:#bbb;">載入中…</span></div>
+        </div>
+        <div>
+          <div class="act-col-label">Su</div>
+          <div id="activity-su"><span style="font-size:13px;color:#bbb;">載入中…</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最後同步（各模組） -->
+    <div class="section">
+      <h2>最後同步</h2>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">菜單</div><div class="value" id="sync-menu">—</div></div>
+        <div class="info-item"><div class="label">班表</div><div class="value" id="sync-schedule">—</div></div>
+        <div class="info-item"><div class="label">預估</div><div class="value" id="sync-estimate">—</div></div>
+        <div class="info-item"><div class="label">查價</div><div class="value" id="sync-price">—</div></div>
+        <div class="info-item"><div class="label">品項</div><div class="value" id="sync-items">—</div></div>
+        <div class="info-item"><div class="label">後台</div><div class="value" id="sync-admin">—</div></div>
+      </div>
     </div>
 
     <!-- 系統資訊 -->
@@ -125,11 +313,7 @@
       <div class="info-grid">
         <div class="info-item">
           <div class="label">Firebase 連線</div>
-          <div class="value dot-green" id="fb-status">⬤ 連線中</div>
-        </div>
-        <div class="info-item">
-          <div class="label">最後同步</div>
-          <div class="value" id="last-sync">—</div>
+          <div class="value dot-green">⬤ 連線中</div>
         </div>
         <div class="info-item">
           <div class="label">專案 ID</div>
@@ -137,19 +321,13 @@
         </div>
         <div class="info-item">
           <div class="label">瀏覽器</div>
-          <div class="value" style="font-size:12px" id="browser-info">—</div>
+          <div class="value" id="browser-info" style="font-size:12px">—</div>
         </div>
       </div>
     </div>
 
-    <!-- 備忘錄 -->
-    <div class="section">
-      <h2>共用備忘錄</h2>
-      <textarea class="memo-area" id="memo" placeholder="共用的備忘空間…"></textarea>
-    </div>
-
-    <!-- 危險操作 -->
-    <div class="section danger-section">
+    <!-- 危險操作（僅 Su） -->
+    <div class="section danger-section" id="danger-section" style="display:none">
       <h2>資料管理</h2>
       <div class="danger-grid">
         <button class="danger-btn" onclick="clearModule('menu')">清除 菜單</button>
@@ -162,87 +340,316 @@
     </div>
   </div>
 
+  <!-- 備忘錄 FAB -->
+  <button id="memo-fab" onclick="openMemoDrawer()">
+    💬 備忘錄
+    <span id="memo-badge"></span>
+  </button>
+
+  <!-- 備忘錄抽屜 overlay -->
+  <div id="memo-overlay" onclick="closeMemoDrawer()"></div>
+
+  <!-- 備忘錄抽屜 -->
+  <div id="memo-drawer">
+    <div class="memo-drawer-header">
+      <span>備忘錄</span>
+      <button class="memo-drawer-close" onclick="closeMemoDrawer()">✕</button>
+    </div>
+    <div id="memo-chat"></div>
+    <div class="memo-input-row">
+      <input type="text" class="memo-chat-input" id="memo-input" placeholder="新增備忘…" maxlength="200">
+      <button class="memo-send-btn" id="memo-send-btn" onclick="addMemoItem()">↑</button>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="shared.js"></script>
   <script>
-    // Email 對應暱稱（與 shared.js 保持一致）
     const NICKNAME_MAP = {
       's802316s@gmail.com': 'Shu',
       'sophiesu000@gmail.com': 'Su'
     };
-    function getNickname(email) {
-      return NICKNAME_MAP[email] || email;
-    }
+
+    function getNickname(email) { return NICKNAME_MAP[email] || ''; }
 
     let autoSave;
     let _remoteUpdate = false;
+    let _currentNick  = '';
+    let _currentUser  = null;
+    let memoItems     = [];
 
     requireAuth((user) => {
+      _currentUser = user;
+      _currentNick = getNickname(user.email) || user.email;
+
+      if (_currentNick === 'Su') {
+        document.getElementById('danger-section').style.display = '';
+        document.getElementById('memo-send-btn').classList.add('su');
+      }
+
       injectStatusBar('admin');
 
-      // 顯示使用者資訊（用暱稱取代 email）
-      const email    = user.email;
-      const nickname = getNickname(email);
-      document.getElementById('avatar').textContent     = nickname.charAt(0).toUpperCase();
-      document.getElementById('user-name').textContent  = nickname;
-      document.getElementById('user-email').textContent = email;
-
-      // 系統資訊
+      document.getElementById('avatar').textContent     = _currentNick.charAt(0).toUpperCase();
+      document.getElementById('user-name').textContent  = _currentNick;
+      document.getElementById('user-email').textContent = user.email;
       document.getElementById('proj-id').textContent    = FIREBASE_CONFIG.projectId || '—';
       document.getElementById('browser-info').textContent =
         navigator.userAgent.split(' ').slice(-2).join(' ');
 
-      // 備忘自動儲存
-      autoSave = makeAutoSave('admin', () => ({
-        memo: document.getElementById('memo').value
-      }));
+      // 備忘錄自動儲存
+      autoSave = makeAutoSave('admin', () => ({ memoItems }));
 
       startSync('admin', user, (content) => {
         if (!content) return;
         _remoteUpdate = true;
-        if (content.memo !== undefined) document.getElementById('memo').value = content.memo;
-        document.getElementById('last-sync').textContent = new Date().toLocaleTimeString('zh-TW');
+        if (Array.isArray(content.memoItems)) {
+          memoItems = content.memoItems;
+          renderMemoChat();
+        }
         _remoteUpdate = false;
       });
 
-      document.getElementById('memo').addEventListener('input', () => {
-        if (_remoteUpdate) return;
-        autoSave();
+      document.getElementById('memo-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addMemoItem();
       });
 
-      // 在線狀態（presence via Firestore heartbeat）
+      // 最後同步
+      const MODULE_LABELS = { menu:'sync-menu', schedule:'sync-schedule', estimate:'sync-estimate', price:'sync-price', items:'sync-items', admin:'sync-admin' };
+      const { db } = initFirebase();
+      Object.keys(MODULE_LABELS).forEach(mod => {
+        db.collection('modules').doc(mod).onSnapshot(snap => {
+          const el = document.getElementById(MODULE_LABELS[mod]);
+          if (!el) return;
+          if (!snap.exists) { el.textContent = '無資料'; return; }
+          const d     = snap.data();
+          const email = d?.lastSaved?.email;
+          const raw   = d?.lastSaved?.displayName || email || '—';
+          const who   = (email ? getNickname(email) : '') || getNickname(raw) || raw;
+          const ts    = d?.lastSaved?.timestamp;
+          const time  = ts ? _fmtSyncTime(ts.toDate ? ts.toDate() : new Date(ts)) : '—';
+          el.textContent = `${who}　${time}`;
+        });
+      });
+
       setupPresence(user);
+
+      // 活動紀錄
+      const MODULE_NAMES = { menu:'菜單', schedule:'班表', estimate:'預估', price:'查價', items:'品項', admin:'後台', index:'主頁' };
+      db.collection('user_activity').onSnapshot(snap => {
+        const cols = {
+          Shu: document.getElementById('activity-shu'),
+          Su:  document.getElementById('activity-su')
+        };
+        Object.values(cols).forEach(el => {
+          if (el) el.innerHTML = '<span style="font-size:13px;color:#bbb;">無紀錄</span>';
+        });
+        if (snap.empty) return;
+        snap.docs.forEach(doc => {
+          const d    = doc.data();
+          const nick = getNickname(d.email) || d.displayName || doc.id;
+          const col  = cols[nick];
+          if (!col) return;
+          const events = (d.events || []).slice(0, 3);
+          if (!events.length) return;
+          col.innerHTML = '';
+          const block = document.createElement('div');
+          block.style.cssText = 'background:#f9f9f7;border:1.5px solid #e8e8e8;border-radius:8px;padding:10px 12px;';
+          events.forEach(ev => {
+            const ts      = new Date(ev.ts);
+            const dateStr = ts.toLocaleDateString('zh-TW', { month:'2-digit', day:'2-digit' });
+            const timeStr = ts.toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+            const modLabel = MODULE_NAMES[ev.module] || ev.module || '—';
+            const typeIcon = ev.type === 'login' ? '🔑' : '💾';
+            const row = document.createElement('div');
+            row.style.cssText = 'font-size:12px;color:#666;padding:3px 0 3px 10px;border-left:2px solid #e0e0e0;margin-bottom:3px;';
+            row.textContent = `${typeIcon} ${dateStr} ${timeStr}　${modLabel}`;
+            block.appendChild(row);
+          });
+          col.appendChild(block);
+        });
+      });
     });
+
+    // ── 抽屜開關 ────────────────────────────────────────────────
+    function openMemoDrawer() {
+      document.getElementById('memo-drawer').classList.add('open');
+      document.getElementById('memo-overlay').classList.add('open');
+      document.getElementById('memo-badge').classList.remove('show');
+      scrollChatToBottom();
+      setTimeout(() => document.getElementById('memo-input').focus(), 280);
+    }
+    function closeMemoDrawer() {
+      document.getElementById('memo-drawer').classList.remove('open');
+      document.getElementById('memo-overlay').classList.remove('open');
+    }
+    function scrollChatToBottom() {
+      const chat = document.getElementById('memo-chat');
+      if (chat) chat.scrollTop = chat.scrollHeight;
+    }
+
+    // ── 備忘錄對話渲染 ──────────────────────────────────────────
+    function renderMemoChat() {
+      const chat = document.getElementById('memo-chat');
+      const wasOpen = document.getElementById('memo-drawer').classList.contains('open');
+      const atBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
+
+      chat.innerHTML = '';
+      if (!memoItems.length) {
+        chat.innerHTML = '<div class="memo-empty">尚無備忘…</div>';
+        return;
+      }
+
+      memoItems.forEach(item => {
+        const isOwn  = item.uid === _currentUser?.uid;
+        const isSu   = item.author === 'Su';
+        const ownClass = isOwn
+          ? (isSu ? 'su-own own' : 'own')
+          : (isSu ? 'su-other other' : 'other');
+
+        const wrap = document.createElement('div');
+        wrap.className = `bubble-wrap ${ownClass}`;
+        wrap.dataset.id = item.id;
+
+        if (!isOwn) {
+          const nameEl = document.createElement('div');
+          nameEl.className = 'bubble-author-name';
+          nameEl.style.color = isSu ? '#388e3c' : '#3b6fd4';
+          nameEl.textContent = item.author;
+          wrap.appendChild(nameEl);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'bubble-body';
+
+        const bub = document.createElement('div');
+        bub.className = 'bubble';
+        bub.textContent = item.text;
+
+        if (isOwn) {
+          const editBtn = document.createElement('button');
+          editBtn.className = 'bubble-edit-btn';
+          editBtn.title = '編輯';
+          editBtn.textContent = '✎';
+          editBtn.onclick = () => enterBubbleEdit(wrap, item);
+          body.appendChild(editBtn);
+        }
+
+        body.appendChild(bub);
+        wrap.appendChild(body);
+        chat.appendChild(wrap);
+      });
+
+      if (wasOpen && atBottom) scrollChatToBottom();
+      // FAB badge when drawer closed
+      if (!wasOpen) {
+        const badge = document.getElementById('memo-badge');
+        badge.textContent = memoItems.length;
+        badge.classList.add('show');
+      }
+    }
+
+    function enterBubbleEdit(wrap, item) {
+      const body = wrap.querySelector('.bubble-body');
+      body.innerHTML = '';
+
+      const editWrap = document.createElement('div');
+      editWrap.className = 'bubble-edit-wrap';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'bubble-edit-input';
+      input.value = item.text;
+      input.maxLength = 200;
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter')  commitBubbleEdit(wrap, item, input.value);
+        if (e.key === 'Escape') renderMemoChat();
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'bubble-edit-actions';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'be-save';
+      saveBtn.textContent = '儲存';
+      saveBtn.onclick = () => commitBubbleEdit(wrap, item, input.value);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'be-del';
+      delBtn.textContent = '刪除';
+      delBtn.onclick = () => {
+        memoItems = memoItems.filter(i => i.id !== item.id);
+        renderMemoChat();
+        autoSave();
+      };
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'be-cancel';
+      cancelBtn.textContent = '取消';
+      cancelBtn.onclick = () => renderMemoChat();
+
+      actions.appendChild(saveBtn);
+      actions.appendChild(delBtn);
+      actions.appendChild(cancelBtn);
+      editWrap.appendChild(input);
+      editWrap.appendChild(actions);
+      body.appendChild(editWrap);
+      input.focus();
+      input.select();
+    }
+
+    function commitBubbleEdit(wrap, item, newText) {
+      newText = newText.trim();
+      if (!newText) return;
+      const idx = memoItems.findIndex(i => i.id === item.id);
+      if (idx !== -1) memoItems[idx].text = newText;
+      renderMemoChat();
+      autoSave();
+    }
+
+    function addMemoItem() {
+      const input = document.getElementById('memo-input');
+      const text  = input.value.trim();
+      if (!text) return;
+      memoItems.push({
+        id:     Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        text,
+        author: _currentNick,
+        uid:    _currentUser?.uid || '',
+        ts:     new Date().toISOString()
+      });
+      input.value = '';
+      renderMemoChat();
+      scrollChatToBottom();
+      autoSave();
+    }
+
+    function _fmtSyncTime(date) {
+      const diff = Date.now() - date.getTime();
+      if (diff < 60000)   return '剛剛';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)} 分鐘前`;
+      return date.toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+    }
 
     async function setupPresence(user) {
       const { db } = initFirebase();
-      const nickname = getNickname(user.email);
-
-      // 寫入自己的心跳（存暱稱）
-      const presRef = db.collection('presence').doc(user.uid);
+      const nickname = getNickname(user.email) || user.email;
+      const presRef  = db.collection('presence').doc(user.uid);
       await presRef.set({ name: nickname, email: user.email, online: true, ts: firebase.firestore.FieldValue.serverTimestamp() });
-
-      // 離開時標記離線
       window.addEventListener('beforeunload', () => {
         presRef.set({ name: nickname, email: user.email, online: false, ts: firebase.firestore.FieldValue.serverTimestamp() });
       });
-
-      // 監聽所有在線狀態（顯示暱稱）
       db.collection('presence').onSnapshot((snap) => {
         const ul = document.getElementById('online-list');
         ul.innerHTML = '';
-        if (snap.empty) {
-          ul.innerHTML = '<li><span class="online-dot offline"></span>無資料</li>';
-          return;
-        }
+        if (snap.empty) { ul.innerHTML = '<li><span class="online-dot offline"></span>無資料</li>'; return; }
         snap.docs.forEach(doc => {
           const d = doc.data();
           const isOnline = d.online && d.ts &&
             (Date.now() - (d.ts.toMillis ? d.ts.toMillis() : Date.now())) < 120000;
-          const displayName = getNickname(d.email || '') || d.name || doc.id;
+          const displayName = getNickname(d.email || '') || getNickname(d.displayName || '') || d.name || d.displayName || doc.id;
           const li = document.createElement('li');
           li.innerHTML = `<span class="online-dot ${isOnline ? '' : 'offline'}"></span>
             <span>${displayName}</span>
@@ -259,9 +666,8 @@
       const user = auth.currentUser;
       if (user) {
         await db.collection('presence').doc(user.uid).set({
-          name: getNickname(user.email),
-          email: user.email,
-          online: false,
+          name: getNickname(user.email) || user.email,
+          email: user.email, online: false,
           ts: firebase.firestore.FieldValue.serverTimestamp()
         });
       }

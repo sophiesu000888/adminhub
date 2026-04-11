@@ -95,14 +95,36 @@
     }
     #main.visible { opacity: 1; }
 
-    .title {
-      font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-      line-height: 1.1;
-      margin-bottom: 24px;
-    }
-    .title .t1 { font-size: 72px; color: #1a1a1a; display: block; }
-    .title .t2 { font-size: 72px; color: #3b6fd4; font-style: italic; display: block; }
+   .title {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 24px;
 
+  /* 加入 header-title 的效果 */
+  color: var(--ink);
+  letter-spacing: 2px;
+  -webkit-text-stroke: 1px rgba(45,45,45,0.2);
+  transform: rotate(-1deg);
+  display: inline-block;
+}
+ .title .t1 {
+  font-size: 72px;
+  color: #1a1a1a;
+  display: block;
+}
+
+.title .t2 {
+  font-size: 72px;
+  color: #3b6fd4;
+  font-style: italic;
+  display: block;
+}
+.title .t1,
+.title .t2 {
+  letter-spacing: 2px;
+  -webkit-text-stroke: 1px rgba(45,45,45,0.2);
+}
     .divider {
       width: 80px; height: 2px;
       background: #1a1a1a;
