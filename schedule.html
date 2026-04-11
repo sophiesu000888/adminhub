@@ -1496,11 +1496,12 @@ requireAuth((user) => {
   injectStatusBar('schedule');
   _autoSave = makeAutoSave('schedule', collectData, 1000);
   startSync('schedule', user, (content) => {
-    const loaded = applyData(content);
-    if (!loaded) {
-      addMonth(2026, 2);
-    }
-    addMonth(2026, 2);
+    applyData(content);
+
+// ✅ 用「實際資料」判斷，不用 loaded
+if (state.months.length === 0) {
+  addMonth(2026, 2);
+}
     const curMo = state.months[state.curMoIdx];
     if (curMo) { state.calY = curMo.y; state.calM = curMo.m; }
     renderAll();
