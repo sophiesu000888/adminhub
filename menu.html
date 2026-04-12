@@ -1258,7 +1258,7 @@ button {
       <h3>⚡ 快速新增品項</h3>
       <div class="quick-add-row">
         <label>品項名稱
-          <input type="text" id="qa-name" placeholder="例：柳丁" oninput="qaUpdatePreview()" onkeydown="if(event.key==='Enter')qaAddItem()">
+          <input type="text" id="qa-name" placeholder="例：柳丁" oninput="qaUpdatePreview()" onkeydown="qaNameKeydown(event)">
         </label>
         <label>類別
           <select class="qa-sel" id="qa-cat" onchange="qaCatChanged()"></select>
@@ -3724,6 +3724,20 @@ function qaRefreshGroupSel() {
 
 function qaGroupChanged() {
   qaUpdatePreview();
+}
+
+let _qaEnterCount = 0;
+let _qaEnterTimer = null;
+function qaNameKeydown(e) {
+  if (e.key !== 'Enter') return;
+  _qaEnterCount++;
+  clearTimeout(_qaEnterTimer);
+  if (_qaEnterCount >= 2) {
+    _qaEnterCount = 0;
+    qaAddItem();
+  } else {
+    _qaEnterTimer = setTimeout(() => { _qaEnterCount = 0; }, 500);
+  }
 }
 
 function qaCatChanged() {
