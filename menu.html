@@ -3655,7 +3655,7 @@ function openDrawer(id) {
   if (id === 'export') { updateExportDateHint(); }
   if (id === 'hist')   { renderHistoryPanel(); }
   if (id === 'colors') { initMgmtColors(); rerenderDBPanels(); }
-  if (id === 'cats')   { rerenderDBPanels(); }
+  if (id === 'cats')   { rerenderDBPanels(); qaInitSelects(); }
 }
 
 function closeAllDrawers() {
