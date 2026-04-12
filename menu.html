@@ -1261,7 +1261,12 @@ button {
           <input type="text" id="qa-name" placeholder="例：柳丁" oninput="qaUpdatePreview()" onkeydown="if(event.key==='Enter')qaAddItem()">
         </label>
         <label>類別
-          <select class="qa-sel" id="qa-cat" onchange="qaUpdatePreview()"></select>
+          <select class="qa-sel" id="qa-cat" onchange="qaCatChanged()"></select>
+        </label>
+        <label id="qa-group-label" style="display:none">子群組
+          <select class="qa-sel" id="qa-group" onchange="qaUpdatePreview()">
+            <option value="">— 不分組 —</option>
+          </select>
         </label>
         <label>顏色組
           <select class="qa-sel" id="qa-color" onchange="qaUpdatePreview()">
@@ -3573,6 +3578,7 @@ function renderCatDB() {
     const catGrid = document.createElement("div");
     catGrid.className = "cat-items-grid";
     if (groups) {
+      const groupedItems = new Set(groups.flatMap(g => g.items));
       groups.forEach(group => {
         const gi = group.items.filter(i => realItems.includes(i));
         if (!gi.length) return;
@@ -3587,6 +3593,15 @@ function renderCatDB() {
         catGrid.appendChild(label);
         sorted.forEach(i => catGrid.appendChild(makeCatChip(i)));
       });
+      // 顯示未分組的品項
+      const ungrouped = realItems.filter(i => !groupedItems.has(i));
+      if (ungrouped.length) {
+        const label = document.createElement("div");
+        label.className = "cat-sub-label";
+        label.textContent = "其他";
+        catGrid.appendChild(label);
+        ungrouped.forEach(i => catGrid.appendChild(makeCatChip(i)));
+      }
     } else {
       realItems.forEach(i => catGrid.appendChild(makeCatChip(i)));
     }
@@ -3688,6 +3703,31 @@ function qaInitSelects() {
     Object.entries(COLOR_GROUPS).map(([k,g]) =>
       `<option value="${k}">${g.label}（${k}）</option>`
     ).join('');
+  qaRefreshGroupSel();
+  qaUpdatePreview();
+}
+
+function qaRefreshGroupSel() {
+  const cat = document.getElementById('qa-cat').value;
+  const groupLabel = document.getElementById('qa-group-label');
+  const groupSel = document.getElementById('qa-group');
+  const groups = MENU_GROUPS[cat];
+  if (groups && groups.length) {
+    groupLabel.style.display = '';
+    groupSel.innerHTML = '<option value="">— 不分組 —</option>' +
+      groups.map((g, i) => `<option value="${i}">${g.label}</option>`).join('');
+  } else {
+    groupLabel.style.display = 'none';
+    groupSel.innerHTML = '<option value="">— 不分組 —</option>';
+  }
+}
+
+function qaGroupChanged() {
+  qaUpdatePreview();
+}
+
+function qaCatChanged() {
+  qaRefreshGroupSel();
   qaUpdatePreview();
 }
 
@@ -3698,8 +3738,13 @@ function qaUpdatePreview() {
   const prev = document.getElementById('qa-preview');
   if (!name) { prev.innerHTML = '<span style="color:#b0bec5;">輸入名稱後會顯示預覽…</span>'; return; }
   const catStyle = CAT_STYLES[cat] || { itemBg:'#eceff1', itemFg:'#37474f' };
+  const groupIdx = document.getElementById('qa-group').value;
+  const groups = MENU_GROUPS[cat];
   let html = `將 <span class="qa-tag" style="background:${catStyle.itemBg};color:${catStyle.itemFg};border:1px solid rgba(0,0,0,0.1);">${name}</span>`;
   html += ` 加到「<b>${cat}</b>」`;
+  if (groups && groupIdx !== '') {
+    html += `→「<b>${groups[parseInt(groupIdx)].label}</b>」`;
+  }
   if (colorKey && COLOR_GROUPS[colorKey]) {
     const g = COLOR_GROUPS[colorKey];
     html += `，顏色：<span class="qa-tag" style="background:${g.bg};color:${g.fg};border:1px solid rgba(0,0,0,0.12);">${g.label}</span>`;
@@ -3726,6 +3771,12 @@ function qaAddItem() {
     if (reason && !confirm(`⚠️ 疑似重複：${reason}\n\n確定要新增嗎？`)) return;
   }
   DB[cat].push(name);
+  // 加入子群組
+  const groupIdx = document.getElementById('qa-group').value;
+  if (groupIdx !== '' && MENU_GROUPS[cat] && MENU_GROUPS[cat][parseInt(groupIdx)]) {
+    const grp = MENU_GROUPS[cat][parseInt(groupIdx)];
+    if (!grp.items.includes(name)) grp.items.push(name);
+    }
   if (colorKey && COLOR_GROUPS[colorKey]) {
     if (!COLOR_GROUPS[colorKey].items.includes(name)) {
       COLOR_GROUPS[colorKey].items.push(name);
@@ -3735,6 +3786,7 @@ function qaAddItem() {
   inp.value = '';
   inp.focus();
   qaUpdatePreview();
+  _catPanelActiveCat = cat;
   renderMgmtItems();
   rerenderDBPanels();
   scheduleAutoSave();
@@ -3756,7 +3808,9 @@ function initMgmtItems() {
 }
 
 function renderMgmtItems() {
-  const cat = document.getElementById('mgmt-cat-sel').value;
+  const _sel = document.getElementById('mgmt-cat-sel');
+  if (!_sel) return;
+  const cat = _sel.value;
   const list = document.getElementById('mgmt-items-list');
   const style = CAT_STYLES[cat] || { itemBg:'#eceff1', itemFg:'#37474f' };
   list.innerHTML = '';
