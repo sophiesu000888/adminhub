@@ -1083,6 +1083,54 @@ button {
   transform: translateY(-1px);
 }
 
+/* ── 欄內附加子地點 ── */
+/* ── 欄內附加子地點 ── */
+.loc-sub-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 6px;
+  width: 100%;
+  margin-top: 3px;
+  justify-items: start;
+}
+.loc-sub-item {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: transparent; border: none;
+  border-radius: 0; padding: 1px 2px; font-size: 1.05rem;
+}
+.loc-sub-name {
+  background: transparent; border: none; outline: none; color: inherit;
+  font-size: 1.05rem; font-weight: 700; width: 4em; text-align: center;
+  font-family: inherit; letter-spacing: 1px;
+}
+.loc-sub-qty-wrap {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: rgba(0,0,0,0.07); border-radius: 20px;
+  padding: 1px 6px 1px 5px; border: 1px solid rgba(0,0,0,0.18);
+}
+.loc-sub-qty {
+  background: transparent; border: none; outline: none; color: inherit;
+  font-size: 1.05rem; font-weight: 700; width: 3ch; text-align: center;
+  font-family: inherit; -moz-appearance: textfield;
+}
+.loc-sub-qty::-webkit-outer-spin-button,
+.loc-sub-qty::-webkit-inner-spin-button { -webkit-appearance: none; }
+.loc-sub-sep { opacity: 0.6; font-size: 0.85rem; font-weight: 700; }
+.loc-sub-unit { font-size: 0.85rem; font-weight: 600; }
+.loc-sub-del {
+  background: transparent; border: none; color: inherit; opacity: 0.4;
+  font-size: 0.8rem; padding: 0 2px; cursor: pointer; line-height: 1; transition: opacity 0.15s;
+}
+.loc-sub-del:hover { opacity: 0.9; }
+.loc-add-sub-btn {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: transparent; border: none;
+  color: inherit; border-radius: 0; padding: 1px 2px;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer; opacity: 0.5;
+  transition: opacity 0.15s; font-family: inherit; white-space: nowrap;
+}
+.loc-add-sub-btn:hover { opacity: 1; }
+
 @media (max-width: 600px) {
   body { padding: 8px 6px; }
 
@@ -1479,6 +1527,7 @@ const HISTORY_KEY = "yupin_menu_history_v1";
 let currentUser = null;   // 由 requireAuth 設定
 let _menuAutoSave = null; // 由 initApp 設定（makeAutoSave 回傳）
 let _dbAutoSave = null;   // 儲存 DB / MENU_GROUPS / COLOR_GROUPS / FOOD_COLOR
+let _lastSavedMenuJSON = null; // 上次本機存出去的菜單 JSON，用來避免 Firestore 回推時閃爍
 
 
 // ===== 歷史紀錄資料 =====
@@ -1600,6 +1649,42 @@ function applyDbData(saved) {
   initMgmtItems();
 }
 
+// ===== 子地點（同欄附加地點）讀取 / 套用 =====
+function _readSubLocs(block, startCol, count) {
+  // 取得 table 第2行的 th（地點標題列）
+  const ths = [...block.querySelectorAll("table tr:nth-child(2) th")];
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    const th = ths[i + startCol]; // +1 for sticky "品項" th that is rowspan=3
+    if (!th || !th._subList) { result.push([]); continue; }
+    const subs = [];
+    th._subList.querySelectorAll(".loc-sub-item").forEach(item => {
+      subs.push({
+        name: item._nameInp?.value || "",
+        qty:  item._qtyInp?.value  || ""
+      });
+    });
+    result.push(subs);
+  }
+  return result;
+}
+
+function _applySubLocs(block, startCol, subLocsArr, makeSubItemFn) {
+  if (!subLocsArr || !subLocsArr.length) return;
+  const ths = [...block.querySelectorAll("table tr:nth-child(2) th")];
+  subLocsArr.forEach((subs, i) => {
+    if (!subs || !subs.length) return;
+    const th = ths[i + startCol];
+    if (!th || !th._subList || !th._makeSubItem) return;
+    const addBtn = th._subList.querySelector(".loc-add-sub-btn");
+    subs.forEach(s => {
+      const item = th._makeSubItem(s.name, s.qty);
+      th._subList.insertBefore(item, addBtn);
+    });
+    if (th._updateTotal) th._updateTotal();
+  });
+}
+
 function collectMenuData() {
   const data = [];
   document.querySelectorAll(".week-block").forEach(block => {
@@ -1643,7 +1728,10 @@ function collectMenuData() {
       });
     });
 
-    data.push({ wid, date, hLocs: resolvedHLocs, wLocs: resolvedWLocs, hQtys: resolvedHQtys, wQtys: resolvedWQtys, cells });
+    data.push({ wid, date, hLocs: resolvedHLocs, wLocs: resolvedWLocs, hQtys: resolvedHQtys, wQtys: resolvedWQtys, cells,
+      hSubLocs: _readSubLocs(block, 0, hLocs.length),
+      wSubLocs: _readSubLocs(block, hLocs.length, wLocs.length)
+    });
   });
 
   return { weekCount, data };
@@ -1697,7 +1785,10 @@ function extractWeekData(block) {
     });
   });
 
-  return { date, day, hLocs: resolvedHLocs, wLocs: resolvedWLocs, hQtys: resolvedHQtys, wQtys: resolvedWQtys, cells };
+  return { date, day, hLocs: resolvedHLocs, wLocs: resolvedWLocs, hQtys: resolvedHQtys, wQtys: resolvedWQtys, cells,
+    hSubLocs: _readSubLocs(block, 0, hLocs.length),
+    wSubLocs: _readSubLocs(block, hLocs.length, wLocs.length)
+  };
 }
 
 // ===== 儲存單筆到歷史紀錄 =====
@@ -1814,12 +1905,16 @@ function buildHistoryTableHTML(entry) {
   hLocs.forEach((loc, i) => {
     const qty = (entry.hQtys||[])[i];
     const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 7px;font-size:0.85rem;font-weight:700;margin-left:5px;letter-spacing:0.5px;">✦${qty}份</span>` : "";
-    html += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}</th>`;
+    const subs = ((entry.hSubLocs||[])[i]||[]);
+    const subBadges = subs.length ? `<span style="display:inline-flex;flex-wrap:wrap;gap:2px 6px;font-size:0.8rem;font-weight:700;margin-left:4px;">${subs.map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 6px 1px 5px;font-size:0.8rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</span>` : "";
+    html += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}${subBadges}</th>`;
   });
   wLocs.forEach((loc, i) => {
     const qty = (entry.wQtys||[])[i];
     const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 7px;font-size:0.85rem;font-weight:700;margin-left:5px;letter-spacing:0.5px;">✦${qty}份</span>` : "";
-    html += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}</th>`;
+    const subs = ((entry.wSubLocs||[])[i]||[]);
+    const subBadges = subs.length ? `<span style="display:inline-flex;flex-wrap:wrap;gap:2px 6px;font-size:0.8rem;font-weight:700;margin-left:4px;">${subs.map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 6px 1px 5px;font-size:0.8rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</span>` : "";
+    html += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}${subBadges}</th>`;
   });
   html += "</tr>";
 
@@ -1922,6 +2017,11 @@ function restoreFromHistory(idx) {
       }, 50);
     }
   });
+
+  // 套用子地點
+  const hLen = (entry.hLocs||[]).length;
+  _applySubLocs(block, 0, entry.hSubLocs || []);
+  _applySubLocs(block, hLen, entry.wSubLocs || []);
 
   block.scrollIntoView({ behavior: "smooth" });
   scheduleAutoSave();
@@ -2038,7 +2138,7 @@ function exportAllHistory() {
           <span style="font-size:0.85rem;color:#b0bec5;margin-left:8px;">儲存於 ${entry.savedAt || ""}${entry.savedBy ? " ✍️ " + entry.savedBy : ""}</span>
         </div>
         <div class="tbl-wrap">${tableHTML}</div>
-      </div>`;
+      </span>`;
   });
 
   const dateStr = new Date().toLocaleDateString("zh-TW").replace(/\//g,"-");
@@ -2112,16 +2212,21 @@ function exportCurrentAsHTML() {
     const hSpan = hLocNames.length * 2;
     const wSpan = wLocNames.length * 2;
     let hr1 = `<tr><th class="th-week" rowspan="3">品項</th><th class="th-health" colspan="${hSpan}">【健康餐】</th><th class="th-wind" colspan="${wSpan}">【風味餐】</th></tr>`;
+    // 讀子地點
+    const hSubL = _readSubLocs(block, 0, hLocNames.length);
+    const wSubL = _readSubLocs(block, hLocNames.length, wLocNames.length);
     let hr2 = "<tr>";
     hLocNames.forEach((loc, i) => {
       const qty = hQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 7px;font-size:0.85rem;font-weight:700;margin-left:5px;">✦${qty}份</span>` : "";
-      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}</th>`;
+      const subBadges = ((hSubL[i]||[]).length ? `<span style="display:inline-flex;flex-wrap:wrap;gap:2px 6px;font-size:0.8rem;font-weight:700;margin-left:4px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 6px 1px 5px;font-size:0.8rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</span>` : "");
+      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}${subBadges}</th>`;
     });
     wLocNames.forEach((loc, i) => {
       const qty = wQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 7px;font-size:0.85rem;font-weight:700;margin-left:5px;">✦${qty}份</span>` : "";
-      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}</th>`;
+      const subBadges = ((wSubL[i]||[]).length ? `<span style="display:inline-flex;flex-wrap:wrap;gap:2px 6px;font-size:0.8rem;font-weight:700;margin-left:4px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 6px 1px 5px;font-size:0.8rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</span>` : "");
+      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style="border-left:none;border-right:none;">${loc}${qtyBadge}${subBadges}</th>`;
     });
     hr2 += "</tr>";
     let hr3 = "<tr>";
@@ -2160,7 +2265,7 @@ function exportCurrentAsHTML() {
         <span class="week-label">日期：${date}</span>${dayLabel}
       </div>
       <div class="tbl-wrap"><table>${hr1}${hr2}${hr3}${rowsHTML}</table></div>
-    </div>`;
+    </span>`;
   });
 
   if (!tablesHTML) { alert("篩選後沒有符合日期區間的菜單。"); return; }
@@ -2339,16 +2444,21 @@ async function exportAsImage(itemOnlyMode) {
     const locQtyInps = [...block.querySelectorAll(".loc-qty-inp")];
     const hQtyVals = hLocNames.map((_, i) => locQtyInps[i]?.value || "");
     const wQtyVals = wLocNames.map((_, i) => locQtyInps[hLocNames.length + i]?.value || "");
+    // 讀子地點
+    const hSubL = _readSubLocs(block, 0, hLocNames.length);
+    const wSubL = _readSubLocs(block, hLocNames.length, wLocNames.length);
 
     hLocNames.forEach((loc, i) => {
       const qty = hQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 7px;font-size:0.85rem;font-weight:700;margin-left:5px;letter-spacing:0.5px;">✦${qty}份</span>` : "";
-      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;">${loc}${qtyBadge}</th>`;
+      const subBadges = ((hSubL[i]||[]).length ? `<span style="display:inline-flex;flex-wrap:wrap;gap:2px 6px;font-size:0.8rem;font-weight:700;margin-left:4px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 6px 1px 5px;font-size:0.8rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</span>` : "");
+      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;">${loc}${qtyBadge}${subBadges}</th>`;
     });
     wLocNames.forEach((loc, i) => {
       const qty = wQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 7px;font-size:0.85rem;font-weight:700;margin-left:5px;letter-spacing:0.5px;">✦${qty}份</span>` : "";
-      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;">${loc}${qtyBadge}</th>`;
+      const subBadges = ((wSubL[i]||[]).length ? `<span style="display:inline-flex;flex-wrap:wrap;gap:2px 6px;font-size:0.8rem;font-weight:700;margin-left:4px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:20px;padding:1px 6px 1px 5px;font-size:0.8rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</span>` : "");
+      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;">${loc}${qtyBadge}${subBadges}</th>`;
     });
     hr2 += "</tr>";
     let hr3 = "<tr>";
@@ -2393,7 +2503,7 @@ async function exportAsImage(itemOnlyMode) {
       rowsHTML += "</tr>";
     });
 
-    tablesHTML += `<div class="week-block" style="margin-bottom:28px;"><div class="week-titlebar"><span class="week-label">日期：${date}</span>${(day && day !== "請選日期") ? `<span class="week-day">${day}</span>` : ""}</div><div class="tbl-wrap"><table>${hr1}${hr2}${hr3}${rowsHTML}</table></div></div>`;
+    tablesHTML += `<div class="week-block" style="margin-bottom:28px;"><div class="week-titlebar"><span class="week-label">日期：${date}</span>${(day && day !== "請選日期") ? `<span class="week-day">${day}</span>` : ""}</div><div class="tbl-wrap"><table>${hr1}${hr2}${hr3}${rowsHTML}</table></div></span>`;
   });
 
   // 建立離屏 iframe 來渲染
@@ -2461,25 +2571,35 @@ function exportAllHistoryExcel() {
     const wLocs = entry.wLocs || [];
     const allLocs = [...hLocs, ...wLocs];
 
-    // 為每個地點輸出一列（只輸出「品項」欄，對應各 row）
+    // 輔助：輸出一列資料（地點、kind、qty、cells col index）
+    function pushLocRow(locName, kind, qty, colIdx) {
+      const qtyStr = qty ? `(${qty}份)` : "";
+      const label = `${kind}-${locName}${qtyStr}-品項`;
+      const dataRow = [entry.date, label];
+      FIXED_ROWS.forEach(rowKey => {
+        const found = (entry.cells || []).find(c => c.row === rowKey && c.col === colIdx);
+        const v2 = (found?.v2 && found.v2 !== "-" && found.v2 !== "-- 品項 --") ? found.v2 : "";
+        dataRow.push(v2);
+      });
+      allRows.push(dataRow);
+    }
+
+    // 為每個主地點輸出一列，子地點也各自輸出一列（品項內容相同，只有地點/份數不同）
     allLocs.forEach((loc, locIdx) => {
       const isHealth = locIdx < hLocs.length;
       const kind = isHealth ? "健康餐" : "風味餐";
       const qty = isHealth
         ? ((entry.hQtys || [])[locIdx] || "")
         : ((entry.wQtys || [])[locIdx - hLocs.length] || "");
-      const qtyStr = qty ? `(${qty}份)` : "";
-      const label = `${kind}-${loc}${qtyStr}-品項`;
+      pushLocRow(loc, kind, qty, locIdx);
 
-      const dataRow = [entry.date, label];
-
-      FIXED_ROWS.forEach(rowKey => {
-        const found = (entry.cells || []).find(c => c.row === rowKey && c.col === locIdx);
-        const v2 = (found?.v2 && found.v2 !== "-" && found.v2 !== "-- 品項 --") ? found.v2 : "";
-        dataRow.push(v2);
+      // 子地點（同份菜單，品項 col 與主地點相同）
+      const subArr = isHealth
+        ? ((entry.hSubLocs || [])[locIdx] || [])
+        : ((entry.wSubLocs || [])[locIdx - hLocs.length] || []);
+      subArr.forEach(s => {
+        if (s.name) pushLocRow(s.name, kind, s.qty, locIdx);
       });
-
-      allRows.push(dataRow);
     });
   });
 
@@ -2589,6 +2709,11 @@ async function applyMenuData(saved) {
         }, 50);
       }
     });
+
+    // 套用子地點
+    const hLen = (item.hLocs||[]).length;
+    _applySubLocs(block, 0, item.hSubLocs || []);
+    _applySubLocs(block, hLen, item.wSubLocs || []);
   });
   // setTimeout 裡還有 dispatchEvent，等它們都跑完後才關旗標
   setTimeout(() => {
@@ -2678,12 +2803,12 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     const kw = showAll ? "" : keyword.toLowerCase();
     _activeIdx = -1;
     dropdown.innerHTML = matched.map(item => {
-      if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
+      if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</span>`;
       const idx = item.toLowerCase().indexOf(kw);
       const hi = item.slice(0, idx) +
         `<mark>${item.slice(idx, idx + keyword.length)}</mark>` +
         item.slice(idx + keyword.length);
-      return `<div class="fuzzy-dropdown-item" data-val="${item}">${hi}</div>`;
+      return `<div class="fuzzy-dropdown-item" data-val="${item}">${hi}</span>`;
     }).join("");
     positionDropdown();
     dropdown.style.display = "block";
@@ -2956,11 +3081,14 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   th.colSpan = 2;
   th.style.borderLeft = "none";
   th.style.borderRight = "none";
+  th.style.position = "relative";
 
   const wrap = document.createElement("div");
-  wrap.style.cssText = "display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;row-gap:3px;padding:2px 0;";
+  const outerWrap = document.createElement("div");
+  outerWrap.style.cssText = "display:inline-flex;flex-direction:column;align-items:flex-start;gap:0;padding:2px 4px;";
+  wrap.style.cssText = "display:flex;align-items:center;justify-content:flex-start;gap:4px;flex-wrap:nowrap;width:100%;";
 
-  const SHARED_LOC_STYLE = "background:transparent;border:none;outline:none;color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:2px;text-align:center;max-width:100px;cursor:pointer;font-family:inherit;";
+  const SHARED_LOC_STYLE = "background:transparent;border:none;outline:none;color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-align:center;max-width:100px;cursor:pointer;font-family:inherit;";
 
   const sel = document.createElement("select");
   sel.className = "loc-sel";
@@ -2973,7 +3101,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   inp.className = "loc-inp";
   inp.value = loc;
   inp.placeholder = "輸入名稱";
-  inp.style.cssText = `display:flex;width:80px;background:transparent;border:none;border-bottom:1px solid rgba(0,0,0,0.25);color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:2px;text-align:center;font-family:inherit;outline:none;`;
+  inp.style.cssText = `display:flex;width:80px;background:transparent;border:none;color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-align:left;font-family:inherit;outline:none;`;
 
   inp.addEventListener("dblclick", () => {
     inp.style.display = "none";
@@ -3062,14 +3190,109 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   });
 
   wrap.appendChild(sel); wrap.appendChild(inp); wrap.appendChild(qtyWrap); wrap.appendChild(delBtn);
+  outerWrap.appendChild(wrap);
+
+  // ── 子地點清單（同欄附加地點） ──
+  const subList = document.createElement("div");
+  subList.className = "loc-sub-list";
+
+  // 輔助：建立一個子地點 tag
+  function makeSubItem(initName, initQty) {
+    const item = document.createElement("div");
+    item.className = "loc-sub-item";
+
+    const nameInp = document.createElement("input");
+    nameInp.type = "text";
+    nameInp.className = "loc-sub-name";
+    nameInp.placeholder = "地點";
+    nameInp.value = initName || "";
+    nameInp.addEventListener("input", scheduleAutoSave);
+
+    const sep = document.createElement("span");
+    sep.className = "loc-sub-sep";
+    sep.textContent = "✦";
+
+    const qtyI = document.createElement("input");
+    qtyI.type = "text";
+    qtyI.inputMode = "numeric";
+    qtyI.className = "loc-sub-qty";
+    qtyI.placeholder = "份";
+    qtyI.value = initQty || "";
+    qtyI.addEventListener("input", () => {
+      qtyI.value = qtyI.value.replace(/[^0-9]/g, "");
+      scheduleAutoSave();
+    });
+
+    const unit = document.createElement("span");
+    unit.className = "loc-sub-unit";
+    unit.textContent = "份";
+
+    const delS = document.createElement("button");
+    delS.className = "loc-sub-del";
+    delS.textContent = "✕";
+    delS.title = "移除此附加地點";
+    delS.addEventListener("click", () => {
+      item.remove();
+      scheduleAutoSave();
+    });
+
+    const qtyWrap = document.createElement("div");
+    qtyWrap.className = "loc-sub-qty-wrap";
+    qtyWrap.appendChild(sep);
+    qtyWrap.appendChild(qtyI);
+    qtyWrap.appendChild(unit);
+
+    item.appendChild(nameInp);
+    item.appendChild(qtyWrap);
+    item.appendChild(delS);
+    item._nameInp = nameInp;
+    item._qtyInp = qtyI;
+    return item;
+  }
+
+  // ── 「＋地點」按鈕 ──
+  const addSubBtn = document.createElement("button");
+  addSubBtn.className = "loc-add-sub-btn";
+  addSubBtn.title = "在此欄新增附加地點（同份菜單不同地點）";
+  addSubBtn.textContent = "＋地點";
+  addSubBtn.style.gridColumn = "1 / -1";
+  addSubBtn.addEventListener("click", () => {
+    const item = makeSubItem("", "");
+    subList.insertBefore(item, addSubBtn);
+    item._nameInp.focus();
+    scheduleAutoSave();
+  });
+  subList.appendChild(addSubBtn);
+  outerWrap.appendChild(subList);
+
+  // 暴露給外部讀取子地點資料
+  th._subList = subList;
+  th._makeSubItem = makeSubItem;
 
   // ── 第二行：複製／貼上／清除 ──
   const btnRow = document.createElement("div");
   btnRow.style.cssText = "display:flex;align-items:center;justify-content:center;gap:4px;width:100%;margin-top:1px;";
   btnRow.appendChild(copyBtn); btnRow.appendChild(pasteBtn); btnRow.appendChild(clearBtn);
-  wrap.appendChild(btnRow);
+  outerWrap.appendChild(btnRow);
 
-  th.appendChild(wrap);
+  // ── 份數加總 badge ──
+  const totalBadge = document.createElement("div");
+  totalBadge.style.cssText = "position:absolute;top:4px;right:6px;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;color:inherit;white-space:nowrap;pointer-events:none;";
+  function updateTotalBadge() {
+    let total = 0;
+    const mainQty = parseInt(qtyInp.value) || 0;
+    total += mainQty;
+    subList.querySelectorAll(".loc-sub-qty").forEach(q => { total += parseInt(q.value) || 0; });
+    totalBadge.textContent = total > 0 ? "共 " + total + " 份" : "";
+    totalBadge.style.display = total > 0 ? "" : "none";
+  }
+  qtyInp.addEventListener("input", updateTotalBadge);
+  subList.addEventListener("input", updateTotalBadge);
+  updateTotalBadge();
+  th._updateTotal = updateTotalBadge;
+
+  th.appendChild(outerWrap);
+  th.appendChild(totalBadge);
   return th;
 }
 
@@ -3123,6 +3346,14 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
   function rebuildTable() {
     weekDataMap[wid].hLocs = hLocs;
     weekDataMap[wid].wLocs = wLocs;
+
+    // ── 重建前先從舊 DOM 快照子地點（用新的 hLocs/wLocs 長度，因為刪欄後長度已更新）
+    // 舊 th 數量可能和新長度不一樣（刪欄：舊多1、新增欄：舊少1），取 min 避免越界
+    const _oldThCount = block.querySelectorAll("table tr:nth-child(2) th").length;
+    const _hSnapCount = Math.min(hLocs.length, _oldThCount);
+    const _wSnapCount = Math.min(wLocs.length, Math.max(0, _oldThCount - _hSnapCount));
+    const _snapH = _readSubLocs(block, 0, _hSnapCount);
+    const _snapW = _readSubLocs(block, _hSnapCount, _wSnapCount);
 
     const old = block.querySelector(".tbl-wrap");
     if (old) old.remove();
@@ -3224,6 +3455,10 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
 
     wrap.appendChild(tbl);
     block.appendChild(wrap);
+
+    // ── 還原子地點快照（刪欄時對應欄的快照自然短少，新增欄的快照為空） ──
+    _applySubLocs(block, 0, _snapH);
+    _applySubLocs(block, hLocs.length, _snapW);
   }
 
   rebuildTable();
@@ -3442,7 +3677,7 @@ function exportHTML(itemOnlyMode) {
         <div class="tbl-wrap">
           <table>${hr1}${hr2}${hr3}${rowsHTML}</table>
         </div>
-      </div>`;
+      </span>`;
   });
 
   const modeLabel = itemOnlyMode ? "僅品項" : "含類別";
@@ -3791,11 +4026,19 @@ async function initApp() {
     initPresence(user);
     await loadHistory();
 
-    _menuAutoSave = makeAutoSave('menu', collectMenuData, 800);
+    _menuAutoSave = makeAutoSave('menu', () => {
+      const d = collectMenuData();
+      _lastSavedMenuJSON = JSON.stringify(d.data);
+      return d;
+    }, 800);
     _dbAutoSave   = makeAutoSave('menudb', collectDbData, 800);
 
     startSync('menudb', user, applyDbData);
     startSync('menu', user, async (content) => {
+      // 若收到的資料與本機剛存的完全相同，跳過重建（避免閃爍）
+      const incomingJSON = JSON.stringify(content && content.data);
+      if (_lastSavedMenuJSON && incomingJSON === _lastSavedMenuJSON) return;
+
       const loaded = await applyMenuData(content);
       if (!loaded) { addWeek(); addWeek(); }
       renderHistoryPanel();
