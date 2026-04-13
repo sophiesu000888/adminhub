@@ -2239,15 +2239,15 @@ function exportCurrentAsHTML() {
       const qty = hQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
       const subBadges = ((hSubL[i]||[]).length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
-      const hTotal2 = (() => { const subs = hSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<span style="position:absolute;top:4px;right:6px;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;white-space:nowrap;">共 ${t} 份</span>` : ""; })();
-      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style="border-left:none;border-right:none;position:relative;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div>${hTotal2}</th>`;
+      const hTotal2 = (() => { const subs = hSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:3px;align-self:center;">共 ${t} 份</div>` : ""; })();
+      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style="border-left:none;border-right:none;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${hTotal2}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
     });
     wLocNames.forEach((loc, i) => {
       const qty = wQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
       const subBadges = ((wSubL[i]||[]).length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
-      const wTotal2 = (() => { const subs = wSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<span style="position:absolute;top:4px;right:6px;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;white-space:nowrap;">共 ${t} 份</span>` : ""; })();
-      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style="border-left:none;border-right:none;position:relative;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div>${wTotal2}</th>`;
+      const wTotal2 = (() => { const subs = wSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:3px;align-self:center;">共 ${t} 份</div>` : ""; })();
+      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style="border-left:none;border-right:none;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${wTotal2}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
     });
     hr2 += "</tr>";
     let hr3 = "<tr>";
@@ -2473,15 +2473,15 @@ async function exportAsImage(itemOnlyMode) {
       const qty = hQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
       const subBadges = ((hSubL[i]||[]).length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
-      const hTotal = (() => { const subs = hSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<span style="position:absolute;top:4px;right:6px;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;white-space:nowrap;">共 ${t} 份</span>` : ""; })();
-      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;position:relative;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div>${hTotal}</th>`;
+      const hTotal = (() => { const subs = hSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:3px;align-self:center;">共 ${t} 份</div>` : ""; })();
+      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${hTotal}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
     });
     wLocNames.forEach((loc, i) => {
       const qty = wQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
       const subBadges = ((wSubL[i]||[]).length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
-      const wTotal = (() => { const subs = wSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<span style="position:absolute;top:4px;right:6px;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;white-space:nowrap;">共 ${t} 份</span>` : ""; })();
-      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;position:relative;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div>${wTotal}</th>`;
+      const wTotal = (() => { const subs = wSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:3px;align-self:center;">共 ${t} 份</div>` : ""; })();
+      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="${itemOnlyMode?1:2}" style="border-left:none;border-right:none;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${wTotal}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
     });
     hr2 += "</tr>";
     let hr3 = "<tr>";
@@ -3371,7 +3371,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
 
   // ── 份數加總 badge ──
   const totalBadge = document.createElement("div");
-  totalBadge.style.cssText = "position:absolute;top:4px;right:6px;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;color:inherit;white-space:nowrap;pointer-events:none;";
+  totalBadge.style.cssText = "background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;color:inherit;white-space:nowrap;align-self:center;margin-bottom:3px;pointer-events:none;";
   function updateTotalBadge() {
     const subCount = subList.querySelectorAll(".loc-sub-item").length;
     if (subCount === 0) { totalBadge.style.display = "none"; return; }
@@ -3387,8 +3387,8 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   updateTotalBadge();
   th._updateTotal = updateTotalBadge;
 
+  outerWrap.insertBefore(totalBadge, outerWrap.firstChild);
   th.appendChild(outerWrap);
-  th.appendChild(totalBadge);
   return th;
 }
 
