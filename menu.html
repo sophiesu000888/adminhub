@@ -176,22 +176,22 @@ th, td { border: 1px solid rgba(45,45,45,0.25); text-align: center; vertical-ali
 .th-hloc   {
   background: #b2d8b3; color: #1b5e20; font-weight: 700;
   padding: 7px 8px; font-size: 1.05rem; letter-spacing: 2px;
-  border: none; min-width: 160px;
+  border: none; min-width: 160px; text-align: left;
 }
 .th-hloc-light {
   background: #c5e5c6; color: #2e7d32; font-weight: 700;
   padding: 7px 8px; font-size: 1.05rem; letter-spacing: 2px;
-  border: none; min-width: 160px;
+  border: none; min-width: 160px; text-align: left;
 }
 .th-wloc   {
   background: #aed0f0; color: #0d47a1; font-weight: 700;
   padding: 7px 8px; font-size: 1.05rem; letter-spacing: 2px;
-  border: none; min-width: 160px;
+  border: none; min-width: 160px; text-align: left;
 }
 .th-wloc-light {
   background: #c0daf5; color: #1565c0; font-weight: 700;
   padding: 7px 8px; font-size: 1.05rem; letter-spacing: 2px;
-  border: none; min-width: 160px;
+  border: none; min-width: 160px; text-align: left;
 }
 .th-sub    { font-size: 0.88rem; font-weight: 700; padding: 7px 8px; }
 .th-sub-h  { background: #a3cda4; color: #1b5e20; }
@@ -295,7 +295,7 @@ select {
   cursor: pointer; transition: border-color 0.15s;
 }
 select:focus { outline: none; border-color: var(--blue); }
-select.sel-l1 { font-weight: 600; background-image: none; padding-right: 5px; border-color: transparent; }
+select.sel-l1 { font-weight: 600; background-image: none; padding-right: 5px; border-color: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
 select.sel-l1:focus { border-color: transparent; }
 select.sel-l2 { font-size: 1rem; background-image: none; padding-right: 5px; }
 select.sel-l2:disabled {
@@ -338,6 +338,21 @@ input.sel-l2-inp:disabled {
 .fuzzy-dropdown-item:hover, .fuzzy-dropdown-item.active {
   background: rgba(45,93,161,0.1);
   color: var(--ink);
+}
+.fuzzy-dropdown-group {
+  padding: 5px 10px 2px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 1px;
+  border-top: 1px solid #eee;
+  margin-top: 2px;
+  pointer-events: none;
+  user-select: none;
+}
+.fuzzy-dropdown-group:first-child {
+  border-top: none;
+  margin-top: 0;
 }
 .fuzzy-dropdown-item mark {
   background: #fff9c4;
@@ -1086,47 +1101,49 @@ button {
 /* ── 欄內附加子地點 ── */
 /* ── 欄內附加子地點 ── */
 .loc-sub-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: 100%;
   margin-top: 3px;
-  justify-items: start;
+  padding-left: 20px;
 }
 .loc-sub-item {
-  display: inline-flex; align-items: center; gap: 3px;
+  display: inline-flex; align-items: center; gap: 4px;
   background: transparent; border: none;
-  border-radius: 0; padding: 1px 2px; font-size: 1.05rem;
+  border-radius: 0; padding: 0;
 }
 .loc-sub-name {
   background: transparent; border: none; outline: none; color: inherit;
-  font-size: 1.05rem; font-weight: 700; width: 4em; text-align: center;
+  font-size: 1.05rem; font-weight: 700; width: 80px; text-align: left;
   font-family: inherit; letter-spacing: 1px;
 }
 .loc-sub-qty-wrap {
   display: inline-flex; align-items: center; gap: 2px;
   background: rgba(0,0,0,0.07); border-radius: 20px;
-  padding: 1px 6px 1px 5px; border: 1px solid rgba(0,0,0,0.18);
+  padding: 2px 7px 2px 5px; border: 1px solid rgba(0,0,0,0.18);
+  margin-left: 2px;
 }
 .loc-sub-qty {
   background: transparent; border: none; outline: none; color: inherit;
-  font-size: 1.05rem; font-weight: 700; width: 3ch; text-align: center;
+  font-size: 0.85rem; font-weight: 700; width: 4ch; text-align: center;
   font-family: inherit; -moz-appearance: textfield;
 }
 .loc-sub-qty::-webkit-outer-spin-button,
 .loc-sub-qty::-webkit-inner-spin-button { -webkit-appearance: none; }
-.loc-sub-sep { opacity: 0.6; font-size: 0.85rem; font-weight: 700; }
-.loc-sub-unit { font-size: 0.85rem; font-weight: 600; }
+.loc-sub-qty::placeholder { color: inherit; opacity: 0.45; font-weight: 400; }
+.loc-sub-sep { color: inherit; font-size: 0.85rem; font-weight: 700; }
+.loc-sub-unit { color: inherit; font-size: 0.85rem; font-weight: 600; }
 .loc-sub-del {
   background: transparent; border: none; color: inherit; opacity: 0.4;
-  font-size: 0.8rem; padding: 0 2px; cursor: pointer; line-height: 1; transition: opacity 0.15s;
+  font-size: 0.85rem; padding: 0 2px; cursor: pointer; line-height: 1; transition: opacity 0.15s;
 }
 .loc-sub-del:hover { opacity: 0.9; }
 .loc-add-sub-btn {
   display: inline-flex; align-items: center; gap: 2px;
   background: transparent; border: none;
   color: inherit; border-radius: 0; padding: 1px 2px;
-  font-size: 0.9rem; font-weight: 700; cursor: pointer; opacity: 0.5;
+  font-size: 0.85rem; font-weight: 700; cursor: pointer; opacity: 0.5;
   transition: opacity 0.15s; font-family: inherit; white-space: nowrap;
 }
 .loc-add-sub-btn:hover { opacity: 1; }
@@ -2802,14 +2819,40 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     if (!matched.length) { hideDropdown(); return; }
     const kw = showAll ? "" : keyword.toLowerCase();
     _activeIdx = -1;
-    dropdown.innerHTML = matched.map(item => {
-      if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</span>`;
-      const idx = item.toLowerCase().indexOf(kw);
-      const hi = item.slice(0, idx) +
-        `<mark>${item.slice(idx, idx + keyword.length)}</mark>` +
-        item.slice(idx + keyword.length);
-      return `<div class="fuzzy-dropdown-item" data-val="${item}">${hi}</span>`;
-    }).join("");
+
+    // 若為主菜且無關鍵字 → 依 MENU_GROUPS 分組顯示
+    const groups = MENU_GROUPS[rowKey];
+    if (showAll && groups && groups.length) {
+      const matchedSet = new Set(matched);
+      let html = "";
+      groups.forEach(g => {
+        const groupItems = g.items.filter(item => matchedSet.has(item));
+        if (!groupItems.length) return;
+        html += `<div class="fuzzy-dropdown-group">${g.label}</div>`;
+        groupItems.forEach(item => {
+          html += `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
+        });
+      });
+      // 不在任何分組的品項
+      const groupedItems = new Set(groups.flatMap(g => g.items));
+      const ungrouped = matched.filter(item => !groupedItems.has(item));
+      if (ungrouped.length) {
+        ungrouped.forEach(item => {
+          html += `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
+        });
+      }
+      dropdown.innerHTML = html;
+    } else {
+      dropdown.innerHTML = matched.map(item => {
+        if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
+        const idx = item.toLowerCase().indexOf(kw);
+        if (idx < 0) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
+        const hi = item.slice(0, idx) +
+          `<mark>${item.slice(idx, idx + keyword.length)}</mark>` +
+          item.slice(idx + keyword.length);
+        return `<div class="fuzzy-dropdown-item" data-val="${item}">${hi}</div>`;
+      }).join("");
+    }
     positionDropdown();
     dropdown.style.display = "block";
   }
@@ -3085,7 +3128,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
 
   const wrap = document.createElement("div");
   const outerWrap = document.createElement("div");
-  outerWrap.style.cssText = "display:inline-flex;flex-direction:column;align-items:flex-start;gap:0;padding:2px 4px;";
+  outerWrap.style.cssText = "display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:2px 4px;width:100%;";
   wrap.style.cssText = "display:flex;align-items:center;justify-content:flex-start;gap:4px;flex-wrap:nowrap;width:100%;";
 
   const SHARED_LOC_STYLE = "background:transparent;border:none;outline:none;color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-align:center;max-width:100px;cursor:pointer;font-family:inherit;";
@@ -3216,7 +3259,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
     qtyI.type = "text";
     qtyI.inputMode = "numeric";
     qtyI.className = "loc-sub-qty";
-    qtyI.placeholder = "份";
+    qtyI.placeholder = "數量";
     qtyI.value = initQty || "";
     qtyI.addEventListener("input", () => {
       qtyI.value = qtyI.value.replace(/[^0-9]/g, "");
@@ -3343,9 +3386,36 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
     wQtys = allQtys.slice(hLocs.length, hLocs.length + wLocs.length);
   }
 
-  function rebuildTable() {
+  function snapshotCells() {
+    const snapshot = {};
+    const tbl = block.querySelector("table");
+    if (!tbl) return snapshot;
+    tbl.querySelectorAll("tr").forEach(tr => {
+      const catTd = tr.querySelector(".td-cat");
+      if (!catTd) return;
+      const rowName = catTd.textContent;
+      const sels1 = [...tr.querySelectorAll("td.td-l1 select")];
+      const inps2 = [...tr.querySelectorAll("td.td-l2 input.sel-l2-inp")];
+      snapshot[rowName] = sels1.map((s, i) => ({
+        v1: s.value || "-",
+        v2: inps2[i] ? inps2[i].value : ""
+      }));
+    });
+    return snapshot;
+  }
+
+  function rebuildTable(deletedColIdx) {
     weekDataMap[wid].hLocs = hLocs;
     weekDataMap[wid].wLocs = wLocs;
+
+    // 快照品項資料
+    const snapshot = snapshotCells();
+    if (deletedColIdx !== undefined) {
+      Object.keys(snapshot).forEach(rowName => {
+        const arr = snapshot[rowName];
+        if (arr && arr.length > deletedColIdx) arr.splice(deletedColIdx, 1);
+      });
+    }
 
     // ── 重建前先從舊 DOM 快照子地點（用新的 hLocs/wLocs 長度，因為刪欄後長度已更新）
     // 舊 th 數量可能和新長度不一樣（刪欄：舊多1、新增欄：舊少1），取 min 避免越界
@@ -3383,7 +3453,8 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
         readCurrentQtys();
         if (hLocs.length<=1) { alert("至少需保留一個健康餐地點"); return; }
         if (!confirm(`刪除「${loc}」欄位？`)) return;
-        hLocs.splice(i,1); hQtys.splice(i,1); rebuildTable(); scheduleAutoSave();
+        const delIdx = i;
+        hLocs.splice(i,1); hQtys.splice(i,1); rebuildTable(delIdx); scheduleAutoSave();
       }, i, hQtys[i],
       (copyBtn) => copyLocColumn(block, colIdx, copyBtn),
       () => pasteLocColumn(block, colIdx),
@@ -3396,7 +3467,8 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
         readCurrentQtys();
         if (wLocs.length<=1) { alert("至少需保留一個風味餐地點"); return; }
         if (!confirm(`刪除「${loc}」欄位？`)) return;
-        wLocs.splice(i,1); wQtys.splice(i,1); rebuildTable(); scheduleAutoSave();
+        const delIdx = hLocs.length + i;
+        wLocs.splice(i,1); wQtys.splice(i,1); rebuildTable(delIdx); scheduleAutoSave();
       }, i, wQtys[i],
       (copyBtn) => copyLocColumn(block, colIdx, copyBtn),
       () => pasteLocColumn(block, colIdx),
@@ -3456,12 +3528,35 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
     wrap.appendChild(tbl);
     block.appendChild(wrap);
 
+    // ── 還原品項快照 ──
+    if (snapshot && Object.keys(snapshot).length > 0) {
+      tbl.querySelectorAll("tr").forEach(tr => {
+        const catTd = tr.querySelector(".td-cat");
+        if (!catTd) return;
+        const rowName = catTd.textContent;
+        const rowData = snapshot[rowName];
+        if (!rowData) return;
+        const sels1 = [...tr.querySelectorAll("td.td-l1 select")];
+        const inps2 = [...tr.querySelectorAll("td.td-l2 input.sel-l2-inp")];
+        sels1.forEach((s1, i) => {
+          const d = rowData[i];
+          if (!d) return;
+          if (d.v1 && d.v1 !== "-") s1.value = d.v1;
+          const inp2 = inps2[i];
+          if (inp2 && d.v2 && d.v2 !== "-" && d.v2 !== "-- 品項 --") {
+            inp2.value = d.v2;
+            if (inp2._applyColor) inp2._applyColor(d.v2);
+          }
+        });
+      });
+    }
+
     // ── 還原子地點快照（刪欄時對應欄的快照自然短少，新增欄的快照為空） ──
     _applySubLocs(block, 0, _snapH);
     _applySubLocs(block, hLocs.length, _snapW);
   }
 
-  rebuildTable();
+  rebuildTable(undefined);
   block._rebuildTable = rebuildTable;
   block._hQtysRef = hQtys;
   block._wQtysRef = wQtys;
