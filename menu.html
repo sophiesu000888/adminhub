@@ -3200,7 +3200,26 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   if (initQty) qtyInp.value = initQty;
   qtyInp.addEventListener("input", () => {
     qtyInp.value = qtyInp.value.replace(/[^0-9]/g, "");
+    if (qtyInp.value) {
+      const locName = inp.style.display === "none" ? (sel.value && sel.value !== "__custom__" ? sel.value : "") : inp.value.trim();
+      if (!locName) {
+        showWarningModal("請先輸入地點名稱，\n再填寫份數！", []);
+        setTimeout(() => { qtyInp.value = ""; scheduleAutoSave(); }, 0);
+        inp.style.display === "none" ? sel.focus() : inp.focus();
+        return;
+      }
+    }
     scheduleAutoSave();
+  });
+  qtyInp.addEventListener("blur", () => {
+    if (qtyInp.value) {
+      const locName = inp.style.display === "none" ? (sel.value && sel.value !== "__custom__" ? sel.value : "") : inp.value.trim();
+      if (!locName) {
+        showWarningModal("請先輸入地點名稱，\n再填寫份數！", []);
+        qtyInp.value = "";
+        scheduleAutoSave();
+      }
+    }
   });
 
   const qtyUnit = document.createElement("span");
@@ -3280,7 +3299,20 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
     qtyI.value = initQty || "";
     qtyI.addEventListener("input", () => {
       qtyI.value = qtyI.value.replace(/[^0-9]/g, "");
+      if (qtyI.value && !nameInp.value.trim()) {
+        showWarningModal("請先輸入地點名稱，\n再填寫份數！", []);
+        setTimeout(() => { qtyI.value = ""; scheduleAutoSave(); }, 0);
+        nameInp.focus();
+        return;
+      }
       scheduleAutoSave();
+    });
+    qtyI.addEventListener("blur", () => {
+      if (qtyI.value && !nameInp.value.trim()) {
+        showWarningModal("請先輸入地點名稱，\n再填寫份數！", []);
+        qtyI.value = "";
+        scheduleAutoSave();
+      }
     });
 
     const unit = document.createElement("span");
