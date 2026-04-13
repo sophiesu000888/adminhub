@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -359,6 +360,56 @@ input.sel-l2-inp:disabled {
   pointer-events: none; z-index: 9999;
 }
 .save-toast.show { opacity: 1; }
+
+/* 警告視窗 */
+.warning-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(45,45,45,0.45);
+  z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+  animation: wmFadeIn 0.15s ease;
+}
+@keyframes wmFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.warning-modal {
+  background: #fff8e7;
+  border: 3px solid var(--red);
+  border-radius: 12px 3px 12px 3px / 3px 12px 3px 12px;
+  box-shadow: 6px 6px 0 0 var(--red);
+  padding: 28px 32px 22px;
+  max-width: 360px;
+  width: calc(100% - 40px);
+  text-align: center;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  animation: wmSlideIn 0.18s ease;
+}
+@keyframes wmSlideIn { from { transform: translateY(-12px) scale(0.97); opacity:0; } to { transform: none; opacity:1; } }
+.warning-modal-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.warning-modal-msg {
+  color: var(--ink); font-size: 1rem; font-weight: 700;
+  white-space: pre-line; line-height: 1.7; margin-bottom: 20px;
+}
+.warning-modal-locs {
+  display: inline-flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+  margin-bottom: 18px;
+}
+.warning-modal-loc-tag {
+  background: #ffe7e7; color: var(--red);
+  border: 1.5px solid rgba(255,77,77,0.4);
+  border-radius: 20px; padding: 2px 12px;
+  font-size: 0.88rem; font-weight: 700;
+}
+.warning-modal-btn {
+  padding: 8px 32px;
+  background: var(--red); color: #fff;
+  border: 2.5px solid var(--red);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  box-shadow: 3px 3px 0 0 #c0392b;
+  transition: all 0.1s;
+}
+.warning-modal-btn:hover { transform: translate(2px,2px); box-shadow: 1px 1px 0 0 #c0392b; }
+.warning-modal-btn:active { transform: translate(3px,3px); box-shadow: none; }
 
 
 .history-panel {
@@ -1451,6 +1502,53 @@ function showSaveToast(msg, duration) {
   t.textContent = msg || "✅ 已自動儲存";
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), duration || 2500);
+}
+
+function showWarningModal(msg, locs) {
+  // 移除舊的（防重複）
+  const old = document.getElementById('_warningModalOverlay');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'warning-modal-overlay';
+  overlay.id = '_warningModalOverlay';
+
+  const modal = document.createElement('div');
+  modal.className = 'warning-modal';
+
+  const icon = document.createElement('div');
+  icon.className = 'warning-modal-icon';
+  icon.textContent = '⚠️';
+
+  const msgEl = document.createElement('div');
+  msgEl.className = 'warning-modal-msg';
+  msgEl.textContent = msg;
+
+  const btn = document.createElement('button');
+  btn.className = 'warning-modal-btn';
+  btn.textContent = '知道了';
+  btn.onclick = () => overlay.remove();
+
+  modal.appendChild(icon);
+  modal.appendChild(msgEl);
+  if (locs && locs.length) {
+    const locsDiv = document.createElement('div');
+    locsDiv.className = 'warning-modal-locs';
+    locs.forEach(l => {
+      const tag = document.createElement('span');
+      tag.className = 'warning-modal-loc-tag';
+      tag.textContent = l;
+      locsDiv.appendChild(tag);
+    });
+    modal.appendChild(locsDiv);
+  }
+  modal.appendChild(btn);
+  overlay.appendChild(modal);
+
+  // 點擊背景也可關閉
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  btn.focus();
 }
 
 function scheduleAutoSave() {
@@ -3101,7 +3199,21 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
         // 只有所有品項都是空的才允許折收
         const inputs = [...tr.querySelectorAll('input.sel-l2-inp')];
         const hasContent = inputs.some(inp => inp.value && inp.value !== '-' && inp.value !== '-- 品項 --');
-        if (hasContent && !tr.classList.contains('row-collapsed')) return;
+        if (hasContent && !tr.classList.contains('row-collapsed')) {
+          // 利用閉包中的 hLocs/wLocs 找出哪些地點有填選內容
+          const filledLocs = [];
+          const allLocs = [...hLocs, ...wLocs];
+          inputs.forEach((inp, idx) => {
+            if (inp.value && inp.value !== '-' && inp.value !== '-- 品項 --') {
+              // 每個地點有2個td（類別+品項），inp是品項欄
+              const locIdx = Math.floor(idx / 2);
+              const locName = allLocs[locIdx] || '';
+              if (locName && !filledLocs.includes(locName)) filledLocs.push(locName);
+            }
+          });
+          showWarningModal(`「${row}」尚有地點已選擇品項，\n無法摺收此列。`, filledLocs);
+          return;
+        }
         tr.classList.toggle('row-collapsed');
       });
       tr.appendChild(tdCat);
