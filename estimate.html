@@ -1,231 +1,1820 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>烤鴨預估 — Admin Hub</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, 'PingFang TC', sans-serif;
-      background: #f9f9f7; color: #1a1a1a;
-      padding-top: 60px; min-height: 100vh;
-    }
-    .page { max-width: 700px; margin: 0 auto; padding: 28px 20px 60px; }
-    h1 { font-size: 22px; font-weight: 700; margin-bottom: 22px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>烤鴨庫存管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Patrick+Hand&display=swap');
 
-    .date-row {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
-    }
-    .date-row label { font-size: 14px; color: #555; white-space: nowrap; }
-    .date-row input[type="date"] {
-      padding: 7px 12px; border: 1.5px solid #ddd; border-radius: 6px;
-      font-size: 14px; outline: none; font-family: inherit;
-    }
-    .date-row input[type="date"]:focus { border-color: #3b6fd4; }
+:root {
+  /* 手繪紙質風格配色 */
+  --paper: #fdfbf7;
+  --ink: #2d2d2d;
+  --bg: var(--paper);
+  --s1: #ffffff;
+  --s2: #f8f5ef;
+  --s3: #ece8df;
+  
+  --border: #2d2d2d;
+  --border2: rgba(45,45,45,0.25);
+  --border3: rgba(45,45,45,0.5);
+  
+  --gold: #b8942a;
+  --gold2: #9e7f22;
+  --gold3: #ffffff;
+  --gold-dim: rgba(184,148,42,0.1);
+  --gold-dim2: var(--ink);
+  
+  --text: #2d2d2d;
+  --dim: #555555;
+  --muted: #888888;
+  
+  --est: #d35400;   /* 預估 橘色加深以利閱讀 */
+  --act: #27ae60;   /* 實際 綠色 */
+  
+  --red: #c0392b;
+  --red-dim: rgba(192,57,43,0.1);
+  
+  --blue: #2980b9;
+  --green: #27ae60;
+  --purple: #8e44ad;
+  
+  --shadow: 3px 3px 0px 0px var(--ink);
+  --shadow2: 4px 4px 0px 0px var(--ink);
+  --shadow-sm: 2px 2px 0px 0px var(--ink);
+  --shadow-hover: 1px 1px 0px 0px var(--ink);
+  
+  --hand-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --card-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
+}
 
-    .card {
-      background: #fff; border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      padding: 20px 24px; margin-bottom: 18px;
-    }
-    .card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: #333; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .slot-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 12px;
-    }
-    .slot {
-      display: flex; flex-direction: column; gap: 4px;
-    }
-    .slot label { font-size: 12px; color: #888; }
-    .slot input {
-      padding: 8px 10px; border: 1.5px solid #e0e0e0; border-radius: 6px;
-      font-size: 20px; font-weight: 700; text-align: center;
-      outline: none; width: 100%; color: #1a1a1a;
-    }
-    .slot input:focus { border-color: #3b6fd4; background: #ebf0ff; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  background-image: radial-gradient(#c8c4bc 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
 
-    .total-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 0 0; border-top: 1px solid #f0f0f0; margin-top: 14px;
-    }
-    .total-row .label { font-size: 15px; font-weight: 600; }
-    .total-row .num {
-      font-size: 28px; font-weight: 800; color: #3b6fd4;
-    }
-    .total-row .unit { font-size: 14px; color: #999; margin-left: 4px; }
+/* ── TOPBAR ── */
+#topbar {
+  position: sticky; top: 0; z-index: 200;
+  background: white;
+  border-bottom: 2.5px solid var(--border);
+  display: flex; align-items: center; height: 65px;
+  box-shadow: 0 4px 0 0 rgba(0,0,0,0.05);
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px; border-right: 2px solid var(--border); height: 100%; flex-shrink: 0;
+}
+.logo-icon { font-size: 24px; }
+.logo-text { display: flex; flex-direction: column; gap: 0px; }
+.logo-title {
+  font-family: 'Kalam', cursive;
+  font-size: 22px; font-weight: 700;
+  color: var(--ink); letter-spacing: 1.5px;
+  line-height: 1; transform: rotate(-2deg);
+}
+.logo-sub { font-size: 10px; letter-spacing: 2px; color: var(--dim); font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
 
-    .notes-card { background: #fff; border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07); padding: 20px 24px; }
-    .notes-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #333; }
-    .notes-card textarea {
-      width: 100%; padding: 10px 12px;
-      border: 1.5px solid #e0e0e0; border-radius: 6px;
-      font-size: 14px; resize: vertical; min-height: 90px;
-      font-family: inherit; outline: none;
-    }
-    .notes-card textarea:focus { border-color: #3b6fd4; }
+#week-nav {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 16px; border-right: 2px solid var(--border);
+  height: 100%; overflow-x: auto; flex-shrink: 0;
+}
+.wk-btn {
+  background: #dbeafe; border: 2px solid #2563eb;
+  color: #1e3a8a; border-radius: var(--hand-radius);
+  padding: 4px 12px; font-size: 14px;
+  font-family: 'Kalam', cursive; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: all .1s;
+  box-shadow: 2px 2px 0 0 #1d4ed8;
+}
+.wk-btn:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 #1d4ed8; }
+.wk-btn.active {
+  background: var(--gold); border-color: var(--ink);
+  color: white; transform: translate(2px, 2px); box-shadow: 0 0 0 0;
+}
 
-    .history-card {
-      background: #fff; border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07);
-      padding: 20px 24px; margin-top: 18px;
-    }
-    .history-card h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #333; }
-    .history-list { list-style: none; }
-    .history-list li {
-      display: flex; justify-content: space-between;
-      padding: 7px 0; border-bottom: 1px solid #f5f5f5;
-      font-size: 13px;
-    }
-    .history-list li:last-child { border-bottom: none; }
-    .h-date { color: #555; }
-    .h-total { font-weight: 700; color: #3b6fd4; }
-    .btn-save {
-      margin-top: 14px; padding: 8px 20px;
-      border: 1.5px solid #1a1a1a; border-radius: 6px;
-      background: #1a1a1a; color: #fff; font-size: 14px;
-      cursor: pointer;
-    }
-    .btn-save:hover { background: #333; }
-  </style>
+#tbar-stats { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-right: 2px solid var(--border); height: 100%; flex-shrink: 0; }
+.tpill { text-align: center; background: white; border: 2px solid var(--border); border-radius: var(--hand-radius); padding: 2px 10px; box-shadow: var(--shadow-sm); transform: rotate(1deg); }
+.tpill .tl { font-size: 10px; color: var(--dim); font-family: 'Patrick Hand', sans-serif; font-weight: 700; text-transform: uppercase; }
+.tpill .tv { font-size: 22px; font-weight: 700; font-family: 'Kalam', cursive; line-height: 1.1; color: var(--ink); }
+.tv.ab { color: var(--gold); } .tv.low { color: var(--red); }
+.tv.ec { color: var(--est); } .tv.ac { color: var(--act); }
+.vsep { width: 2px; height: 32px; background: var(--border2); }
+
+/* ── NAV ── */
+#nav {
+  display: flex; gap: 10px; padding: 15px 24px;
+  border-bottom: 2px dashed var(--border2);
+  background: transparent;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.nav-btn {
+  /* default / neutral */
+  background: white; border: 2.5px solid var(--border);
+  color: var(--ink); border-radius: var(--card-radius);
+  padding: 8px 24px; font-size: 16px;
+  font-family: 'Kalam', cursive; font-weight: 700;
+  cursor: pointer; transition: all .1s;
+  box-shadow: var(--shadow);
+}
+.nav-btn:hover { transform: translate(1px, 1px); box-shadow: var(--shadow-hover); }
+.nav-btn.active { background: var(--ink); color: white; transform: translate(3px, 3px); box-shadow: 0 0 0 0; }
+/* Overview → blue */
+.nav-btn[onclick*="overview"] {
+  background: #dbeafe; border-color: #2563eb; color: #1e3a8a;
+  box-shadow: 3px 3px 0 0 #1d4ed8;
+}
+.nav-btn[onclick*="overview"]:hover { box-shadow: 1px 1px 0 0 #1d4ed8; }
+.nav-btn[onclick*="overview"].active { background: #1d4ed8; color: #fff; border-color: #1e3a8a; box-shadow: 0 0 0 0; transform: translate(3px,3px); }
+/* 廠區設定 → gold */
+.nav-btn[onclick*="config"] {
+  background: #fef3c7; border-color: #b45309; color: #78350f;
+  box-shadow: 3px 3px 0 0 #b45309;
+}
+.nav-btn[onclick*="config"]:hover { box-shadow: 1px 1px 0 0 #b45309; }
+.nav-btn[onclick*="config"].active { background: #b45309; color: #fff; border-color: #78350f; box-shadow: 0 0 0 0; transform: translate(3px,3px); }
+/* 庫存管理 → white/neutral with dark border (like "+ 新增日期" in reference) */
+.nav-btn[onclick*="stock"] {
+  background: #fff; border-color: var(--ink); color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.nav-btn[onclick*="stock"]:hover { box-shadow: 1px 1px 0 0 var(--ink); }
+.nav-btn[onclick*="stock"].active { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 0 0 0 0; transform: translate(3px,3px); }
+
+/* ── ALERT ── */
+#alert {
+  display: none; background: #fff0f0;
+  border-bottom: 2px solid var(--red);
+  padding: 10px 24px; font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  color: var(--red); align-items: center; gap: 8px;
+}
+#alert.show { display: flex; }
+
+/* ── TABS ── */
+.tab { display: none; padding: 16px 16px 60px; max-width: 100%; margin: 0 auto; }
+.tab.active { display: block; }
+#tab-overview { padding: 16px 12px 40px; }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-size: 22px; font-family: 'Kalam', cursive; font-weight: 700;
+  color: var(--ink); padding-bottom: 10px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px; transform: rotate(-1deg);
+}
+.sec-title::before { content: '📌'; font-size: 20px; }
+
+
+.legend { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--ink); font-family: 'Patrick Hand', sans-serif; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; border: 1px solid var(--ink); }
+
+/* ── OV TABLE ── */
+.ov-wrap { overflow-x: hidden; background: white; border: 2.5px solid var(--border); border-radius: var(--card-radius); box-shadow: var(--shadow2); margin-bottom: 20px; }
+table.ov { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.ov thead tr { background: var(--s2); border-bottom: 2.5px solid var(--ink); }
+table.ov th {
+  padding: 12px 8px; font-size: 16px; font-family: 'Kalam', cursive; font-weight: 700; color: var(--ink);
+  border-right: 1px solid var(--border2); white-space: nowrap; vertical-align: bottom; text-align: center;
+}
+table.ov th:last-child { border-right: none; }
+table.ov th.lft { text-align: center; }
+table.ov td { padding: 0; border-bottom: 1.5px solid var(--border2); border-right: 1.5px solid var(--border2); vertical-align: middle; }
+table.ov td:last-child { border-right: none; }
+table.ov tr:last-child td { border-bottom: none; }
+table.ov tr:hover td { background: rgba(0,0,0,.02); }
+.sc { padding: 8px 6px; text-align: center; white-space: nowrap; }
+.sn { font-weight: 700; font-size: 16px; font-family: 'Kalam', cursive; display: block; text-align: center; }
+.st {
+  font-size: 10px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  background: white; border: 1.5px solid var(--ink); color: var(--ink);
+  padding: 2px 6px; border-radius: 6px; margin-left: 8px; vertical-align: middle;
+}
+.dc { padding: 6px 4px; text-align: center; min-width: 76px; }
+.dc.cs { background: #fdfbf7; }
+.dc.cu { background: #fff0f0; }
+.day-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ev {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  color: var(--est); background: transparent;
+  border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 3px;
+  border: none;
+}
+.ev input { background: transparent; border: none; color: var(--est); font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; width: 32px; text-align: center; padding: 0; }
+.ev input:focus { outline: none; border-bottom: 1.5px dashed var(--est); }
+.av {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  color: var(--act); background: transparent;
+  border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 3px;
+  border: none;
+}
+.av input { background: transparent; border: none; color: var(--act); font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; width: 32px; text-align: center; padding: 0; }
+.av input:focus { outline: none; border-bottom: 1.5px dashed var(--act); }
+
+/* 填實際 按鈕 */
+.fa-btn {
+  font-size: 12px; background: white; border: 2px solid var(--ink); color: var(--ink);
+  border-radius: 6px; padding: 3px 8px; cursor: pointer; white-space: nowrap; transition: all .1s;
+  font-family: 'Patrick Hand', sans-serif; font-weight: 700; box-shadow: 1.5px 1.5px 0 0 var(--ink);
+}
+.fa-btn:hover { transform: translate(1px, 1px); box-shadow: 0 0 0 0; background: #f0f0f0; }
+
+/* 鎖定儲存格 — 綠色單一數字 */
+.lv {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  color: var(--act); background: transparent;
+  border-radius: 6px; padding: 3px 10px;
+  border: none;
+  display: inline-block;
+}
+
+/* 整週鎖定按鈕 */
+.lock-week-btn {
+  font-size: 11px; background: white; border: 1.5px solid var(--border2); color: var(--dim);
+  border-radius: 6px; padding: 2px 7px; cursor: pointer; white-space: nowrap; transition: all .1s;
+  font-family: 'Patrick Hand', sans-serif; font-weight: 700; margin-top: 3px; display: block;
+}
+.lock-week-btn:hover { border-color: var(--act); color: var(--act); background: rgba(39,174,96,.06); }
+.lock-week-btn.locked { background: rgba(39,174,96,.1); border-color: var(--act); color: var(--act); }
+.holi { font-size: 18px; line-height: 1; }
+.zero { color: var(--muted); font-size: 14px; font-family: 'Kalam', cursive; }
+th.cs { color: var(--gold); } th.cu { color: var(--red); }
+tr.tr-total td {
+  background: var(--s2); border-top: 2.5px solid var(--ink);
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  padding: 12px 6px; text-align: center; color: var(--ink);
+}
+tr.tr-total .sc { font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; color: var(--ink); text-align: left; }
+
+/* ── ACCORDION ── */
+.acc-list { display: flex; flex-direction: column; gap: 12px; max-width: 880px; }
+.acc-block {
+  background: white; border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow2);
+}
+.acc-header {
+  padding: 16px 20px; background: var(--s2);
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; user-select: none; border-bottom: 2px solid transparent;
+}
+.acc-header:hover { background: var(--s3); }
+.acc-header.open { border-bottom-color: var(--ink); }
+.acc-header .ah-name { font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700; color: var(--ink); }
+.acc-header .ah-desc { font-size: 13px; color: var(--dim); margin-top: 2px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
+.acc-header .ah-badge {
+  margin-left: auto; font-size: 13px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  color: var(--ink); background: white; border: 1.5px solid var(--ink);
+  padding: 4px 10px; border-radius: 8px;
+}
+.acc-header .ah-arrow { font-size: 12px; color: var(--ink); transition: transform .2s; flex-shrink: 0; }
+.acc-header.open .ah-arrow { transform: rotate(180deg); }
+.acc-body { padding: 20px; border-top: 2.5px solid var(--ink); }
+
+/* ── WEEK LIST ── */
+.week-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+.wk-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: white; border: 1.5px solid var(--border2); border-radius: 8px;
+}
+.wk-row .wr-info { flex: 1; }
+.wr-info .wr-label { font-size: 15px; font-weight: 700; font-family: 'Patrick Hand', sans-serif; color: var(--ink); }
+.wr-info .wr-range { font-size: 12px; font-family: 'Patrick Hand', sans-serif; color: var(--dim); font-weight: 700; }
+.wk-toggle-btn {
+  font-size: 13px; font-weight: 700; border-radius: 6px; padding: 5px 12px;
+  cursor: pointer; transition: all .1s; white-space: nowrap; font-family: 'Patrick Hand', sans-serif;
+  box-shadow: 1.5px 1.5px 0 0 var(--ink);
+}
+.wk-toggle-btn:hover { transform: translate(1px, 1px); box-shadow: 0 0 0 0; }
+.wk-toggle-btn.off { background: white; border: 1.5px solid var(--border2); color: var(--dim); }
+.wk-toggle-btn.on-amber { background: #fff3cd; border: 1.5px solid #ffc107; color: #856404; }
+.wk-toggle-btn.on-purple { background: #f3e5f5; border: 1.5px solid #ce93d8; color: #6a1b9a; }
+.wk-toggle-btn.on-check { background: #e8f5e9; border: 1.5px solid #81c784; color: #2e7d32; }
+.wk-toggle-btn.on-skip { background: #f5f5f5; border: 1.5px dashed var(--muted); color: var(--muted); text-decoration: line-through; box-shadow: none; }
+.wk-qty { min-width: 60px; text-align: right; font-family: 'Kalam', cursive; font-size: 16px; color: var(--ink); font-weight: 700; }
+
+/* ── TAG ── */
+.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 8px; font-family: 'Patrick Hand', sans-serif; }
+.tag-l { background: #fff8e7; color: var(--gold); border: 1.5px solid var(--gold); }
+.tag-d { background: #f3e5f5; color: #8e44ad; border: 1.5px solid #8e44ad; }
+
+/* ── INPUT ── */
+.qty-inp { width: 54px; background: white; border: 1.5px solid var(--ink); color: var(--ink); border-radius: 6px; padding: 5px 7px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; text-align: center; }
+.qty-inp:focus { outline: none; border-color: var(--blue); }
+.qty-inp.purple { color: #8e44ad; }
+
+/* ── STOCK ── */
+.stock-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.s-card {
+  background: white; border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius); padding: 20px; box-shadow: var(--shadow2);
+}
+.s-card h3 {
+  font-size: 18px; font-family: 'Kalam', cursive; color: var(--ink);
+  margin-bottom: 16px; border-bottom: 2px dashed var(--border2); padding-bottom: 8px;
+}
+.add-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg label { font-size: 13px; color: var(--ink); font-weight: 700; font-family: 'Patrick Hand', sans-serif; }
+.fg input {
+  background: white; border: 1.5px solid var(--ink); color: var(--ink);
+  border-radius: 6px; padding: 6px 10px; font-size: 14px; font-family: 'Patrick Hand', sans-serif;
+  font-weight: 700;
+}
+.fg input:focus { outline: none; border-color: var(--blue); }
+.sle { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border2); font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
+.sle:last-child { border-bottom: none; }
+.sle .sd { font-family: 'Patrick Hand', sans-serif; font-size: 12px; color: var(--dim); min-width: 82px; }
+.sle .sn2 { flex: 1; color: var(--ink); margin: 0 10px; }
+.sle .sq { font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px; color: var(--act); }
+
+
+
+
+/* ── BTN ── */
+.btn {
+  background: white; color: var(--ink); border: 2.5px solid var(--ink);
+  border-radius: var(--hand-radius); padding: 8px 20px;
+  font-size: 14px; font-weight: 700; font-family: 'Patrick Hand', sans-serif;
+  cursor: pointer; transition: all .1s; box-shadow: var(--shadow-sm);
+}
+.btn:hover { transform: translate(2px, 2px); box-shadow: 0 0 0 0; }
+.btn-sm { padding: 5px 14px; font-size: 13px; }
+.btn-out { background: white; }
+.btn-g { background: #e8f5e9; border-color: var(--green); color: var(--green); }
+.btn-red { background: #ffebee; border-color: var(--red); color: var(--red); }
+
+/* ── DIVIDER ── */
+.hdivide { height: 2px; background: dashed var(--border2); margin: 16px 0; }
+
+/* ── SELECT ── */
+select.ds {
+  background: white; border: 1.5px solid var(--ink); color: var(--ink);
+  border-radius: 6px; padding: 6px 10px; font-size: 14px; font-weight: 700;
+  font-family: 'Patrick Hand', sans-serif; cursor: pointer;
+}
+
+/* ── CONFIG QTY FIELD bg ── */
+.cfg-qty-panel {
+  display: inline-flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding: 7px 12px;
+  background: white; border: 1.5px dashed var(--border2); border-radius: 8px; align-items: center;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+@media(max-width:700px) {
+  .stock-panel { grid-template-columns: 1fr; }
+  .nav-btn { padding: 8px 16px; font-size: 14px; }
+}
+</style>
 </head>
 <body>
 
-  <div class="page">
-    <h1>🦆 烤鴨預估</h1>
-
-    <div class="date-row">
-      <label>日期</label>
-      <input type="date" id="est-date">
-    </div>
-
-    <div class="card">
-      <h2>各時段數量</h2>
-      <div class="slot-grid" id="slots-grid"></div>
-      <div class="total-row">
-        <span class="label">今日合計</span>
-        <span><span class="num" id="total-num">0</span><span class="unit">隻</span></span>
-      </div>
-    </div>
-
-    <div class="notes-card">
-      <h2>備註</h2>
-      <textarea id="est-notes" placeholder="特殊狀況、備料備忘…"></textarea>
-    </div>
-
-    <div class="history-card">
-      <h2>近期紀錄</h2>
-      <ul class="history-list" id="hist-list">
-        <li style="color:#bbb;font-size:13px">尚無紀錄</li>
-      </ul>
-      <button class="btn-save" onclick="saveToHistory()">📌 儲存今日紀錄</button>
+<div id="topbar">
+  <div class="logo">
+    <span class="logo-icon">🦆</span>
+    <div class="logo-text">
+      <div class="logo-title">ROAST DUCK</div>
+      <div class="logo-sub">Inventory System</div>
     </div>
   </div>
+  <div id="week-nav"></div>
+  <div id="tbar-stats">
+    <div class="tpill" id="ts-pill-date" style="display:none;"><div class="tl">庫存不足日期</div><div class="tv" style="color:var(--red);font-size:18px;" id="ts-short-date">—</div></div>
+    <div class="vsep" id="ts-vsep" style="display:none;"></div>
+    <div class="tpill" id="ts-pill-qty" style="display:none;"><div class="tl">缺少數量</div><div class="tv" style="color:var(--red);" id="ts-short-qty">—</div></div>
+    <div class="tpill" id="ts-pill-ok" style="display:none;"><div class="tl">庫存充足</div><div class="tv" style="color:var(--act);font-size:18px;" id="ts-ok-label">✓</div></div>
+  </div>
+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="shared.js"></script>
-  <script>
-    const SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00'];
-    let data = { date: '', slots: {}, notes: '', history: [] };
-    let autoSave;
-    let _remoteUpdate = false;
+<div id="alert">⚠ <strong>庫存不足</strong> — 目前庫存低於預警門檻，請儘速叫貨！</div>
 
-    // Set today's date as default
-    const todayStr = new Date().toISOString().slice(0,10);
-    document.getElementById('est-date').value = todayStr;
+<div id="nav">
+  <button class="nav-btn active" onclick="showTab('overview',this)">Overview</button>
+  <button class="nav-btn" onclick="showTab('config',this)">廠區設定</button>
+  <button class="nav-btn" onclick="showTab('stock',this)">庫存管理</button>
+</div>
 
-    requireAuth((user) => {
-      injectStatusBar('estimate');
-      autoSave = makeAutoSave('estimate', () => data);
-      startSync('estimate', user, (content) => {
-        if (!content) return;
-        _remoteUpdate = true;
-        data = content;
-        populateUI();
-        _remoteUpdate = false;
-      });
-      buildSlots();
-      populateUI();
+<div class="tab active" id="tab-overview">
+  <div class="ov-wrap">
+    <table class="ov"><thead id="ov-head"></thead><tbody id="ov-body"></tbody></table>
+  </div>
+</div>
+
+<div class="tab" id="tab-config">
+  <div class="sec-title" style="margin-top:4px;">廠區出貨設定</div>
+  <div class="acc-list" id="acc-list"></div>
+</div>
+
+<div class="tab" id="tab-stock">
+  <div class="sec-title" style="margin-top:4px;">庫存管理</div>
+  <div class="stock-panel">
+    <div class="s-card corner-frame">
+      <h3>進貨 ／ 盤點調整</h3>
+      <div class="add-form">
+        <div class="fg"><label>日期</label><input type="date" id="in-date" style="width:140px;"></div>
+        <div class="fg"><label>數量（正=進貨，負=盤差）</label><input type="number" id="in-qty" placeholder="0" style="width:80px;"></div>
+        <div class="fg"><label>備註</label><input type="text" id="in-note" placeholder="備註" style="width:140px;"></div>
+        <button class="btn btn-g btn-sm" onclick="addStock()">＋ 新增</button>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:#fffbe6;border:1.5px dashed var(--gold);border-radius:8px;font-family:'Patrick Hand',sans-serif;font-size:13px;color:var(--ink);font-weight:700;">
+        📅 每月初結算
+        <div style="font-size:12px;color:var(--dim);margin:4px 0 8px;">新增一筆「月初實際庫存」後，即可安心刪除舊週次，數字不受影響。</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="date" id="month-init-date" style="background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Patrick Hand',sans-serif;font-weight:700;font-size:13px;">
+          <span style="font-size:13px;">實際庫存</span>
+          <input type="number" id="month-init-qty" placeholder="隻數" style="width:70px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Kalam',cursive;font-weight:700;font-size:15px;text-align:center;">
+          <span style="font-size:13px;">隻</span>
+          <button class="btn btn-sm" style="background:#fff8e1;border-color:var(--gold);color:var(--gold2);" onclick="addMonthInit()">📌 新增月初庫存</button>
+        </div>
+      </div>
+      <div id="stock-log" style="margin-top:12px;"></div>
+    </div>
+    <div class="s-card corner-frame">
+      <h3>庫存統計</h3>
+      <div style="font-size:15px;color:var(--ink);font-family:'Patrick Hand', sans-serif;line-height:2.4;font-weight:700;">
+        <div>累計進貨／調整：<b style="color:var(--act);font-family:'Kalam',cursive;font-size:18px;" id="s-in">0</b> 隻</div>
+        <div>累計實際用量：<b style="color:var(--act);font-family:'Kalam',cursive;font-size:18px;" id="s-used">0</b> 隻</div>
+        <div style="border-top:2px dashed var(--border2);padding-top:10px;margin-top:6px;">
+          目前庫存：<b style="color:var(--gold);font-family:'Kalam',cursive;font-size:36px;line-height:1;" id="s-rem">0</b> <span style="font-size:14px;">隻</span>
+        </div>
+      </div>
+      <div style="margin-top:18px;display:flex;align-items:center;gap:10px;">
+        <label style="font-size:12px;color:var(--ink);font-family:'Patrick Hand', sans-serif;font-weight:700;">預警門檻</label>
+        <input type="number" id="thr-in" value="50" style="width:70px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:6px 8px;font-size:16px;font-family:'Kalam', cursive;" min="1">
+        <span style="font-size:14px;color:var(--ink);font-weight:700;font-family:'Patrick Hand', sans-serif;">隻</span>
+        <button class="btn btn-sm btn-out" onclick="updateThreshold()">更新</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════
+var SITES = ['F20','AP6B','聯電','群聯','央廚','P8'];
+var DL = ['一','二','三','四','五','六','日'];
+var DK = ['mon','tue','wed','thu','fri','sat','sun'];
+
+// 根據實際日期取星期標籤
+function dowLabel(ds){ var p=ds.split('-'), d=new Date(+p[0],+p[1]-1,+p[2]).getDay(); return DL[d===0?6:d-1]; }
+// 根據實際日期判斷是否週末
+function dsIsWeekend(ds){ var p=ds.split('-'), d=new Date(+p[0],+p[1]-1,+p[2]).getDay(); return d===0||d===6; }
+
+var BASE_HOLI = ['2026-04-03','2026-04-04','2026-04-05','2026-05-01','2026-05-30'];
+
+// ═══════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════
+function addDays(ds, n) {
+  var p = ds.split('-'), d = new Date(+p[0], +p[1]-1, +p[2]+n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmt(s) { var p=s.split('-'); return +p[1]+'/'+p[2]; }
+function isWeekend(s) { var p=s.split('-'), d=new Date(+p[0],+p[1]-1,+p[2]); return d.getDay()===0||d.getDay()===6; }
+function isNatHoli(s) { return BASE_HOLI.indexOf(s) >= 0; }
+function isWorkday(s) { return !isWeekend(s) && !isNatHoli(s); }
+function dateRange(start, end) {
+  var arr = [], cur = start;
+  while(cur <= end) { arr.push(cur); cur = addDays(cur,1); }
+  return arr;
+}
+function weekMonForDate(ds) {
+  var p = ds.split('-'), d = new Date(+p[0], +p[1]-1, +p[2]);
+  var dow = d.getDay(), diff = dow===0 ? -6 : 1-dow;
+  var mon = new Date(+p[0], +p[1]-1, +p[2]+diff);
+  return mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
+}
+function weekRange(monDs) { return fmt(monDs) + '～' + fmt(addDays(monDs,6)); }
+function workdaysInWeek(monDs) {
+  var n=0;
+  for(var i=0;i<5;i++) { if(!isNatHoli(addDays(monDs,i))) n++; }
+  return n;
+}
+
+// 週列表：從 2026-03-30 起，初始 8 週，可手動新增
+var WEEK_START = '2026-03-30';
+var WEEK_INIT  = 8;
+var WEEK_BASE_NUM = 14;  // 3/30 那週是第14週
+
+function genWeeks() {
+  var weeks = [], cur = WEEK_START;
+  var total = WEEK_INIT + (S ? (S.extraWeeks||0) : 0);
+  for(var i=0;i<total;i++){ weeks.push(cur); cur=addDays(cur,7); }
+  return weeks;
+}
+// 重新產生並補齊資料
+function rebuildWeeks(){
+  WEEK_MONS = genWeeks();
+  WEEK_MONS.forEach(function(_,i){ensureWeek(i);});
+}
+var WEEK_MONS = [];  // 在 S 初始化後由 init() 呼叫 rebuildWeeks()
+
+// 廠區設定顯示範圍：只顯示未封存的週
+function twoMonthWeeks() {
+  return WEEK_MONS.filter(function(ws,i){
+    return !S.archivedWeeks || !S.archivedWeeks[i];
+  });
+}
+
+function wkDs(wi, di) {
+  var base = WEEK_MONS[wi];
+  if(!base) return null;
+  var p = base.split('-');
+  var d = new Date(+p[0], +p[1]-1, +p[2]+di);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// ═══════════════════════════════════════
+// SITE CONFIG DATA
+// ═══════════════════════════════════════
+
+// F20 — editable quantities
+var f20Cfg = {lunchBase:7, lunch1500:1, dinnerQty:4};
+var f20LunchWeeks  = {};  // monDs → 'on'|'skip'
+var f20DinnerWeeks = {};  // monDs → 'on'|'skip'
+var f20Holi1500    = {};  // monDs → 'on'  (15:00 extra for lunch weeks)
+var f20HoliDays    = {};  // dateStr → true (holiday duty)
+
+function f20LunchDayQty(mon){
+  return f20Cfg.lunchBase + (f20Holi1500[mon]==='on' ? f20Cfg.lunch1500 : 0);
+}
+
+function f20Qty(ds) {
+  if(isNatHoli(ds)||isWeekend(ds)) {
+    // 假日值班固定 = 午餐預設 + 晚餐預設 = lunchBase + dinnerQty（不含15:00加點）
+    return f20HoliDays[ds] ? (f20Cfg.lunchBase + f20Cfg.dinnerQty) : 0;
+  }
+  var mon = weekMonForDate(ds);
+  // 午餐每個平日都有（固定）
+  var q = f20Cfg.lunchBase;
+  // 15:00 加點（按週開關）
+  if(f20Holi1500[mon]==='on') q += f20Cfg.lunch1500;
+  // 晚餐（按週開關）
+  if(f20DinnerWeeks[mon]==='on') q += f20Cfg.dinnerQty;
+  return q;
+}
+
+// AP6B
+var ap6bCfg = {lunchQty:3, dinnerQty:2, dinnerWeekOffset:0};
+
+function ap6bHasDinner(mon) {
+  var wi = WEEK_MONS.indexOf(mon);
+  return wi>=0 && (wi%2)===ap6bCfg.dinnerWeekOffset;
+}
+function ap6bDayQty(ds) {
+  if(isWeekend(ds)||isNatHoli(ds)) return 0;
+  var mon = weekMonForDate(ds);
+  return ap6bCfg.lunchQty + (ap6bHasDinner(mon)?ap6bCfg.dinnerQty:0);
+}
+
+// P8
+var p8Weeks = {};  // monDs → 'on'|'skip'
+var p8Cfg = {wkQty:12};
+
+function p8DayEst(ds) {
+  if(isWeekend(ds)||isNatHoli(ds)) return 0;
+  var mon = weekMonForDate(ds);
+  if(!p8Weeks[mon] || p8Weeks[mon]!=='on') return 0;
+  var avail = workdaysInWeek(mon);
+  if(!avail) return 0;
+  var wkQty = p8Cfg.wkQty;
+  var base = Math.floor(wkQty/avail), rem = wkQty%avail;
+  var idx=0;
+  for(var i=0;i<5;i++) {
+    var d2=addDays(mon,i);
+    if(isNatHoli(d2)) continue;
+    if(d2===ds) break;
+    idx++;
+  }
+  return base + (idx<rem?1:0);
+}
+
+// 群聯
+var qlCfg = {main:6, dbl:3};
+var qunlianWeeks = {};
+
+function qunlianDayQty(ds) {
+  if(isWeekend(ds)||isNatHoli(ds)) return 0;
+  var mon = weekMonForDate(ds);
+  var w = qunlianWeeks[mon];
+  if(!w) return 0;
+  return (w.main==='on'?qlCfg.main:0)+(w.double==='on'?qlCfg.dbl:0);
+}
+
+// 央廚 — 以日為單位，每天可選主餐/雙拼
+var ycCfg = {main:2, dbl:1};
+var yangchuDays = {};      // dateStr → {main:'on'|'', double:'on'|''}
+var yangchuLocked = {};    // dateStr → true（已鎖定）
+
+function yangchuDayQty(ds) {
+  if(isWeekend(ds)||isNatHoli(ds)) return 0;
+  var d = yangchuDays[ds];
+  if(!d) return 0;
+  return (d.main==='on'?ycCfg.main:0)+(d.double==='on'?ycCfg.dbl:0);
+}
+
+// 聯電 — 以日為單位，每天可選主餐/雙拼/晚餐
+var lianDianCfg = {main:8, dbl:4, dinner:4, days:{}};  // days[ds]={main,double,dinner}
+var lianDianLocked = {};   // dateStr → true（已鎖定）
+
+function lianDianDayQty(ds) {
+  if(isWeekend(ds)||isNatHoli(ds)) return 0;
+  var d = lianDianCfg.days[ds];
+  if(!d) return 0;
+  return (d.main==='on'?lianDianCfg.main:0)+(d.double==='on'?lianDianCfg.dbl:0)+(d.dinner==='on'?lianDianCfg.dinner:0);
+}
+
+// ═══════════════════════════════════════
+// CORE ESTIMATE
+// ═══════════════════════════════════════
+function getEst(site, ds) {
+  if(site==='F20')  return f20Qty(ds);
+  if(site==='AP6B') return ap6bDayQty(ds);
+  if(site==='P8')   return p8DayEst(ds);
+  if(site==='群聯')  return qunlianDayQty(ds);
+  if(site==='央廚')  return yangchuDayQty(ds);
+  if(site==='聯電')  return lianDianDayQty(ds);
+  return 0;
+}
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+var S = {
+  week: 0,
+  initStock: 250,
+  threshold: 50,
+  extraWeeks: 0,
+  stockLog: [{date:'2026-03-30',qty:250,note:'初始庫存'}],
+  weekData: {},
+  sitesOn: null,
+  daysOn: null,
+  openBlock: 'F20',
+  archivedWeeks: {},   // wi -> true : 移至舊資料
+  pastExpanded: false  // 舊資料摺疊狀態
+};
+// F20 假日日曆顯示的月份清單 (YYYY-MM)
+var f20HoliMonths = [];  // 由 init 初始化
+
+function ensureWeek(wi) {
+  if(S.weekData[wi]) return;
+  S.weekData[wi] = {};
+  SITES.forEach(function(site) {
+    S.weekData[wi][site] = {};
+    DK.forEach(function(dk, di) {
+      var ds = wkDs(wi, di);
+      if(!ds) return;
+      S.weekData[wi][site][dk] = {est: getEst(site,ds), act: null, locked: false};
     });
+  });
+}
 
-    function buildSlots() {
-      const grid = document.getElementById('slots-grid');
-      grid.innerHTML = '';
-      SLOTS.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'slot';
-        div.innerHTML = `<label>${s}</label><input type="number" min="0" id="slot-${s.replace(':','')}">`;
-        grid.appendChild(div);
-        div.querySelector('input').addEventListener('input', onSlotChange);
-      });
-    }
-
-    function onSlotChange() {
-      if (_remoteUpdate) return;
-      SLOTS.forEach(s => {
-        const el = document.getElementById(`slot-${s.replace(':','')}`);
-        data.slots[s] = parseInt(el.value) || 0;
-      });
-      data.date = document.getElementById('est-date').value;
-      updateTotal();
-      autoSave();
-    }
-
-    function populateUI() {
-      if (data.date) document.getElementById('est-date').value = data.date;
-      SLOTS.forEach(s => {
-        const el = document.getElementById(`slot-${s.replace(':','')}`);
-        if (el) el.value = data.slots[s] || '';
-      });
-      document.getElementById('est-notes').value = data.notes || '';
-      renderHistory();
-      updateTotal();
-    }
-
-    function updateTotal() {
-      const total = SLOTS.reduce((sum, s) => sum + (parseInt(data.slots[s]) || 0), 0);
-      document.getElementById('total-num').textContent = total;
-    }
-
-    document.getElementById('est-date').addEventListener('change', () => {
-      if (_remoteUpdate) return;
-      data.date = document.getElementById('est-date').value;
-      autoSave();
+function recompSite(site) {
+  Object.keys(S.weekData).forEach(function(wi) {
+    var wiNum = +wi;
+    if(wiNum < 0 || wiNum >= WEEK_MONS.length || !WEEK_MONS[wiNum]) return;
+    if(!S.weekData[wi][site]) return;
+    DK.forEach(function(dk, di) {
+      var ds = wkDs(wiNum, di);
+      if(!ds) return;
+      var cell = S.weekData[wi][site][dk];
+      if(cell && cell.act===null) cell.est = getEst(site, ds);
     });
+  });
+}
 
-    document.getElementById('est-notes').addEventListener('input', () => {
-      if (_remoteUpdate) return;
-      data.notes = document.getElementById('est-notes').value;
-      autoSave();
+function recompAll() {
+  SITES.forEach(function(site) { recompSite(site); });
+}
+
+function calcStock() {
+  // 總進貨
+  var t=0; S.stockLog.forEach(function(e){t+=e.qty;});
+  // 扣除所有已發生用量：有 act 用 act，沒有 act 用 est（預估也算消耗）
+  var u=0;
+  Object.keys(S.weekData).forEach(function(wi){
+    SITES.forEach(function(site){
+      DK.forEach(function(dk){
+        var d=S.weekData[wi][site][dk];
+        u += (d.act !== null ? d.act : d.est);
+      });
     });
+  });
+  return t-u;
+}
 
-    function saveToHistory() {
-      const total = SLOTS.reduce((sum, s) => sum + (parseInt(data.slots[s]) || 0), 0);
-      const entry = { date: data.date || todayStr, total, notes: data.notes };
-      if (!data.history) data.history = [];
-      // Replace if same date
-      const idx = data.history.findIndex(h => h.date === entry.date);
-      if (idx >= 0) data.history[idx] = entry; else data.history.unshift(entry);
-      data.history = data.history.slice(0, 20); // keep 20
-      renderHistory();
-      autoSave();
+function weekTotals(wi) {
+  var est=0,act=0,ha=false;
+  SITES.forEach(function(site){
+    DK.forEach(function(dk){
+      var d=S.weekData[wi][site][dk];
+      est+=d.est; if(d.act!==null){act+=d.act;ha=true;}
+    });
+  });
+  return {est:est,act:act,ha:ha};
+}
+
+// ═══════════════════════════════════════
+// WEEK NAV
+// ═══════════════════════════════════════
+function renderWeekNav() {
+  // 分成兩組：已封存(舊資料) vs 現行週
+  var archived=[], active=[];
+  WEEK_MONS.forEach(function(ws,i){
+    if(S.archivedWeeks && S.archivedWeeks[i]) archived.push({ws:ws,i:i});
+    else active.push({ws:ws,i:i});
+  });
+
+  var html = '';
+  // 舊資料折疊區（左側）
+  if(archived.length > 0){
+    var expCls = S.pastExpanded ? ' active' : '';
+    html += '<button class="wk-btn'+expCls+'" onclick="togglePastExpand()" title="舊資料">📁 舊資料('+archived.length+')</button>';
+    if(S.pastExpanded){
+      archived.forEach(function(x){
+        var cls = x.i===S.week ? 'wk-btn active' : 'wk-btn';
+        html += '<button class="'+cls+'" style="opacity:.7;" onclick="selWeek('+x.i+')">'+fmt(x.ws)+'</button>';
+      });
+      html += '<div style="width:2px;height:32px;background:var(--border2);flex-shrink:0;margin:0 4px;"></div>';
     }
+  }
+  // 現行週（日期按鈕）
+  active.forEach(function(x){
+    var cls = x.i===S.week ? 'wk-btn active' : 'wk-btn';
+    html += '<button class="'+cls+'" onclick="selWeek('+x.i+')">'+fmt(x.ws)+'</button>';
+  });
+  // 新增／刪除週次
+  html += '<button class="wk-btn" style="background:var(--s2);border-style:dashed;color:var(--dim);" onclick="addNextWeek()" title="新增下一週">＋</button>';
+  if(WEEK_MONS.length > 1){
+    html += '<button class="wk-btn" style="background:#fff0f0;border-style:dashed;color:var(--red);" onclick="removeLastWeek()" title="刪除最後一週">－</button>';
+  }
+  document.getElementById('week-nav').innerHTML = html;
+}
 
-    function renderHistory() {
-      const ul = document.getElementById('hist-list');
-      if (!data.history || !data.history.length) {
-        ul.innerHTML = '<li style="color:#bbb;font-size:13px">尚無紀錄</li>';
-        return;
+function addNextWeek(){
+  S.extraWeeks = (S.extraWeeks||0) + 1;
+  rebuildWeeks();
+  // 跳到最新非封存週
+  for(var i=WEEK_MONS.length-1;i>=0;i--){
+    if(!S.archivedWeeks||!S.archivedWeeks[i]){S.week=i;break;}
+  }
+  saveState();
+  renderWeekNav(); renderOverview(); renderTopStats();
+}
+
+function removeLastWeek(){
+  if(WEEK_MONS.length <= 1) return;
+  // 確認最後一週沒有資料才允許刪除（保護資料安全）
+  var lastWi = WEEK_MONS.length - 1;
+  var hasData = false;
+  if(S.weekData[lastWi]){
+    SITES.forEach(function(site){
+      DK.forEach(function(dk){
+        var cell = S.weekData[lastWi][site][dk];
+        if(cell && cell.act !== null) hasData = true;
+      });
+    });
+  }
+  if(hasData){
+    if(!confirm('最後一週已有實際數值，確定要刪除嗎？')) return;
+  }
+  // 清除最後一週資料
+  delete S.weekData[lastWi];
+  if(S.archivedWeeks) delete S.archivedWeeks[lastWi];
+  if((S.extraWeeks||0) > 0) S.extraWeeks = S.extraWeeks - 1;
+  rebuildWeeks();
+  // 若當前週超出範圍，切到最後一個現行週
+  if(S.week >= WEEK_MONS.length){
+    S.week = WEEK_MONS.length - 1;
+  }
+  saveState();
+  renderWeekNav(); renderOverview(); renderTopStats();
+}
+
+function togglePastExpand(){
+  S.pastExpanded = !S.pastExpanded;
+  renderWeekNav();
+}
+function selWeek(i) {
+  S.week=i; ensureWeek(i);
+  renderWeekNav(); renderOverview(); renderTopStats();
+}
+// 封存某週 → 移至舊資料
+function archiveWeek(wi){
+  if(!S.archivedWeeks) S.archivedWeeks={};
+  S.archivedWeeks[wi]=true;
+  S.pastExpanded=true;
+  // 若封存的是當前週，切換到下一個未封存週
+  if(S.week===wi){
+    for(var i=0;i<WEEK_MONS.length;i++){
+      if(!S.archivedWeeks[i]){S.week=i;break;}
+    }
+  }
+  saveState(); renderWeekNav(); renderOverview(); renderTopStats();
+}
+// 從舊資料移出
+function unarchiveWeek(wi){
+  if(S.archivedWeeks) delete S.archivedWeeks[wi];
+  S.week=wi;
+  saveState(); renderWeekNav(); renderOverview(); renderTopStats();
+}
+
+function renderTopStats() {
+  // 從進貨總量開始，逐日扣除（act優先，否則用est），找出首次歸零日期
+  var totalIn = 0; S.stockLog.forEach(function(e){totalIn+=e.qty;});
+  var running = totalIn;
+  var shortDate = null, shortQty = 0;
+  for(var wi=0; wi<WEEK_MONS.length; wi++){
+    ensureWeek(wi);
+    for(var di=0; di<7; di++){
+      var ds = wkDs(wi, di);
+      if(!ds) continue;
+      var dayTotal = 0;
+      SITES.forEach(function(site){
+        var cell = S.weekData[wi][site][DK[di]];
+        dayTotal += (cell.act !== null ? cell.act : cell.est);
+      });
+      running -= dayTotal;
+      if(running < 0 && shortDate === null){
+        shortDate = ds;
+        shortQty = -running;
       }
-      ul.innerHTML = data.history.map(h =>
-        `<li><span class="h-date">${h.date}</span><span class="h-total">${h.total} 隻</span></li>`
-      ).join('');
     }
-  </script>
+  }
+  // 顯示
+  var pillDate = document.getElementById('ts-pill-date');
+  var pillQty  = document.getElementById('ts-pill-qty');
+  var pillOk   = document.getElementById('ts-pill-ok');
+  var vsep     = document.getElementById('ts-vsep');
+  var now = new Date();
+  var today = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  if(shortDate){
+    pillDate.style.display=''; pillQty.style.display=''; vsep.style.display=''; pillOk.style.display='none';
+    document.getElementById('ts-short-date').textContent = fmt(shortDate);
+    document.getElementById('ts-short-qty').textContent = Math.ceil(shortQty) + ' 隻';
+  } else {
+    pillDate.style.display='none'; pillQty.style.display='none'; vsep.style.display='none'; pillOk.style.display='';
+    document.getElementById('ts-ok-label').textContent = '充足 ✓';
+  }
+  document.getElementById('alert').className = (function(){
+    if(!shortDate) return '';
+    var todayMs = new Date(today).getTime();
+    var shortMs = new Date(shortDate).getTime();
+    var diffDays = (shortMs - todayMs) / 86400000;
+    return diffDays <= 7 ? 'show' : '';
+  })();
+}
+
+
+
+// ═══════════════════════════════════════
+// FILTERS & OVERVIEW
+// ═══════════════════════════════════════
+
+
+function renderOverview() {
+  var wi=S.week;
+  var vd=[]; DK.forEach(function(dk,i){vd.push({dk:dk,i:i});});
+  var vs=SITES.slice();
+  var isArchived = S.archivedWeeks && S.archivedWeeks[wi];
+
+  // head — 週日期行
+  var wmonDs = WEEK_MONS[wi];
+  var h='<tr>';
+  // 廠區欄 + 週標題 + 封存按鈕 (colspan)
+  h+='<th class="lft" style="width:90px;">廠區</th>';
+  vd.forEach(function(x){
+    var ds=wkDs(wi,x.i); if(!ds) return; var holi=isNatHoli(ds);
+    var dow=new Date(ds).getDay();
+    var cls = dow===6?'cs': dow===0?'cu': '';
+    h+='<th class="'+cls+'">週'+dowLabel(ds)+'<br><span style="font-size:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;">'+fmt(ds)+'</span>'+(holi?'<br><span style="font-size:10px;color:var(--red);background:#ffebee;padding:0 4px;border-radius:4px;border:1px solid var(--red);">假</span>':'')+'</th>';
+  });
+  h+='<th style="width:56px;">小計</th>';
+  // 封存操作欄
+  h+='<th style="width:80px;font-size:11px;padding:4px;">';
+  if(isArchived){
+    h+='<button onclick="unarchiveWeek('+wi+')" style="font-size:11px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">↩ 移回</button>';
+  } else {
+    h+='<button onclick="archiveWeek('+wi+')" style="font-size:11px;background:#fffbe6;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">📁 封存</button>';
+  }
+  h+='</th>';
+  h+='</tr>';
+  document.getElementById('ov-head').innerHTML=h;
+
+  // body
+  var b='';
+  var colTotal={};
+  vd.forEach(function(x){colTotal[x.dk]=0;});
+
+  vs.forEach(function(site){
+    var wTotal=0;
+    var weekAllLocked = vd.every(function(x){
+      var cell=S.weekData[wi][site][x.dk];
+      return cell.locked || (cell.est===0 && cell.act===null);
+    });
+    var lockLabel = weekAllLocked ? '🔓 解除鎖定' : '🔒 一鍵鎖定';
+    b+='<tr><td class="sc"><span class="sn">'+site+'</span><button class="lock-week-btn'+(weekAllLocked?' locked':'')+'" onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')">'+lockLabel+'</button></td>';
+
+    vd.forEach(function(x){
+      var ds=wkDs(wi,x.i); if(!ds) return; var holi=isNatHoli(ds), wknd=dsIsWeekend(ds);
+      var dow=new Date(ds).getDay();
+      var cls='dc '+(dow===6?'cs': dow===0?'cu': '');
+      var cell=S.weekData[wi][site][x.dk];
+
+      if((wknd||holi) && cell.est===0 && cell.act===null){
+        b+='<td class="'+cls+'"><div class="day-inner"><span class="holi">🔴</span></div></td>';return;
+      }
+      if(cell.est===0 && cell.act===null){
+        b+='<td class="'+cls+'"><div class="day-inner"><span class="zero">—</span></div></td>';return;
+      }
+
+      var displayQty = (cell.act !== null) ? cell.act : cell.est;
+      colTotal[x.dk] += displayQty;
+      wTotal += displayQty;
+
+      var inner='<div class="day-inner">';
+      if(cell.locked){
+        inner+='<span class="lv" title="點擊解鎖" style="cursor:pointer;" onclick="unlockCell(&apos;'+site+'&apos;,'+wi+',&apos;'+x.dk+'&apos;)">'+displayQty+'</span>';
+      } else if(cell.act !== null){
+        inner+='<div class="av"><input type="text" inputmode="numeric" pattern="[0-9]*" min="0" value="'+cell.act+'" onchange="updAct(&apos;'+site+'&apos;,'+wi+',&apos;'+x.dk+'&apos;,this.value)"></div>';
+      } else {
+        inner+='<div class="ev"><input type="text" inputmode="numeric" pattern="[0-9]*" min="0" value="'+cell.est+'" onchange="updEst(&apos;'+site+'&apos;,'+wi+',&apos;'+x.dk+'&apos;,this.value)"></div>';
+      }
+      inner+='</div>';
+      b+='<td class="'+cls+'">'+inner+'</td>';
+    });
+
+    b+='<td style="text-align:center;font-family:&apos;Kalam&apos;,cursive;font-size:16px;padding:8px;font-weight:700;color:var(--act);">'+wTotal+'</td>';
+    b+='<td></td></tr>';
+  });
+
+  // total row
+  b+='<tr class="tr-total"><td class="sc" style="text-align:center;">TOTAL</td>';
+  var gTotal=0;
+  vd.forEach(function(x){
+    gTotal+=colTotal[x.dk];
+    var _ds1043=wkDs(wi,x.i); if(!_ds1043) return; var dow=new Date(_ds1043).getDay();
+    var cls='dc '+(dow===6?'cs': dow===0?'cu': '');
+    b+='<td class="'+cls+'" style="text-align:center;">'+colTotal[x.dk]+'</td>';
+  });
+  b+='<td>'+gTotal+'</td><td></td></tr>';
+
+  // 剩餘庫存列：計算到本週每天結束後的累計剩餘
+  var stockIn=0; S.stockLog.forEach(function(e){stockIn+=e.qty;});
+  var usedBefore=0;
+  Object.keys(S.weekData).forEach(function(wi2){
+    if(+wi2 >= wi) return;
+    SITES.forEach(function(site){
+      DK.forEach(function(dk){
+        var d=S.weekData[wi2][site][dk];
+        usedBefore+=(d.act!==null?d.act:d.est);
+      });
+    });
+  });
+  var stockBeforeWeek=stockIn-usedBefore;
+  var runningStock=stockBeforeWeek;
+  b+='<tr style="background:var(--s2);border-top:1.5px dashed var(--border2);">';
+  b+='<td class="sc" style="text-align:center;"><span style="font-size:12px;font-family:Patrick Hand,sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
+  vd.forEach(function(x){
+    runningStock-=colTotal[x.dk];
+    var _dsR=wkDs(wi,x.i); if(!_dsR) return; var dowR=new Date(_dsR).getDay();
+    var clsR='dc '+(dowR===6?'cs': dowR===0?'cu': '');
+    var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
+    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:15px;color:'+color+';">'+runningStock+'</span></td>';
+  });
+  b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:14px;padding:8px;color:var(--dim);">隻</td><td></td></tr>';
+
+  document.getElementById('ov-body').innerHTML=b;
+}
+
+function siteTag(s){
+  if(s==='F20') return 'WEEKLY';
+  if(s==='AP6B') return 'BI-WK';
+  if(s==='P8') return 'WK-12';
+  if(s==='群聯') return 'WEEKLY';
+  if(s==='央廚') return 'DAILY';
+  if(s==='聯電') return 'DAILY';
+  return 'MANUAL';
+}
+function updEst(site,wi,dk,v){S.weekData[wi][site][dk].est=+v||0;renderTopStats();saveState();}
+function updAct(site,wi,dk,v){S.weekData[wi][site][dk].act=+v||0;renderTopStats();updStockCalc();saveState();}
+function fillAct(site,wi,dk){
+  var cell=S.weekData[wi][site][dk];
+  cell.act=cell.est; cell.locked=true;
+  renderOverview();renderTopStats();updStockCalc();saveState();
+}
+
+// 一鍵鎖定／解除整週
+function lockWeek(site,wi){
+  ensureWeek(wi);
+  var allLocked = DK.every(function(dk){
+    var cell=S.weekData[wi][site][dk];
+    return cell.locked || (cell.est===0 && cell.act===null);
+  });
+  if(allLocked){
+    // 全解鎖：清除 act，回到橘色預估
+    DK.forEach(function(dk){
+      S.weekData[wi][site][dk].locked = false;
+      S.weekData[wi][site][dk].act = null;
+    });
+  } else {
+    // 全鎖定
+    DK.forEach(function(dk){
+      var cell=S.weekData[wi][site][dk];
+      if(cell.est>0 || cell.act!==null){
+        if(cell.act===null) cell.act=cell.est;
+        cell.locked=true;
+      }
+    });
+  }
+  renderOverview();renderTopStats();updStockCalc();saveState();
+}
+
+// 解鎖單格：清除 act，回到橘色預估可編輯
+function unlockCell(site,wi,dk){
+  var cell = S.weekData[wi][site][dk];
+  cell.locked = false;
+  cell.act = null;
+  renderOverview();renderTopStats();updStockCalc();saveState();
+}
+
+// ═══════════════════════════════════════
+// CONFIG — ACCORDION
+// ═══════════════════════════════════════
+function renderConfig() {
+  var tmw = twoMonthWeeks();
+  var html = '';
+  html += renderAccBlock('F20',  buildF20Block(tmw));
+  html += renderAccBlock('AP6B', buildAP6BBlock(tmw));
+  html += renderAccBlock('P8',   buildP8Block(tmw));
+  html += renderAccBlock('群聯',  buildQunlianBlock(tmw));
+  html += renderAccBlock('央廚',  buildYangchuBlock(tmw));
+  html += renderAccBlock('聯電',  buildLianDianBlock(tmw));
+  document.getElementById('acc-list').innerHTML = html;
+}
+
+function renderAccBlock(id, content) {
+  var open = S.openBlock === id;
+  var badge = getBlockBadge(id);
+  var emoji = {F20:'🏢',AP6B:'🏢',P8:'🍱','群聯':'🏭','央廚':'🍳','聯電':'🏭'}[id]||'🏢';
+  var desc  = {F20:'每日午餐 '+f20Cfg.lunchBase+'隻（固定）・15:00 +'+f20Cfg.lunch1500+'隻・晚餐 +'+f20Cfg.dinnerQty+'隻',
+               AP6B:'固定午餐・隔週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
+               '群聯':'主餐'+qlCfg.main+'隻/天 / 雙拼'+qlCfg.dbl+'隻/天','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
+               '聯電':'主餐'+lianDianCfg.main+'隻 / 雙拼'+lianDianCfg.dbl+'隻 / 晚餐'+lianDianCfg.dinner+'隻（以日為單位）'}[id]||'';
+  var headerCls = 'acc-header' + (open?' open':'');
+  var html = '<div class="acc-block">';
+  html += '<div class="'+headerCls+'" onclick="toggleAccBlock(&apos;'+id+'&apos;)">';
+  html += '<div><div class="ah-name">'+emoji+' '+id+'</div><div class="ah-desc">'+desc+'</div></div>';
+  html += '<div class="ah-badge">'+badge+'</div>';
+  html += '<div class="ah-arrow">▼</div>';
+  html += '</div>';
+  if(open) html += '<div class="acc-body">'+content+'</div>';
+  html += '</div>';
+  return html;
+}
+
+function toggleAccBlock(id) {
+  S.openBlock = (S.openBlock===id) ? null : id;
+  renderConfig();
+}
+
+function getBlockBadge(id) {
+  var tmw = twoMonthWeeks();
+  if(id==='F20'){
+    var dc=tmw.filter(function(m){return f20DinnerWeeks[m]==='on';}).length;
+    var hc=tmw.filter(function(m){return f20Holi1500[m]==='on';}).length;
+    return '全週午餐・15:00 '+hc+'週・晚餐 '+dc+'週';
+  }
+  if(id==='AP6B') return '午'+ap6bCfg.lunchQty+'隻・晚'+ap6bCfg.dinnerQty+'隻';
+  if(id==='P8'){
+    var pc=tmw.filter(function(m){return p8Weeks[m]==='on';}).length;
+    return pc?pc+'週・'+(pc*p8Cfg.wkQty)+'隻':'未選擇';
+  }
+  if(id==='群聯'){
+    var qm=tmw.filter(function(m){return qunlianWeeks[m]&&qunlianWeeks[m].main==='on';}).length;
+    var qd=tmw.filter(function(m){return qunlianWeeks[m]&&qunlianWeeks[m].double==='on';}).length;
+    return (qm||qd)?'主餐'+qm+'週 / 雙拼'+qd+'週':'未設定';
+  }
+  if(id==='央廚'){
+    var allYcDays = Object.keys(yangchuDays).filter(function(d){return yangchuDays[d]&&(yangchuDays[d].main==='on'||yangchuDays[d].double==='on');});
+    var totalYc = allYcDays.reduce(function(s,d){return s+yangchuDayQty(d);},0);
+    return allYcDays.length?allYcDays.length+'天・'+totalYc+'隻':'未設定';
+  }
+  if(id==='聯電'){
+    var allLdDays = Object.keys(lianDianCfg.days).filter(function(d){var dd=lianDianCfg.days[d];return dd&&(dd.main==='on'||dd.double==='on'||dd.dinner==='on');});
+    var totalLd = allLdDays.reduce(function(s,d){return s+lianDianDayQty(d);},0);
+    return allLdDays.length?allLdDays.length+'天・'+totalLd+'隻':'未設定';
+  }
+  return '';
+}
+
+// ── F20 ──
+function buildF20Block(tmw) {
+  // 每週預設有午餐，後面兩個按鈕切換 15:00 加點 / 晚餐
+  var weekRows = tmw.map(function(mon){
+    var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM, wd=workdaysInWeek(mon);
+    var has1500 = f20Holi1500[mon]==='on';
+    var hasDinner = f20DinnerWeeks[mon]==='on';
+    var dayQty = f20Cfg.lunchBase + (has1500?f20Cfg.lunch1500:0) + (hasDinner?f20Cfg.dinnerQty:0);
+    var btn1500cls = has1500 ? 'wk-toggle-btn on-amber' : 'wk-toggle-btn off';
+    var btnDincls  = hasDinner ? 'wk-toggle-btn on-purple' : 'wk-toggle-btn off';
+    return '<div class="wk-row">'+
+      '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
+      '<span style="font-size:12px;color:var(--est);font-family:Patrick Hand,sans-serif;font-weight:700;margin-right:4px;">☀️ 午餐 '+f20Cfg.lunchBase+'隻</span>'+
+      '<button class="'+btn1500cls+'" style="font-size:12px;padding:4px 10px;" onclick="toggle1500(&apos;'+mon+'&apos;)">'+(has1500?'✓ 15:00':'+ 15:00')+'</button>'+
+      '<button class="'+btnDincls+'" style="font-size:12px;padding:4px 10px;" onclick="toggleF20Dinner(&apos;'+mon+'&apos;)">'+(hasDinner?'✓ 晚餐':'+ 晚餐')+'</button>'+
+      '<div class="wk-qty">'+dayQty+'隻/天</div>'+
+      '</div>';
+  }).join('');
+
+  var qtyPanel='<div class="cfg-qty-panel">'+
+    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:Patrick Hand,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('☀️ 午餐','f20-lb',f20Cfg.lunchBase,'隻/天','var(--est)')+
+    cfgQtyField('15:00加點','f20-l15',f20Cfg.lunch1500,'+隻','var(--gold)')+
+    cfgQtyField('🌙 晚餐','f20-dn',f20Cfg.dinnerQty,'隻/天','var(--purple)')+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyF20Qty()">套用</button>'+
+    '</div>';
+
+  // 假日日曆區塊
+  var holiCal = buildF20HoliSection();
+
+  return qtyPanel+
+    '<div style="font-size:13px;color:var(--dim);font-family:Patrick Hand,sans-serif;margin-bottom:8px;">平日每天預設有午餐 '+f20Cfg.lunchBase+' 隻，可按週開啟 15:00 加點或晚餐</div>'+
+    '<div class="week-list" style="margin-bottom:14px;">'+weekRows+'</div>'+
+    '<div class="hdivide"></div>'+
+    holiCal;
+}
+
+// ─── F20 假日值班日曆區塊 ───
+function buildF20HoliSection(){
+  // 月份控制列
+  var monthCtrl='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
+  monthCtrl+='<span style="font-size:14px;color:var(--red);font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">📅 假日值班（'+( f20Cfg.lunchBase+f20Cfg.dinnerQty)+' 隻）</span>';
+  monthCtrl+='<button class="btn btn-sm" style="background:#e8f5e9;border-color:var(--green);color:var(--green);font-size:12px;padding:3px 10px;" onclick="f20AddMonth()">＋ 新增月份</button>';
+  monthCtrl+='</div>';
+
+  // 每個月份的日曆
+  var cals='';
+  if(!f20HoliMonths || f20HoliMonths.length===0){
+    cals='<div style="font-size:13px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">點選「＋ 新增月份」加入假日日曆</div>';
+  } else {
+    cals='<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;">';
+    f20HoliMonths.slice().sort().forEach(function(ym){
+      cals+=buildOneMonthCal(ym);
+    });
+    cals+='</div>';
+  }
+
+  // 已選值班日標籤
+  var selDays=Object.keys(f20HoliDays).sort();
+  var tags=selDays.map(function(ds){
+    var d=new Date(ds), dl=['日','一','二','三','四','五','六'][d.getDay()];
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#fff0f0;border:1.5px solid var(--red);border-radius:8px;padding:3px 8px;font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;color:var(--red);margin:2px;">'+
+      '📅 '+fmt(ds)+' 週'+dl+(isNatHoli(ds)?' 國定':'')+
+      ' <button onclick="removeF20Holi(&apos;'+ds+'&apos;)" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:14px;font-weight:900;padding:0 2px;line-height:1;" title="移除">✕</button>'+
+      '</span>';
+  }).join('');
+
+  var tagsHtml='<div style="margin-top:4px;"><div style="font-size:13px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--ink);margin-bottom:6px;">已選值班日（'+selDays.length+' 天）</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:3px;min-height:26px;">'+
+    (tags||'<span style="font-size:13px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">尚無假日值班</span>')+
+    '</div></div>';
+
+  return monthCtrl+cals+tagsHtml;
+}
+
+// 建立單一月份假日格子
+function buildOneMonthCal(ym){
+  var parts=ym.split('-');
+  var yr=+parts[0], mo=+parts[1];
+  // 取該月所有假日（週末 + 國定）
+  var firstDay=yr+'-'+String(mo).padStart(2,'0')+'-01';
+  var lastDay; // 找下個月1號再減一天
+  var d0=new Date(yr,mo,1); d0.setDate(d0.getDate()-1);
+  lastDay=d0.getFullYear()+'-'+String(d0.getMonth()+1).padStart(2,'0')+'-'+String(d0.getDate()).padStart(2,'0');
+  var allDays=dateRange(firstDay,lastDay).filter(function(ds){return isNatHoli(ds)||isWeekend(ds);});
+  var mLabel=yr+'年'+mo+'月';
+
+  var html='<div style="background:#fdfbf7;border:2px solid var(--border2);border-radius:12px;padding:12px 14px;min-width:200px;">';
+  // 月份標題 + 移除按鈕
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;border-bottom:1px dashed var(--border2);padding-bottom:6px;">';
+  html+='<span style="font-size:14px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--ink);">📆 '+mLabel+'</span>';
+  html+='<button onclick="f20RemoveMonth(&apos;'+ym+'&apos;)" style="font-size:11px;background:#fff0f0;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;" title="移除此月份（不影響已選日期）">移除月份</button>';
+  html+='</div>';
+
+  if(allDays.length===0){
+    html+='<div style="font-size:12px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">該月無假日</div>';
+  } else {
+    html+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    allDays.forEach(function(ds){
+      var d=new Date(ds), dl=['日','一','二','三','四','五','六'][d.getDay()];
+      var isNH=isNatHoli(ds), isSat=d.getDay()===6, isSun=d.getDay()===0;
+      var isSel=!!f20HoliDays[ds];
+      var dayNum=d.getDate();
+      var bg,bc,tc;
+      if(isSel){       bg='var(--red)';  bc='var(--red)';    tc='white';}
+      else if(isNH){   bg='#fff0f0';     bc='#e57373';       tc='var(--red)';}
+      else if(isSat){  bg='#fffde7';     bc='#f9c846';       tc='var(--gold2)';}
+      else {           bg='#f5f5f5';     bc='var(--border2)';tc='var(--dim)';}
+      // 直接把日期字串嵌入 onclick，避免 this.dataset 在事件冒泡時失效
+      html+='<button onclick="toggleF20HoliDay(&apos;'+ds+'&apos;)" '+
+        'style="background:'+bg+';border:2px solid '+bc+';color:'+tc+';border-radius:8px;'+
+        'padding:5px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;'+
+        'font-size:12px;line-height:1.3;text-align:center;min-width:44px;'+
+        'box-shadow:'+(isSel?'none':'1px 1px 0 rgba(0,0,0,.1)')+'">';
+      html+='<div style="font-size:17px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;">'+(isSel?'✓':dayNum)+'</div>';
+      html+='<div>週'+dl+'</div>';
+      if(isNH) html+='<div style="font-size:9px;opacity:.85;">國定</div>';
+      html+='</button>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+// 新增下一個月份到 f20HoliMonths
+function f20AddMonth(){
+  if(!f20HoliMonths) f20HoliMonths=[];
+  // 找已有月份中最大的，往後加一個月
+  var last;
+  if(f20HoliMonths.length===0){
+    var d0=new Date(WEEK_MONS[0]);
+    last=d0.getFullYear()+'-'+String(d0.getMonth()+1).padStart(2,'0');
+  } else {
+    last=f20HoliMonths.slice().sort().pop();
+  }
+  var p=last.split('-'), yr=+p[0], mo=+p[1];
+  mo++; if(mo>12){mo=1;yr++;}
+  var nm=yr+'-'+String(mo).padStart(2,'0');
+  if(f20HoliMonths.indexOf(nm)<0) f20HoliMonths.push(nm);
+  saveState(); renderConfig();
+}
+// 移除某月份（不影響已選日期）
+function f20RemoveMonth(ym){
+  f20HoliMonths=f20HoliMonths.filter(function(m){return m!==ym;});
+  saveState(); renderConfig();
+}
+// 切換單一假日值班日
+function toggleF20HoliDay(ds){
+  if(f20HoliDays[ds]) delete f20HoliDays[ds];
+  else f20HoliDays[ds]=true;
+  saveState();
+  recompSite('F20');
+  S.openBlock='F20';  // 確保 F20 accordion 保持展開
+  renderConfig(); renderOverview();  renderTopStats();
+}
+
+function applyF20Qty(){
+  f20Cfg.lunchBase=+document.getElementById('f20-lb').value||7;
+  f20Cfg.lunch1500=+document.getElementById('f20-l15').value||1;
+  f20Cfg.dinnerQty=+document.getElementById('f20-dn').value||4;
+  recompSite('F20');renderConfig();renderOverview();renderTopStats();saveState();
+}
+function toggle1500(mon){
+  f20Holi1500[mon]=(f20Holi1500[mon]==='on')?'':'on';
+  recompSite('F20');S.openBlock='F20';renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+// helper: small labeled qty input for config panels
+function cfgQtyField(label, id, val, unit, color){
+  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--dim);">'+
+    label+' '+
+    '<input type="number" id="'+id+'" value="'+val+'" min="0" max="99" style="width:40px;background:white;border:1.5px solid var(--border2);color:'+(color||'var(--ink)')+';border-radius:5px;padding:2px 4px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;font-size:14px;text-align:center;">'+
+    '<span style="color:var(--muted);font-size:11px;">'+unit+'</span>'+
+    '</span>';
+}
+
+function toggleF20Lunch(mon){
+  f20LunchWeeks[mon]=cycle3(f20LunchWeeks[mon]);
+  if(!f20LunchWeeks[mon]) delete f20LunchWeeks[mon];
+  recompSite('F20');renderConfig();renderOverview();renderTopStats();saveState();
+}
+function toggleF20Dinner(mon){
+  f20DinnerWeeks[mon]=(f20DinnerWeeks[mon]==='on')?'':'on';
+  if(!f20DinnerWeeks[mon]) delete f20DinnerWeeks[mon];
+  recompSite('F20');S.openBlock='F20';renderConfig();renderOverview();renderTopStats();saveState();
+}
+function removeF20Holi(ds){
+  delete f20HoliDays[ds];
+  saveState();
+  recompSite('F20');
+  S.openBlock='F20';
+  renderConfig();renderOverview();renderTopStats();
+}
+
+// ── AP6B ──
+function buildAP6BBlock(tmw) {
+  var rows=tmw.map(function(mon){
+    var wi=WEEK_MONS.indexOf(mon),wn=wi+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
+    var hasDinner=ap6bHasDinner(mon);
+    var total=(ap6bCfg.lunchQty+(hasDinner?ap6bCfg.dinnerQty:0))*wd;
+    return '<div class="wk-row" style="cursor:default;">'+
+      '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
+      '<span class="tag tag-l">☀️ 午 '+ap6bCfg.lunchQty+'隻</span>'+
+      (hasDinner?'<span class="tag tag-d" style="margin-left:4px;">🌙 晚 '+ap6bCfg.dinnerQty+'隻</span>':'<span style="font-size:12px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;margin-left:4px;">無晚餐</span>')+
+      '<div class="wk-qty">'+total+'隻</div>'+
+      '</div>';
+  }).join('');
+
+  var qtyPanel='<div class="cfg-qty-panel">'+
+    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('☀️ 午餐','ap-l',ap6bCfg.lunchQty,'隻/天','var(--est)')+
+    cfgQtyField('🌙 晚餐','ap-d',ap6bCfg.dinnerQty,'隻/天','var(--purple)')+
+    '<button class=\"btn btn-sm\" style=\"padding:3px 10px;font-size:12px;\" onclick=\"applyAP6BQty()\">套用</button>'+
+    '</div>';
+
+  return qtyPanel+
+    '<div style="font-size:13px;color:var(--dim);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">4/1 那週起<b style="color:var(--purple);">隔週</b>有晚餐</div>'+
+    '<div class="week-list" style="max-height:280px;">'+rows+'</div>';
+}
+
+function applyAP6BQty(){
+  ap6bCfg.lunchQty=+document.getElementById('ap-l').value||3;
+  ap6bCfg.dinnerQty=+document.getElementById('ap-d').value||2;
+  recompSite('AP6B');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+// ── P8 ──
+function buildP8Block(tmw) {
+  var rows=tmw.map(function(mon){
+    var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
+    var st=p8Weeks[mon]||'';
+    return wkRow3(mon,wn,wd,st,'on-check','toggleP8Week',p8Cfg.wkQty+'隻/週','');
+  }).join('');
+  var cnt=tmw.filter(function(m){return p8Weeks[m]==='on';}).length;
+
+  var qtyPanel='<div class="cfg-qty-panel">'+
+    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('每週固定','p8-wk',p8Cfg.wkQty,'隻/週','var(--green)')+
+    '<button class=\"btn btn-sm\" style=\"padding:3px 10px;font-size:12px;\" onclick=\"applyP8Qty()\">套用</button>'+
+    '</div>';
+
+  return qtyPanel+
+    '<div class="week-list">'+rows+'</div>'+
+    '<div style="font-size:13px;color:var(--dim);margin-top:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:16px;">'+cnt+'</b> 週・預計 <b style="color:var(--gold);font-size:16px;">'+(cnt*p8Cfg.wkQty)+'</b> 隻</div>';
+}
+
+function applyP8Qty(){
+  p8Cfg.wkQty=+document.getElementById('p8-wk').value||12;
+  recompSite('P8');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+function toggleP8Week(mon){
+  p8Weeks[mon]=cycle3(p8Weeks[mon]);
+  if(!p8Weeks[mon]) delete p8Weeks[mon];
+  recompSite('P8');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+// ── 群聯 ──
+function buildQunlianBlock(tmw) {
+  var rows=tmw.map(function(mon){
+    var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
+    var w=qunlianWeeks[mon]||{main:'',double:''};
+    var mainQty=(w.main==='on'?qlCfg.main:0);
+    var dblQty=(w.double==='on'?qlCfg.dbl:0);
+    var qtyLabel='';
+    if(mainQty&&dblQty) qtyLabel='<span style="color:var(--est);">主餐'+mainQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span> <span style="color:var(--purple);">雙拼'+dblQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span>';
+    else if(mainQty) qtyLabel='<span style="color:var(--est);">主餐'+mainQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span>';
+    else if(dblQty)  qtyLabel='<span style="color:var(--purple);">雙拼'+dblQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span>';
+    else             qtyLabel='<span style="color:var(--muted);">—</span>';
+    return '<div class="wk-row">'+
+      '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
+      mkToggleBtn(w.main,'on-amber','toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)','主餐')+
+      mkToggleBtn(w.double,'on-purple','toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)','雙拼')+
+      '<div class="wk-qty" style="min-width:120px;text-align:right;font-size:14px;line-height:1.4;">'+qtyLabel+'</div>'+
+      '</div>';
+  }).join('');
+
+  var qtyPanel='<div class="cfg-qty-panel">'+
+    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('主餐','ql-main',qlCfg.main,'隻/天','var(--est)')+
+    cfgQtyField('雙拼','ql-dbl',qlCfg.dbl,'隻/天','var(--purple)')+
+    '<button class=\"btn btn-sm\" style=\"padding:3px 10px;font-size:12px;\" onclick=\"applyQlQty()\">套用</button>'+
+    '</div>';
+
+  return qtyPanel+
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">刪除線 = 不調整（略過）</div>'+
+    '<div class="week-list">'+rows+'</div>';
+}
+
+function applyQlQty(){
+  qlCfg.main=+document.getElementById('ql-main').value||6;
+  qlCfg.dbl=+document.getElementById('ql-dbl').value||3;
+  recompSite('群聯');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+function toggleQunlian(mon,type){
+  if(!qunlianWeeks[mon]) qunlianWeeks[mon]={main:'',double:''};
+  qunlianWeeks[mon][type]=cycle3(qunlianWeeks[mon][type]);
+  recompSite('群聯');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+// ── 央廚 ──
+function buildYangchuBlock(tmw) {
+  var firstMon = WEEK_MONS[0], lastMon = WEEK_MONS[WEEK_MONS.length-1];
+  var allDays = dateRange(firstMon, addDays(lastMon,6)).filter(function(ds){return isWorkday(ds);});
+  var weekGroups = {};
+  allDays.forEach(function(ds){
+    var mon = weekMonForDate(ds);
+    if(!weekGroups[mon]) weekGroups[mon]=[];
+    weekGroups[mon].push(ds);
+  });
+  var totalOn = Object.keys(yangchuDays).filter(function(d){return yangchuDays[d]&&(yangchuDays[d].main==='on'||yangchuDays[d].double==='on');}).length;
+  var totalDucks = allDays.reduce(function(s,ds){return s+yangchuDayQty(ds);},0);
+
+  var qtyPanel='<div class="cfg-qty-panel">'+
+    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('主餐','yc-main',ycCfg.main,'隻/天','var(--est)')+
+    cfgQtyField('雙拼','yc-dbl',ycCfg.dbl,'隻/天','var(--purple)')+
+    '<button class=\"btn btn-sm\" style=\"padding:3px 10px;font-size:12px;\" onclick=\"applyYcQty()\">套用</button>'+
+    '</div>';
+
+  var rows = Object.keys(weekGroups).sort().map(function(mon){
+    var wn = WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM;
+    var allLocked = weekGroups[mon].every(function(ds){return yangchuLocked[ds];});
+    var anyUnlocked = weekGroups[mon].some(function(ds){return !yangchuLocked[ds];});
+
+    var dayBtns = weekGroups[mon].map(function(ds){
+      var d=new Date(ds), dl=['日','一','二','三','四','五','六'][d.getDay()];
+      var dd=yangchuDays[ds]||{};
+      var dateLabel=(d.getMonth()+1)+'/'+d.getDate()+' 週'+dl;
+      var mainOn=dd.main==='on', dblOn=dd.double==='on';
+      var dayTotal=yangchuDayQty(ds);
+      var locked=yangchuLocked[ds];
+      var hasData = mainOn||dblOn;
+
+      if(locked){
+        var lockedColor = hasData ? 'var(--green)' : 'var(--muted)';
+        var lockedLabel = hasData ? (dayTotal+'隻 ('+(mainOn?'主餐':'')+(mainOn&&dblOn?'+':'')+(dblOn?'雙拼':'')+')') : '— 無出貨';
+        return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--border2);">'+
+          '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
+          '<span style="font-size:13px;font-weight:700;color:'+lockedColor+';flex:1;">🔒 '+lockedLabel+'</span>'+
+          '<button class="wk-toggle-btn off" style="font-size:11px;padding:2px 8px;border-color:var(--muted);box-shadow:none;" onclick="ycUnlock(&apos;'+ds+'&apos;)">修改</button>'+
+          '</div>';
+      }
+
+      return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--border2);">'+
+        '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
+        '<button class="wk-toggle-btn '+(mainOn?'on-amber':'off')+'" style="font-size:12px;padding:3px 8px;" onclick="toggleYangchu(&apos;'+ds+'&apos;,&apos;main&apos;)">'+(mainOn?'✓ 主餐':'+ 主餐')+'</button>'+
+        '<button class="wk-toggle-btn '+(dblOn?'on-purple':'off')+'" style="font-size:12px;padding:3px 8px;" onclick="toggleYangchu(&apos;'+ds+'&apos;,&apos;double&apos;)">'+(dblOn?'✓ 雙拼':'+ 雙拼')+'</button>'+
+        '<div style="font-size:16px;font-family:&apos;Kalam&apos;,cursive;color:var(--est);min-width:36px;text-align:right;font-weight:700;">'+(dayTotal?dayTotal+'隻':'—')+'</div>'+
+        '<button class="wk-toggle-btn off" style="font-size:12px;padding:3px 8px;border-color:var(--green);color:var(--green);" onclick="ycLockDay(&apos;'+ds+'&apos;)">🔒 確認</button>'+
+        '</div>';
+    }).join('');
+
+    var weekHeader='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
+      '<div style="font-size:16px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--est);">第 '+wn+' 週</div>'+
+      (anyUnlocked?'<button class="btn btn-sm" style="font-size:12px;padding:4px 10px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);" onclick="ycLockWeekEmpty(&apos;'+mon+'&apos;)">🔒 鎖定本週空白</button>':
+       '<span style="font-size:13px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已確認</span>')+
+      '</div>';
+
+    return '<div style="background:white;border:1.5px solid var(--border2);border-radius:8px;padding:12px 16px;margin-bottom:10px;">'+
+      weekHeader+dayBtns+'</div>';
+  }).join('');
+
+  return qtyPanel+
+    '<div style="font-size:14px;color:var(--dim);margin-bottom:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:18px;">'+totalOn+'</b> 天・預計 <b style="color:var(--gold);font-size:18px;">'+totalDucks+'</b> 隻</div>'+
+    '<div style="max-height:420px;overflow-y:auto;padding-right:5px;">'+rows+'</div>';
+}
+
+function applyYcQty(){
+  ycCfg.main=+document.getElementById('yc-main').value||2;
+  ycCfg.dbl=+document.getElementById('yc-dbl').value||1;
+  recompSite('央廚');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+function toggleYangchu(ds,type){
+  if(yangchuLocked[ds]) return; 
+  if(!yangchuDays[ds]) yangchuDays[ds]={main:'',double:''};
+  yangchuDays[ds][type]=(yangchuDays[ds][type]==='on')?'':'on';
+  recompSite('央廚');renderConfig();renderOverview();renderTopStats();saveState();
+}
+function ycLockDay(ds){
+  yangchuLocked[ds]=true;
+  renderConfig();saveState();
+}
+function ycUnlock(ds){
+  delete yangchuLocked[ds];
+  renderConfig();saveState();
+}
+function ycLockWeekEmpty(mon){
+  var fm=WEEK_MONS[0],lm=WEEK_MONS[WEEK_MONS.length-1];
+  var allDays=dateRange(fm,addDays(lm,6)).filter(function(d){return isWorkday(d)&&weekMonForDate(d)===mon;});
+  allDays.forEach(function(ds){
+    if(!yangchuLocked[ds]) yangchuLocked[ds]=true;
+  });
+  renderConfig();saveState();
+}
+
+// ── 聯電 ──
+function buildLianDianBlock(tmw) {
+  var firstMon2 = WEEK_MONS[0], lastMon2 = WEEK_MONS[WEEK_MONS.length-1];
+  var allDays = dateRange(firstMon2, addDays(lastMon2,6)).filter(function(ds){return isWorkday(ds);});
+  var weekGroups = {};
+  allDays.forEach(function(ds){
+    var mon = weekMonForDate(ds);
+    if(!weekGroups[mon]) weekGroups[mon]=[];
+    weekGroups[mon].push(ds);
+  });
+  var totalDucks = allDays.reduce(function(s,ds){return s+lianDianDayQty(ds);},0);
+  var totalOn = Object.keys(lianDianCfg.days).filter(function(d){
+    var dd=lianDianCfg.days[d]; return dd&&(dd.main==='on'||dd.double==='on'||dd.dinner==='on');
+  }).length;
+
+  var qtyPanel='<div class="cfg-qty-panel">'+
+    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('主餐','ld-main',lianDianCfg.main,'隻/天','var(--est)')+
+    cfgQtyField('雙拼','ld-dbl',lianDianCfg.dbl,'隻/天','var(--purple)')+
+    cfgQtyField('晚餐','ld-din',lianDianCfg.dinner,'隻/天','var(--blue)')+
+    '<button class=\"btn btn-sm\" style=\"padding:3px 10px;font-size:12px;\" onclick=\"applyLdQty()\">套用</button>'+
+    '</div>';
+
+  var rows = Object.keys(weekGroups).sort().map(function(mon){
+    var wn = WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM;
+    var anyUnlocked = weekGroups[mon].some(function(ds){return !lianDianLocked[ds];});
+
+    var dayBtns = weekGroups[mon].map(function(ds){
+      var d=new Date(ds), dl=['日','一','二','三','四','五','六'][d.getDay()];
+      var dateLabel=(d.getMonth()+1)+'/'+d.getDate()+' 週'+dl;
+      var dd=lianDianCfg.days[ds]||{};
+      var mainOn=dd.main==='on', dblOn=dd.double==='on', dinOn=dd.dinner==='on';
+      var dayTotal=lianDianDayQty(ds);
+      var locked=lianDianLocked[ds];
+      var hasData=mainOn||dblOn||dinOn;
+
+      if(locked){
+        var parts=[];
+        if(mainOn) parts.push('主餐');
+        if(dblOn)  parts.push('雙拼');
+        if(dinOn)  parts.push('晚餐');
+        var lockedColor = hasData ? 'var(--green)' : 'var(--muted)';
+        var lockedLabel = hasData ? (dayTotal+'隻 ('+parts.join('+')+')') : '— 無出貨';
+        return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--border2);">'+
+          '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
+          '<span style="font-size:13px;font-weight:700;color:'+lockedColor+';flex:1;">🔒 '+lockedLabel+'</span>'+
+          '<button class="wk-toggle-btn off" style="font-size:11px;padding:2px 8px;border-color:var(--muted);box-shadow:none;" onclick="ldUnlock(&apos;'+ds+'&apos;)">修改</button>'+
+          '</div>';
+      }
+
+      return '<div style="display:flex;align-items:center;gap:5px;padding:8px 0;border-bottom:1px dashed var(--border2);flex-wrap:wrap;">'+
+        '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
+        '<button class="wk-toggle-btn '+(mainOn?'on-amber':'off')+'" style="font-size:12px;padding:3px 7px;" onclick="toggleLdDay(&apos;'+ds+'&apos;,&apos;main&apos;)">'+(mainOn?'✓ 主餐':'+ 主餐')+'</button>'+
+        '<button class="wk-toggle-btn '+(dblOn?'on-purple':'off')+'" style="font-size:12px;padding:3px 7px;" onclick="toggleLdDay(&apos;'+ds+'&apos;,&apos;double&apos;)">'+(dblOn?'✓ 雙拼':'+ 雙拼')+'</button>'+
+        '<button class="wk-toggle-btn '+(dinOn?'on-check':'off')+'" style="font-size:12px;padding:3px 7px;" onclick="toggleLdDay(&apos;'+ds+'&apos;,&apos;dinner&apos;)">'+(dinOn?'✓ 晚餐':'+ 晚餐')+'</button>'+
+        '<div style="font-size:16px;font-family:&apos;Kalam&apos;,cursive;color:var(--est);min-width:36px;text-align:right;font-weight:700;">'+(dayTotal?dayTotal+'隻':'—')+'</div>'+
+        '<button class="wk-toggle-btn off" style="font-size:12px;padding:3px 8px;border-color:var(--green);color:var(--green);" onclick="ldLockDay(&apos;'+ds+'&apos;)">🔒 確認</button>'+
+        '</div>';
+    }).join('');
+
+    var weekHeader='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
+      '<div style="font-size:16px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--est);">第 '+wn+' 週</div>'+
+      (anyUnlocked?'<button class="btn btn-sm" style="font-size:12px;padding:4px 10px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);" onclick="ldLockWeekEmpty(&apos;'+mon+'&apos;)">🔒 鎖定本週空白</button>':
+       '<span style="font-size:13px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已確認</span>')+
+      '</div>';
+
+    return '<div style="background:white;border:1.5px solid var(--border2);border-radius:8px;padding:12px 16px;margin-bottom:10px;">'+
+      weekHeader+dayBtns+'</div>';
+  }).join('');
+
+  return qtyPanel+
+    '<div style="font-size:14px;color:var(--dim);margin-bottom:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:18px;">'+totalOn+'</b> 天・預計 <b style="color:var(--gold);font-size:18px;">'+totalDucks+'</b> 隻</div>'+
+    '<div style="max-height:420px;overflow-y:auto;padding-right:5px;">'+rows+'</div>';
+}
+
+function toggleLdDay(ds, type){
+  if(lianDianLocked[ds]) return;
+  if(!lianDianCfg.days[ds]) lianDianCfg.days[ds]={main:'',double:'',dinner:''};
+  lianDianCfg.days[ds][type]=(lianDianCfg.days[ds][type]==='on')?'':'on';
+  recompSite('聯電');renderConfig();renderOverview();renderTopStats();saveState();
+}
+function ldLockDay(ds){
+  lianDianLocked[ds]=true;
+  renderConfig();saveState();
+}
+function ldUnlock(ds){
+  delete lianDianLocked[ds];
+  renderConfig();saveState();
+}
+function ldLockWeekEmpty(mon){
+  var fm2=WEEK_MONS[0],lm2=WEEK_MONS[WEEK_MONS.length-1];
+  var allDays=dateRange(fm2,addDays(lm2,6)).filter(function(d){return isWorkday(d)&&weekMonForDate(d)===mon;});
+  allDays.forEach(function(ds){
+    if(!lianDianLocked[ds]) lianDianLocked[ds]=true;
+  });
+  renderConfig();saveState();
+}
+
+function applyLdQty(){
+  lianDianCfg.main=+document.getElementById('ld-main').value||8;
+  lianDianCfg.dbl=+document.getElementById('ld-dbl').value||4;
+  lianDianCfg.dinner=+document.getElementById('ld-din').value||4;
+  recompSite('聯電');renderConfig();renderOverview();renderTopStats();saveState();
+}
+
+// ── shared 3-state helpers ──
+function cycle3(cur){
+  if(!cur||cur==='') return 'on';
+  if(cur==='on') return 'skip';
+  return '';
+}
+
+function mkToggleBtn(state, onCls, onclick, label){
+  var cls, txt;
+  if(state==='on')  { cls='wk-toggle-btn '+onCls; txt='✓ '+label; }
+  else if(state==='skip'){ cls='wk-toggle-btn on-skip'; txt='— '+label; }
+  else               { cls='wk-toggle-btn off'; txt='+ '+label; }
+  return '<button class="'+cls+'" onclick="'+onclick+'">'+txt+'</button>';
+}
+
+function wkRow3(mon, wn, wd, state, onCls, fnName, activeLabel, extra){
+  var btn = mkToggleBtn(state, onCls, fnName+'(&apos;'+mon+'&apos;)', state==='on'?'已選':state==='skip'?'不調整':'加入');
+  var cls, txt;
+  if(state==='on')   {cls='wk-toggle-btn '+onCls; txt='✓ 已選';}
+  else if(state==='skip'){cls='wk-toggle-btn on-skip'; txt='— 不調整';}
+  else               {cls='wk-toggle-btn off'; txt='+ 加入';}
+  return '<div class="wk-row">'+
+    '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
+    '<button class="'+cls+'" onclick="'+fnName+'(&apos;'+mon+'&apos;)">'+ txt+'</button>'+
+    (extra||'')+
+    '<div class="wk-qty">'+(state==='on'?activeLabel:state==='skip'?'<span style="color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;font-size:14px;">略過</span>':'—')+'</div>'+
+    '</div>';
+}
+
+// ═══════════════════════════════════════
+// STOCK
+// ═══════════════════════════════════════
+function addStock(){
+  var date=document.getElementById('in-date').value;
+  var qty=+document.getElementById('in-qty').value;
+  var note=document.getElementById('in-note').value;
+  if(!date||isNaN(qty)||qty===0){alert('請填入日期及數量（可輸入負數代表盤差）');return;}
+  S.stockLog.push({date:date,qty:qty,note:note});
+  document.getElementById('in-qty').value='';
+  document.getElementById('in-note').value='';
+  renderStockLog();updStockCalc();renderTopStats();saveState();
+}
+function addMonthInit(){
+  var date=document.getElementById('month-init-date').value;
+  var qty=+document.getElementById('month-init-qty').value;
+  if(!date||isNaN(qty)||qty===''){alert('請填入日期及實際庫存隻數');return;}
+  // 計算目前庫存，新增差值讓庫存重設到 qty
+  var cur=calcStock();
+  var diff=qty-cur;
+  S.stockLog.push({date:date,qty:diff,note:'📅 月初庫存 '+qty+'隻'});
+  document.getElementById('month-init-qty').value='';
+  renderStockLog();updStockCalc();renderTopStats();saveState();
+}
+function removeStock(i){S.stockLog.splice(i,1);renderStockLog();updStockCalc();renderTopStats();saveState();}
+function renderStockLog(){
+  document.getElementById('stock-log').innerHTML=S.stockLog.map(function(e,i){
+    return '<div class="sle"><span class="sd">'+e.date+'</span><span class="sn2">'+(e.note||'—')+'</span><span class="sq" style="color:'+(e.qty<0?'var(--red)':'var(--act)')+';">'+(e.qty>0?'+':'')+e.qty+' 隻</span>'+
+      '<button onclick="removeStock('+i+')" style="font-size:12px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">刪</button>'+'</div>';
+  }).join('');
+}
+function updStockCalc(){
+  var ti=0; S.stockLog.forEach(function(e){ti+=e.qty;});
+  var u=0;
+  Object.keys(S.weekData).forEach(function(wi){
+    SITES.forEach(function(site){
+      DK.forEach(function(dk){var d=S.weekData[wi][site][dk];if(d.act!==null)u+=d.act;});
+    });
+  });
+  document.getElementById('s-in').textContent=ti;
+  document.getElementById('s-used').textContent=u;
+  document.getElementById('s-rem').textContent=ti-u;
+  renderTopStats();
+}
+function updateThreshold(){S.threshold=+document.getElementById('thr-in').value||50;renderTopStats();}
+
+
+
+
+
+
+
+// ═══════════════════════════════════════
+// TAB NAV
+// ═══════════════════════════════════════
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='config') renderConfig();
+  if(id==='stock'){renderStockLog();updStockCalc();}
+}
+
+// ═══════════════════════════════════════
+// PERSISTENCE (localStorage)
+// ═══════════════════════════════════════
+function saveState(){
+  try{
+    localStorage.setItem('duck_weekData', JSON.stringify(S.weekData));
+    localStorage.setItem('duck_stockLog', JSON.stringify(S.stockLog));
+    localStorage.setItem('duck_f20Cfg', JSON.stringify(f20Cfg));
+    localStorage.setItem('duck_f20LunchWeeks', JSON.stringify(f20LunchWeeks));
+    localStorage.setItem('duck_f20DinnerWeeks', JSON.stringify(f20DinnerWeeks));
+    localStorage.setItem('duck_f20Holi1500', JSON.stringify(f20Holi1500));
+    localStorage.setItem('duck_f20HoliDays', JSON.stringify(f20HoliDays));
+    localStorage.setItem('duck_ap6bCfg', JSON.stringify(ap6bCfg));
+    localStorage.setItem('duck_p8Cfg', JSON.stringify(p8Cfg));
+    localStorage.setItem('duck_p8Weeks', JSON.stringify(p8Weeks));
+    localStorage.setItem('duck_qlCfg', JSON.stringify(qlCfg));
+    localStorage.setItem('duck_qunlianWeeks', JSON.stringify(qunlianWeeks));
+    localStorage.setItem('duck_ycCfg', JSON.stringify(ycCfg));
+    localStorage.setItem('duck_yangchuDays', JSON.stringify(yangchuDays));
+    localStorage.setItem('duck_yangchuLocked', JSON.stringify(yangchuLocked));
+    localStorage.setItem('duck_lianDianCfg', JSON.stringify(lianDianCfg));
+    localStorage.setItem('duck_lianDianLocked', JSON.stringify(lianDianLocked));
+    localStorage.setItem('duck_extraWeeks', JSON.stringify(S.extraWeeks||0));
+    localStorage.setItem('duck_archivedWeeks', JSON.stringify(S.archivedWeeks||{}));
+    localStorage.setItem('duck_f20HoliMonths', JSON.stringify(f20HoliMonths||[]));
+  }catch(e){}
+}
+var _hasPersistedState = false;
+function loadState(){
+  try{
+    var wd=localStorage.getItem('duck_weekData');
+    if(wd){ S.weekData=JSON.parse(wd); _hasPersistedState=true; }
+    var sl=localStorage.getItem('duck_stockLog');
+    if(sl) S.stockLog=JSON.parse(sl);
+    var f20c=localStorage.getItem('duck_f20Cfg'); if(f20c) Object.assign(f20Cfg,JSON.parse(f20c));
+    var f20lw=localStorage.getItem('duck_f20LunchWeeks'); if(f20lw) f20LunchWeeks=JSON.parse(f20lw);
+    var f20dw=localStorage.getItem('duck_f20DinnerWeeks'); if(f20dw) f20DinnerWeeks=JSON.parse(f20dw);
+    var f20h15=localStorage.getItem('duck_f20Holi1500'); if(f20h15) f20Holi1500=JSON.parse(f20h15);
+    var f20hd=localStorage.getItem('duck_f20HoliDays'); if(f20hd) f20HoliDays=JSON.parse(f20hd);
+    var ap6bc=localStorage.getItem('duck_ap6bCfg'); if(ap6bc) Object.assign(ap6bCfg,JSON.parse(ap6bc));
+    var p8c=localStorage.getItem('duck_p8Cfg'); if(p8c) Object.assign(p8Cfg,JSON.parse(p8c));
+    var p8w=localStorage.getItem('duck_p8Weeks'); if(p8w) p8Weeks=JSON.parse(p8w);
+    var qlc=localStorage.getItem('duck_qlCfg'); if(qlc) Object.assign(qlCfg,JSON.parse(qlc));
+    var qlw=localStorage.getItem('duck_qunlianWeeks'); if(qlw) qunlianWeeks=JSON.parse(qlw);
+    var ycc=localStorage.getItem('duck_ycCfg'); if(ycc) Object.assign(ycCfg,JSON.parse(ycc));
+    var ycd=localStorage.getItem('duck_yangchuDays'); if(ycd) yangchuDays=JSON.parse(ycd);
+    var ycl=localStorage.getItem('duck_yangchuLocked'); if(ycl) yangchuLocked=JSON.parse(ycl);
+    var ldc=localStorage.getItem('duck_lianDianCfg'); if(ldc) lianDianCfg=JSON.parse(ldc);
+    var ldl=localStorage.getItem('duck_lianDianLocked'); if(ldl) lianDianLocked=JSON.parse(ldl);
+    var ew=localStorage.getItem('duck_extraWeeks'); if(ew) S.extraWeeks=JSON.parse(ew);
+    var awk=localStorage.getItem('duck_archivedWeeks'); if(awk) S.archivedWeeks=JSON.parse(awk);
+    var f20hm=localStorage.getItem('duck_f20HoliMonths'); if(f20hm) f20HoliMonths=JSON.parse(f20hm);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init(){
+  loadState();
+  if(!S.archivedWeeks) S.archivedWeeks={};
+  if(!S.pastExpanded) S.pastExpanded=false;
+  rebuildWeeks();  // 用 S.extraWeeks 產生正確週列表
+  // 清理 localStorage 裡超出範圍的舊 weekData keys，防止 Invalid Date 錯誤
+  Object.keys(S.weekData).forEach(function(wi){
+    var n = +wi;
+    if(isNaN(n) || n < 0 || n >= WEEK_MONS.length || !WEEK_MONS[n]){
+      delete S.weekData[wi];
+    }
+  });
+  // F20 午餐現在每天固定，不需要初始化 f20LunchWeeks
+  // 初始化 F20 假日月份：預設顯示第一週所在月 + 下一個月
+  if(!f20HoliMonths || f20HoliMonths.length===0){
+    var d0=new Date(WEEK_MONS[0]);
+    var m0=d0.getFullYear()+'-'+String(d0.getMonth()+1).padStart(2,'0');
+    var d1=new Date(d0); d1.setMonth(d1.getMonth()+1);
+    var m1=d1.getFullYear()+'-'+String(d1.getMonth()+1).padStart(2,'0');
+    f20HoliMonths=[m0,m1];
+  }
+  // 自動跳到第一個未全鎖定的週（最近的當前週）
+  var now = new Date();
+  var todayDs = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var curWi = 0;
+  for(var i=0;i<WEEK_MONS.length;i++){
+    if(WEEK_MONS[i] <= todayDs && addDays(WEEK_MONS[i],6) >= todayDs){ curWi=i; break; }
+    if(WEEK_MONS[i] > todayDs){ curWi=i; break; }
+    curWi = i;
+  }
+  S.week = curWi;
+  document.getElementById('in-date').value = todayDs;
+  var mid=document.getElementById('month-init-date'); if(mid) mid.value=todayDs;
+  renderWeekNav();
+  renderOverview();
+  renderTopStats();
+}
+
+init();
+</script>
 </body>
 </html>
