@@ -1565,6 +1565,7 @@ async function loadHistory() {
 
 async function saveHistory() {
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyList)); } catch(e) {}
+  if (_dbAutoSave) _dbAutoSave();
 }
 
 function showSaveToast(msg, duration) {
@@ -1634,7 +1635,8 @@ function collectDbData() {
     COLOR_GROUPS: JSON.parse(JSON.stringify(COLOR_GROUPS)),
     FOOD_COLOR: JSON.parse(JSON.stringify(FOOD_COLOR)),
     ROWS: JSON.parse(JSON.stringify(ROWS)),
-    ROW_CATS: JSON.parse(JSON.stringify(ROW_CATS))
+    ROW_CATS: JSON.parse(JSON.stringify(ROW_CATS)),
+    historyList: JSON.parse(JSON.stringify(historyList))
   };
 }
 
@@ -1665,6 +1667,15 @@ function applyDbData(saved) {
   if (saved.ROW_CATS) {
     Object.keys(ROW_CATS).forEach(k => delete ROW_CATS[k]);
     Object.assign(ROW_CATS, saved.ROW_CATS);
+  }
+  if (Array.isArray(saved.historyList) && saved.historyList.length > 0) {
+    // Firestore 有紀錄 → 以 Firestore 為主
+    historyList = JSON.parse(JSON.stringify(saved.historyList));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(historyList));
+    renderHistoryPanel();
+  } else if (historyList.length > 0) {
+    // Firestore 尚無紀錄但本機有 → 推上去（一次性遷移）
+    if (_dbAutoSave) _dbAutoSave();
   }
   rerenderDBPanels();
   initMgmtItems();
