@@ -138,17 +138,37 @@ body {
 
 /* ── ALERT ── */
 /* alert tab badge */
-#stab-alert { background: #f5f5f5; color: #888; border-left-color: #bbb; transition: background .3s, color .3s, border-left-color .3s; }
-#stab-alert.has-alert { background: #fff0f0; color: var(--red); border-left-color: var(--red); animation: tab-pulse 1.5s ease-in-out infinite; }
-@keyframes tab-pulse { 0%,100%{ box-shadow: -3px 0 8px rgba(192,57,43,.15); } 50%{ box-shadow: -5px 0 16px rgba(192,57,43,.4); } }
-#drawer-alert .drawer-header { background: #fff0f0; border-bottom-color: var(--red); }
 .alert-ok { background: #fff0f0; color: var(--red); font-family: 'Patrick Hand',sans-serif; font-weight: 700; font-size: 15px; padding: 14px 20px; border-radius: 8px; border: 1.5px solid var(--red); margin-bottom: 16px; }
 .alert-safe { background: #e8f5e9; color: #2e7d32; font-family: 'Patrick Hand',sans-serif; font-weight: 700; font-size: 15px; padding: 14px 20px; border-radius: 8px; border: 1.5px solid #81c784; margin-bottom: 16px; }
 
 /* ── OVERVIEW ── */
-#tab-overview { padding: 6px 12px 16px; display: flex; justify-content: center; }
-#ov-container { display: flex; flex-direction: column; gap: 0; }
+#tab-overview { padding: 6px 12px 16px; display: flex; justify-content: center; align-items: flex-start; gap: 16px; overflow-x: auto; }
+#ov-container { display: flex; flex-direction: column; gap: 0; flex-shrink: 0; }
 #ov-container > .ov-wrap { display: inline-block; min-width: 0; }
+
+/* ── WEEK PREVIEW PANELS ── */
+.wk-preview {
+  flex-shrink: 0; width: 280px;
+  opacity: 0.4; pointer-events: none; user-select: none;
+  transition: opacity .25s;
+}
+.wk-preview:hover { opacity: 0.65; }
+#prev-week-panel { }
+#next-week-panel { }
+.preview-wk-label {
+  font-family: 'Kalam', cursive; font-size: 12px; font-weight: 700;
+  text-align: center; margin-bottom: 7px; letter-spacing: 1px; color: var(--dim);
+}
+.wk-preview .ov-wrap { overflow-x: auto; }
+table.ov.ov-sm th { font-size: 11px; padding: 4px 3px; height: 44px; width: 28px; }
+table.ov.ov-sm .sn { font-size: 13px; }
+table.ov.ov-sm .dc { width: 28px; }
+table.ov.ov-sm tr.tr-total td { font-size: 14px; padding: 8px 3px; }
+table.ov.ov-sm tr.tr-total .sc { font-size: 12px; }
+@media(max-width:1100px) { .wk-preview { display: none; } }
+
+/* ── INLINE ALERT ── */
+#inline-alert { margin-top: 0; }
 
 /* ── SECTION TITLE ── */
 .sec-title {
@@ -431,10 +451,6 @@ select.ds {
     <span class="st-icon">📦</span>
     <span class="st-label">庫存管理</span>
   </div>
-  <div class="side-tab" id="stab-alert" onclick="openDrawer('alert')" title="庫存狀況">
-    <span class="st-icon">⚠</span>
-    <span class="st-label">庫存</span>
-  </div>
 </div>
 
 <!-- 共用遮罩 -->
@@ -504,23 +520,28 @@ select.ds {
   </div>
 </div>
 
-<!-- 庫存狀況抽屜 -->
-<div class="side-drawer" id="drawer-alert">
-  <div class="drawer-header">
-    <span class="st-icon">⚠</span>
-    <h2>庫存狀況</h2>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  </div>
-  <div class="drawer-body">
-    <div id="drawer-alert-body"></div>
-  </div>
-</div>
 
 <!-- Overview 主畫面 -->
 <div id="tab-overview">
+  <!-- 上週預覽 -->
+  <div class="wk-preview" id="prev-week-panel">
+    <div class="preview-wk-label" id="prev-week-label">← 上週</div>
+    <div class="ov-wrap">
+      <table class="ov ov-sm"><thead id="prev-ov-head"></thead><tbody id="prev-ov-body"></tbody></table>
+    </div>
+  </div>
+  <!-- 本週主表 -->
   <div id="ov-container">
     <div class="ov-wrap">
       <table class="ov"><thead id="ov-head"></thead><tbody id="ov-body"></tbody></table>
+    </div>
+    <div id="inline-alert"></div>
+  </div>
+  <!-- 下週預覽 -->
+  <div class="wk-preview" id="next-week-panel">
+    <div class="preview-wk-label" id="next-week-label">下週 →</div>
+    <div class="ov-wrap">
+      <table class="ov ov-sm"><thead id="next-ov-head"></thead><tbody id="next-ov-body"></tbody></table>
     </div>
   </div>
 </div>
@@ -883,20 +904,24 @@ function renderTopStats() {
   }
   var stab = document.getElementById('stab-alert');
   var body = document.getElementById('drawer-alert-body');
+  var inline = document.getElementById('inline-alert');
   if(shortDate){
     var now = new Date();
     var today = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
     var diffDays = (new Date(shortDate).getTime() - new Date(today).getTime()) / 86400000;
     var urgent = diffDays <= 7;
     if(stab) stab.classList.add('has-alert');
-    if(body) body.innerHTML =
-      '<div class="alert-ok">⚠ <strong>庫存不足</strong><br>'
+    var alertHtml = '<div class="alert-ok">⚠ <strong>庫存不足</strong><br>'
       +'預計 <b>'+fmt(shortDate)+'</b> 缺少 <b>'+Math.ceil(shortQty)+' 隻</b>，請儘速叫貨！'
       +(urgent ? '<br><span style="font-size:12px;opacity:.8;">（'+Math.round(diffDays)+'天後）</span>' : '')
       +'</div>';
+    if(body) body.innerHTML = alertHtml;
+    if(inline) inline.innerHTML = alertHtml;
   } else {
     if(stab) stab.classList.remove('has-alert');
-    if(body) body.innerHTML = '<div class="alert-safe">✓ 庫存充足，目前無缺貨風險。</div>';
+    var safeHtml = '<div class="alert-safe">✓ 庫存充足，目前無缺貨風險。</div>';
+    if(body) body.innerHTML = safeHtml;
+    if(inline) inline.innerHTML = safeHtml;
   }
 }
 
@@ -1014,6 +1039,77 @@ function renderOverview() {
   b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:14px;padding:8px;color:var(--dim);">隻</td><td></td></tr>';
 
   document.getElementById('ov-body').innerHTML=b;
+
+  renderPreviewWeek(S.week-1, 'prev-ov-head', 'prev-ov-body', 'prev-week-label', true);
+  renderPreviewWeek(S.week+1, 'next-ov-head', 'next-ov-body', 'next-week-label', false);
+}
+
+function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
+  var headEl = document.getElementById(headId);
+  var bodyEl = document.getElementById(bodyId);
+  var labelEl = document.getElementById(labelId);
+  if(!headEl || !bodyEl) return;
+
+  if(wi < 0 || wi >= WEEK_MONS.length) {
+    if(labelEl) labelEl.textContent = isPrev ? '← 上週' : '下週 →';
+    headEl.innerHTML = '<tr><th colspan="10" style="color:var(--muted);font-size:12px;padding:24px;text-align:center;">—</th></tr>';
+    bodyEl.innerHTML = '';
+    return;
+  }
+
+  ensureWeek(wi);
+  var ws = WEEK_MONS[wi], endDs = addDays(ws, 6);
+  if(labelEl) labelEl.textContent = isPrev ? ('← '+fmt(ws)+'～'+fmt(endDs)) : (fmt(ws)+'～'+fmt(endDs)+' →');
+
+  var vd = []; DK.forEach(function(dk,i){ vd.push({dk:dk,i:i}); });
+
+  var h = '<tr><th class="lft" style="width:60px;">廠區</th>';
+  vd.forEach(function(x){
+    var ds = wkDs(wi,x.i); if(!ds) return;
+    var holi = isNatHoli(ds), dow = new Date(ds).getDay();
+    var cls = dow===6?'cs': dow===0?'cu': '';
+    h += '<th class="'+cls+'">'+fmt(ds)+'<br><span style="font-size:9px;opacity:.75;">('+dowLabel(ds)+')</span>'+(holi?'<br><span style="font-size:8px;color:var(--red);">假</span>':'')+'</th>';
+  });
+  h += '<th style="width:44px;">小計</th></tr>';
+  headEl.innerHTML = h;
+
+  var b = '', colTotal = {};
+  vd.forEach(function(x){ colTotal[x.dk]=0; });
+
+  SITES.forEach(function(site){
+    var wTotal = 0;
+    b += '<tr><td class="sc"><span class="sn" style="font-size:13px;">'+site+'</span></td>';
+    vd.forEach(function(x){
+      var ds = wkDs(wi,x.i); if(!ds) return;
+      var holi = isNatHoli(ds), wknd = dsIsWeekend(ds);
+      var dow = new Date(ds).getDay();
+      var cls = 'dc '+(dow===6?'cs': dow===0?'cu': '');
+      var cell = S.weekData[wi][site][x.dk];
+      if(!cell || ((wknd||holi) && cell.est===0 && cell.act===null)){
+        b += '<td class="'+cls+' cell-holiday"></td>'; return;
+      }
+      if(cell.est===0 && cell.act===null){
+        b += '<td class="'+cls+'"><div class="day-inner"><span class="zero">—</span></div></td>'; return;
+      }
+      var q = (cell.act!==null)?cell.act:cell.est;
+      colTotal[x.dk] += q; wTotal += q;
+      var color = cell.locked?'var(--ink)':(cell.act!==null?'var(--act)':'var(--red)');
+      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,cursive;font-weight:700;font-size:14px;color:'+color+';">'+q+'</span></div></td>';
+    });
+    b += '<td style="text-align:center;font-family:Kalam,cursive;font-size:14px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
+  });
+
+  var gTotal = 0;
+  b += '<tr class="tr-total"><td class="sc" style="font-size:12px;text-align:center;">TOTAL</td>';
+  vd.forEach(function(x){
+    gTotal += colTotal[x.dk];
+    var _ds = wkDs(wi,x.i); if(!_ds) return;
+    var dow = new Date(_ds).getDay();
+    var cls = 'dc '+(dow===6?'cs': dow===0?'cu': '');
+    b += '<td class="'+cls+'" style="text-align:center;font-size:14px;">'+colTotal[x.dk]+'</td>';
+  });
+  b += '<td>'+gTotal+'</td></tr>';
+  bodyEl.innerHTML = b;
 }
 
 function siteTag(s){
