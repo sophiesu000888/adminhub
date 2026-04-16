@@ -161,6 +161,42 @@ function _getModuleFromPath() {
   return window.location.pathname.split('/').pop().replace('.html','') || 'index';
 }
 
+// ── Firestore 不支援巢狀陣列，存檔前遞迴轉換 ──────────────────
+// 規則：陣列裡若又有陣列，將內層陣列轉成 { _arr: [...] } 物件
+function sanitizeForFirestore(val) {
+  if (Array.isArray(val)) {
+    return val.map(item =>
+      Array.isArray(item)
+        ? { _arr: sanitizeForFirestore(item) }
+        : sanitizeForFirestore(item)
+    );
+  }
+  if (val !== null && typeof val === 'object') {
+    const out = {};
+    for (const k of Object.keys(val)) out[k] = sanitizeForFirestore(val[k]);
+    return out;
+  }
+  return val;
+}
+
+// 對應 sanitizeForFirestore 的還原函式（讀取 Firestore 資料後呼叫）
+function restoreFromFirestore(val) {
+  if (Array.isArray(val)) {
+    return val.map(item => {
+      if (item !== null && typeof item === 'object' && Object.keys(item).length === 1 && '_arr' in item) {
+        return restoreFromFirestore(item._arr);
+      }
+      return restoreFromFirestore(item);
+    });
+  }
+  if (val !== null && typeof val === 'object') {
+    const out = {};
+    for (const k of Object.keys(val)) out[k] = restoreFromFirestore(val[k]);
+    return out;
+  }
+  return val;
+}
+
 // ── 自動儲存（含 debounce）─────────────────────────────────────
 function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
   let timer = null;
@@ -189,7 +225,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
       const user = auth.currentUser;
       if (!user) return;
       const payload = {
-        content: getDataFn(),
+        content: sanitizeForFirestore(getDataFn()),
         lastSaved: {
           uid: user.uid,
           displayName: _getDisplayName(user),
@@ -232,7 +268,7 @@ function startSync(moduleName, currentUser, onRemoteUpdate) {
       setLastSaved(data.lastSaved.displayName, isMe, data.lastSaved.timestamp);
     }
     setSyncStatus('✓ 已儲存', 'saved');
-    onRemoteUpdate(data.content || null);
+    onRemoteUpdate(data.content ? restoreFromFirestore(data.content) : null);
   }, (err) => {
     console.error(err);
     setSyncStatus('⟳ 同步失敗', 'err');
