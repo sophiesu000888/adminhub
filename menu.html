@@ -1388,13 +1388,13 @@ button {
     <div id="colorItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;min-width:220px;max-width:300px;">
       <div style="font-weight:700;font-size:0.88rem;color:#37474f;margin-bottom:10px;" id="colorPopupTitle">編輯食材</div>
       <input id="colorPopupInput" type="text" style="width:100%;padding:6px 9px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;font-size:0.85rem;margin-bottom:8px;box-sizing:border-box;" placeholder="食材名稱">
-      <div style="font-size:0.85rem;color:#90a4ae;margin-bottom:4px;">移到顏色組：</div>
+      <div id="colorPopupMoveLabel" style="font-size:0.85rem;color:#90a4ae;margin-bottom:4px;">移到顏色組：</div>
       <select id="colorPopupMoveTarget" style="width:100%;margin-bottom:10px;font-size:0.85rem;padding:5px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;">
       </select>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button onclick="colorPopupSave()" style="flex:1;background:#1976d2;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
-        <button onclick="colorPopupMove()" style="flex:1;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➡️ 移動</button>
-        <button onclick="colorPopupDelete()" style="flex:1;background:#c62828;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🗑️ 刪除</button>
+        <button id="colorPopupRenameBtn" onclick="colorPopupSave()" style="flex:1;background:#1976d2;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
+        <button id="colorPopupMoveBtn" onclick="colorPopupMove()" style="flex:1;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➡️ 移動</button>
+        <button id="colorPopupDeleteBtn" onclick="colorPopupDelete()" style="flex:1;background:#c62828;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🗑️ 刪除</button>
         <button onclick="document.getElementById('colorItemPopup').style.display='none'" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
       </div>
     </div>
@@ -4007,12 +4007,13 @@ function renderDB() {
       catGrid.style.marginBottom = "2px";
       items.forEach(itemName => {
         const chip = document.createElement("div");
-        chip.className = "color-item-chip";
-        chip.style.cssText = `background:${UT_BG};color:${UT_FG};border:1.5px dashed ${UT_TITLE};`;
-        chip.title = itemName;
+        chip.className = "color-item-chip chip-editable";
+        chip.style.cssText = `background:${UT_BG};color:${UT_FG};border:1.5px dashed ${UT_TITLE};cursor:pointer;`;
+        chip.title = itemName + "（點擊指定顏色）";
         const span = document.createElement("span");
         span.textContent = itemName;
         chip.appendChild(span);
+        chip.addEventListener("click", (e) => { e.stopPropagation(); openColorItemPopup(null, itemName, chip); });
         catGrid.appendChild(chip);
       });
       utPanel.appendChild(catGrid);
@@ -4183,17 +4184,39 @@ async function initApp() {
     }, 800);
     _dbAutoSave   = makeAutoSave('menudb', collectDbData, 800);
 
-    startSync('menudb', user, applyDbData);
-    startSync('menu', user, async (content) => {
-      // 若收到的資料與本機剛存的完全相同，跳過重建（避免閃爍）
-      const incomingJSON = JSON.stringify(content && content.data);
-      if (_lastSavedMenuJSON && incomingJSON === _lastSavedMenuJSON) return;
+    let _dbReady = false;
+    let _pendingMenuContent = undefined; // undefined = 尚未收到；null = 收到但空
 
+    startSync('menudb', user, (dbContent) => {
+      applyDbData(dbContent);
+      if (!_dbReady) {
+        _dbReady = true;
+        // menudb 到齊後，若 menu snapshot 已先到，立刻套用
+        if (_pendingMenuContent !== undefined) {
+          _applyMenuSync(_pendingMenuContent);
+          _pendingMenuContent = undefined;
+        }
+      }
+    });
+
+    async function _applyMenuSync(content) {
+      const incomingJSON = JSON.stringify(content && content.data);
+      // 若收到的資料與本機剛存的完全相同，跳過重建（避免閃爍）
+      if (_lastSavedMenuJSON && incomingJSON === _lastSavedMenuJSON) return;
       const loaded = await applyMenuData(content);
       if (!loaded) { addWeek(); addWeek(); }
       renderHistoryPanel();
       initMgmtItems();
       rerenderDBPanels();
+    }
+
+    startSync('menu', user, (content) => {
+      if (!_dbReady) {
+        // menudb 還沒到，先暫存（只保留最新一筆）
+        _pendingMenuContent = content;
+        return;
+      }
+      _applyMenuSync(content);
     });
   });
 }
@@ -4870,13 +4893,24 @@ function openColorItemPopup(key, itemName, anchorEl) {
   const inp = document.getElementById("colorPopupInput");
   const moveTarget = document.getElementById("colorPopupMoveTarget");
   const title = document.getElementById("colorPopupTitle");
+  const renameBtn = document.getElementById("colorPopupRenameBtn");
+  const deleteBtn = document.getElementById("colorPopupDeleteBtn");
+  const moveBtn = document.getElementById("colorPopupMoveBtn");
+  const moveLabel = document.getElementById("colorPopupMoveLabel");
 
   title.textContent = "食材：" + itemName;
   inp.value = itemName;
 
-  // 填入可移動的顏色組選項（排除目前所在的組）
+  const isUntagged = (key === null);
+  renameBtn.style.display = isUntagged ? "none" : "";
+  deleteBtn.style.display = isUntagged ? "none" : "";
+  inp.style.display = isUntagged ? "none" : "";
+  moveLabel.textContent = isUntagged ? "指定顏色組：" : "移到顏色組：";
+  moveBtn.textContent = isUntagged ? "➕ 指定顏色" : "➡️ 移動";
+
+  // 未標示模式：顯示全部顏色組；已有顏色模式：排除目前所在的組
   moveTarget.innerHTML = Object.entries(COLOR_GROUPS)
-    .filter(([k]) => k !== key)
+    .filter(([k]) => isUntagged || k !== key)
     .map(([k, g]) => `<option value="${k}">${g.label}（${k}）</option>`)
     .join('');
 
@@ -4928,19 +4962,22 @@ function colorPopupSave() {
 function colorPopupMove() {
   const popup = document.getElementById("colorItemPopup");
   const targetKey = document.getElementById("colorPopupMoveTarget").value;
-  if (!targetKey || !_colorPopupKey || !_colorPopupItem) return;
-  const srcG = COLOR_GROUPS[_colorPopupKey];
+  if (!targetKey || !_colorPopupItem) return;
   const dstG = COLOR_GROUPS[targetKey];
-  if (!srcG || !dstG) return;
-  // Remove from source
-  srcG.items = srcG.items.filter(i => i !== _colorPopupItem);
+  if (!dstG) return;
+  // Remove from source (skip if untagged, i.e. _colorPopupKey === null)
+  if (_colorPopupKey) {
+    const srcG = COLOR_GROUPS[_colorPopupKey];
+    if (srcG) srcG.items = srcG.items.filter(i => i !== _colorPopupItem);
+  }
   // Add to dest (avoid dup)
   if (!dstG.items.includes(_colorPopupItem)) dstG.items.push(_colorPopupItem);
   // Update FOOD_COLOR
   FOOD_COLOR[_colorPopupItem] = targetKey;
   _colorPanelActiveKey = targetKey;
   scheduleAutoSave();
-  showSaveToast("➡️ 已移到「" + dstG.label + "」");
+  const toastMsg = _colorPopupKey ? "➡️ 已移到「" + dstG.label + "」" : "🎨 已指定顏色「" + dstG.label + "」";
+  showSaveToast(toastMsg);
   popup.style.display = "none";
   rerenderDBPanels();
 }
