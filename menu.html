@@ -1627,6 +1627,7 @@ function scheduleAutoSave() {
   if (_isLoading) return;
   if (_menuAutoSave) _menuAutoSave();
   if (_dbAutoSave) _dbAutoSave();
+  if (_histAutoSave) _histAutoSave();
 }
 
 function collectDbData() {
@@ -2756,7 +2757,7 @@ async function applyMenuData(saved) {
   // setTimeout 裡還有 dispatchEvent，等它們都跑完後才關旗標
   setTimeout(() => {
     _isLoading = false;
-    clearTimeout(saveTimer);  // 清除任何載入期間意外排進去的 save
+    // 清除載入期間意外排進去的 save（透過旗標讓 scheduleAutoSave 重新判斷）
   }, 300);
   return true;
 }
@@ -4220,7 +4221,12 @@ async function initApp() {
     async function _applyMenuSync(content) {
       const incomingJSON = JSON.stringify(content && content.data);
       // 若收到的資料與本機剛存的完全相同，跳過重建（避免閃爍）
-      if (_lastSavedMenuJSON && incomingJSON === _lastSavedMenuJSON) return;
+      // 清除快照確保只跳過一次：下次遠端有任何更新都會正常套用
+      if (_lastSavedMenuJSON && incomingJSON === _lastSavedMenuJSON) {
+        _lastSavedMenuJSON = null;
+        return;
+      }
+      _lastSavedMenuJSON = null; // 收到遠端資料後清除，避免誤擋跨裝置更新
       const loaded = await applyMenuData(content);
       if (!loaded) { addWeek(); addWeek(); }
       renderHistoryPanel();
