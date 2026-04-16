@@ -84,26 +84,26 @@ body {
 /* ◀ ▶ arrows */
 .wk-arrow {
   background: white; border: 2px solid var(--border); color: var(--ink);
-  border-radius: 6px; width: 30px; height: 30px;
+  border-radius: 6px; width: 60px; height: 60px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; cursor: pointer; font-weight: 700;
+  font-size: 26px; cursor: pointer; font-weight: 700;
   box-shadow: 2px 2px 0 0 var(--ink); transition: all .1s; flex-shrink: 0;
 }
 .wk-arrow:hover:not([disabled]) { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
 .wk-arrow[disabled] { opacity: .3; cursor: default; box-shadow: none; }
 /* current week display */
 .wk-label {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 14px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 28px;
   color: var(--ink); padding: 4px 14px; white-space: nowrap;
   background: #fff8e7; border: 2px solid var(--ink);
   border-radius: var(--hand-radius); box-shadow: 2px 2px 0 0 var(--ink);
-  min-width: 120px; text-align: center;
+  min-width: 240px; text-align: center;
 }
 .wk-label.archived { background: #f5f5f5; color: var(--dim); border-style: dashed; }
 /* ＋ － buttons */
 .wk-btn {
   background: white; border: 2px solid var(--border); color: var(--ink);
-  border-radius: var(--hand-radius); padding: 4px 12px; font-size: 14px;
+  border-radius: var(--hand-radius); padding: 4px 12px; font-size: 28px;
   font-family: 'Kalam', cursive; font-weight: 700;
   cursor: pointer; white-space: nowrap; transition: all .1s;
   box-shadow: 2px 2px 0 0 var(--ink);
@@ -118,19 +118,19 @@ body {
 }
 .side-tab {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 5px; width: 48px; padding: 15px 0;
+  gap: 5px; width: 96px; padding: 15px 0;
   border-radius: 12px 0 0 12px; cursor: pointer; user-select: none;
   box-shadow: -3px 0 8px rgba(0,0,0,.12); transition: width .15s, box-shadow .15s;
   border-top: 1.5px solid rgba(45,45,45,.18);
   border-bottom: 1.5px solid rgba(45,45,45,.18);
   border-left: 3px solid rgba(45,45,45,.18);
 }
-.side-tab:hover { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,.2); }
-.side-tab.open  { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,.25); }
-.side-tab .st-icon  { font-size: 1.3rem; line-height: 1; }
+.side-tab:hover { width: 108px; box-shadow: -4px 0 12px rgba(0,0,0,.2); }
+.side-tab.open  { width: 108px; box-shadow: -4px 0 12px rgba(0,0,0,.25); }
+.side-tab .st-icon  { font-size: 2.6rem; line-height: 1; }
 .side-tab .st-label {
   writing-mode: vertical-rl; text-orientation: mixed;
-  font-size: 0.82rem; font-weight: 700; letter-spacing: 2px;
+  font-size: 1.64rem; font-weight: 700; letter-spacing: 2px;
   opacity: .9; line-height: 1; font-family: 'Kalam', 'Noto Sans TC', sans-serif;
 }
 #stab-config { background: #f3e5f5; color: #7b1fa2; border-left-color: #7b1fa2; }
@@ -138,54 +138,54 @@ body {
 
 /* ── ALERT ── */
 /* alert tab badge */
-.alert-ok { background: #fff0f0; color: var(--red); font-family: 'Patrick Hand',sans-serif; font-weight: 700; font-size: 15px; padding: 14px 20px; border-radius: 8px; border: 1.5px solid var(--red); margin-bottom: 16px; }
-.alert-safe { background: #e8f5e9; color: #2e7d32; font-family: 'Patrick Hand',sans-serif; font-weight: 700; font-size: 15px; padding: 14px 20px; border-radius: 8px; border: 1.5px solid #81c784; margin-bottom: 16px; }
+.alert-ok { background: #fff0f0; color: var(--red); font-family: 'Patrick Hand',sans-serif; font-weight: 700; font-size: 30px; padding: 14px 20px; border-radius: 8px; border: 1.5px solid var(--red); margin-bottom: 16px; }
+.alert-safe { background: #e8f5e9; color: #2e7d32; font-family: 'Patrick Hand',sans-serif; font-weight: 700; font-size: 30px; padding: 14px 20px; border-radius: 8px; border: 1.5px solid #81c784; margin-bottom: 16px; }
 
 /* ── OVERVIEW ── */
-#tab-overview { padding: 6px 12px 16px; display: flex; justify-content: center; align-items: flex-start; gap: 16px; overflow-x: auto; }
-#ov-container { display: flex; flex-direction: column; gap: 0; flex-shrink: 0; }
+#tab-overview { padding: 2px 12px 16px; display: flex; justify-content: center; align-items: flex-start; gap: 16px; overflow-x: auto; }
+#ov-container { display: flex; flex-direction: row; align-items: stretch; gap: 8px; flex-shrink: 0; }
 #ov-container > .ov-wrap { display: inline-block; min-width: 0; }
 
 /* ── WEEK PREVIEW PANELS ── */
 .wk-preview {
-  flex-shrink: 0; width: 280px;
-  opacity: 0.4; pointer-events: none; user-select: none;
+  flex-shrink: 0;
+  opacity: 0.75; pointer-events: none; user-select: none;
   transition: opacity .25s;
 }
-.wk-preview:hover { opacity: 0.65; }
+.wk-preview:hover { opacity: 0.9; }
 #prev-week-panel { }
 #next-week-panel { }
 .preview-wk-label {
-  font-family: 'Kalam', cursive; font-size: 12px; font-weight: 700;
-  text-align: center; margin-bottom: 7px; letter-spacing: 1px; color: var(--dim);
+  font-family: 'Kalam', cursive; font-size: 24px; font-weight: 700;
+  text-align: center; letter-spacing: 1px; color: var(--dim);
+  height: 40px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 7px;
 }
-.wk-preview .ov-wrap { overflow-x: auto; }
-table.ov.ov-sm th { font-size: 11px; padding: 4px 3px; height: 44px; width: 28px; }
-table.ov.ov-sm .sn { font-size: 13px; }
-table.ov.ov-sm .dc { width: 28px; }
-table.ov.ov-sm tr.tr-total td { font-size: 14px; padding: 8px 3px; }
-table.ov.ov-sm tr.tr-total .sc { font-size: 12px; }
-@media(max-width:1100px) { .wk-preview { display: none; } }
-
 /* ── INLINE ALERT ── */
-#inline-alert { margin-top: 0; }
+#inline-alert { display: flex; align-items: stretch; }
+#inline-alert .alert-ok, #inline-alert .alert-safe {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px 10px; border-radius: 8px; margin-bottom: 0;
+  font-size: 26px; letter-spacing: 2px; white-space: nowrap;
+}
 
 /* ── SECTION TITLE ── */
 .sec-title {
-  font-size: 22px; font-family: 'Kalam', cursive; font-weight: 700;
+  font-size: 44px; font-family: 'Kalam', cursive; font-weight: 700;
   color: var(--ink); padding-bottom: 10px; margin-bottom: 16px;
   display: flex; align-items: center; gap: 8px; transform: rotate(-1deg);
 }
-.sec-title::before { content: '📌'; font-size: 20px; }
+.sec-title::before { content: '📌'; font-size: 40px; }
 
 /* ── OV TABLE ── */
 .ov-wrap { overflow-x: auto; background: white; border: 2.5px solid var(--border); border-radius: var(--card-radius); box-shadow: var(--shadow2); margin-bottom: 20px; }
 table.ov { width: auto; border-collapse: collapse; table-layout: fixed; }
 table.ov thead tr { background: var(--s2); border-bottom: 2.5px solid var(--ink); }
 table.ov th {
-  padding: 6px 8px; font-size: 15px; font-family: 'Kalam', cursive; font-weight: 700; color: var(--ink);
+  padding: 6px 8px; font-size: 30px; font-family: 'Kalam', cursive; font-weight: 700; color: var(--ink);
   border-right: 1px solid var(--border2); white-space: nowrap; vertical-align: bottom; text-align: center;
-  width: 30px; height: 52px;
+  width: 60px; height: 104px;
 }
 table.ov th:last-child { border-right: none; }
 table.ov th.lft { text-align: center; }
@@ -194,42 +194,42 @@ table.ov td:last-child { border-right: none; }
 table.ov tr:last-child td { border-bottom: none; }
 table.ov tr:hover td { background: rgba(0,0,0,.02); }
 .sc { padding: 8px 6px; text-align: center; white-space: nowrap; }
-.sn { font-weight: 700; font-size: 16px; font-family: 'Kalam', cursive; display: block; text-align: center; }
+.sn { font-weight: 700; font-size: 32px; font-family: 'Kalam', cursive; display: block; text-align: center; }
 .st {
-  font-size: 10px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 20px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
   background: white; border: 1.5px solid var(--ink); color: var(--ink);
   padding: 2px 6px; border-radius: 6px; margin-left: 8px; vertical-align: middle;
 }
-.dc { padding: 6px 4px; text-align: center; width: 30px; }
+.dc { padding: 6px 4px; text-align: center; width: 60px; }
 .dc.cs { background: #fdfbf7; }
 .dc.cu { background: #fff0f0; }
 .day-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .ev {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px;
   color: var(--red); background: transparent;
   border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 3px;
   border: none;
 }
-.ev input { background: transparent; border: none; color: var(--red); font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; width: 32px; text-align: center; padding: 0; }
+.ev input { background: transparent; border: none; color: var(--red); font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; width: 64px; text-align: center; padding: 0; }
 .ev input:focus { outline: none; border-bottom: 1.5px dashed var(--red); }
 .av {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px;
   color: var(--act); background: transparent;
   border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 3px;
   border: none;
 }
-.av input { background: transparent; border: none; color: var(--act); font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; width: 32px; text-align: center; padding: 0; }
+.av input { background: transparent; border: none; color: var(--act); font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; width: 64px; text-align: center; padding: 0; }
 .av input:focus { outline: none; border-bottom: 1.5px dashed var(--act); }
 
 .fa-btn {
-  font-size: 12px; background: white; border: 2px solid var(--ink); color: var(--ink);
+  font-size: 24px; background: white; border: 2px solid var(--ink); color: var(--ink);
   border-radius: 6px; padding: 3px 8px; cursor: pointer; white-space: nowrap; transition: all .1s;
   font-family: 'Patrick Hand', sans-serif; font-weight: 700; box-shadow: 1.5px 1.5px 0 0 var(--ink);
 }
 .fa-btn:hover { transform: translate(1px, 1px); box-shadow: 0 0 0 0; background: #f0f0f0; }
 
 .lv {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 36px;
   color: var(--ink); background: transparent;
   border-radius: 6px; padding: 3px 10px;
   border: none;
@@ -252,24 +252,24 @@ table.ov tr:hover td { background: rgba(0,0,0,.02); }
 }
 
 .lock-week-btn {
-  font-size: 11px; background: white; border: 1.5px solid var(--border2); color: var(--dim);
+  font-size: 22px; background: white; border: 1.5px solid var(--border2); color: var(--dim);
   border-radius: 6px; padding: 2px 7px; cursor: pointer; white-space: nowrap; transition: all .1s;
   font-family: 'Patrick Hand', sans-serif; font-weight: 700; margin-top: 3px; display: block;
 }
 .lock-week-btn:hover { border-color: var(--act); color: var(--act); background: rgba(39,174,96,.06); }
 .lock-week-btn.locked { background: rgba(39,174,96,.1); border-color: var(--act); color: var(--act); }
-.holi { font-size: 18px; line-height: 1; }
-.zero { color: var(--muted); font-size: 14px; font-family: 'Kalam', cursive; }
+.holi { font-size: 36px; line-height: 1; }
+.zero { color: var(--muted); font-size: 28px; font-family: 'Kalam', cursive; }
 th.cs { color: var(--gold); } th.cu { color: var(--red); }
 tr.tr-total td {
   background: var(--s2); border-top: 2.5px solid var(--ink);
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 36px;
   padding: 12px 6px; text-align: center; color: var(--ink);
 }
-tr.tr-total .sc { font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; color: var(--ink); text-align: left; }
+tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; color: var(--ink); text-align: left; }
 
 /* ── ACCORDION ── */
-.acc-list { display: flex; flex-direction: column; gap: 12px; max-width: 880px; }
+.acc-list { display: flex; flex-direction: column; gap: 12px; }
 .acc-block {
   background: white; border: 2.5px solid var(--ink);
   border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow2);
@@ -281,14 +281,14 @@ tr.tr-total .sc { font-size: 14px; font-family: 'Patrick Hand', sans-serif; font
 }
 .acc-header:hover { background: var(--s3); }
 .acc-header.open { border-bottom-color: var(--ink); }
-.acc-header .ah-name { font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700; color: var(--ink); }
-.acc-header .ah-desc { font-size: 13px; color: var(--dim); margin-top: 2px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
+.acc-header .ah-name { font-family: 'Kalam', cursive; font-size: 40px; font-weight: 700; color: var(--ink); }
+.acc-header .ah-desc { font-size: 26px; color: var(--dim); margin-top: 2px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
 .acc-header .ah-badge {
-  margin-left: auto; font-size: 13px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  margin-left: auto; font-size: 26px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
   color: var(--ink); background: white; border: 1.5px solid var(--ink);
   padding: 4px 10px; border-radius: 8px;
 }
-.acc-header .ah-arrow { font-size: 12px; color: var(--ink); transition: transform .2s; flex-shrink: 0; }
+.acc-header .ah-arrow { font-size: 24px; color: var(--ink); transition: transform .2s; flex-shrink: 0; }
 .acc-header.open .ah-arrow { transform: rotate(180deg); }
 .acc-body { padding: 20px; border-top: 2.5px solid var(--ink); }
 
@@ -299,10 +299,10 @@ tr.tr-total .sc { font-size: 14px; font-family: 'Patrick Hand', sans-serif; font
   background: white; border: 1.5px solid var(--border2); border-radius: 8px;
 }
 .wk-row .wr-info { flex: 1; }
-.wr-info .wr-label { font-size: 15px; font-weight: 700; font-family: 'Patrick Hand', sans-serif; color: var(--ink); }
-.wr-info .wr-range { font-size: 12px; font-family: 'Patrick Hand', sans-serif; color: var(--dim); font-weight: 700; }
+.wr-info .wr-label { font-size: 30px; font-weight: 700; font-family: 'Patrick Hand', sans-serif; color: var(--ink); }
+.wr-info .wr-range { font-size: 24px; font-family: 'Patrick Hand', sans-serif; color: var(--dim); font-weight: 700; }
 .wk-toggle-btn {
-  font-size: 13px; font-weight: 700; border-radius: 6px; padding: 5px 12px;
+  font-size: 26px; font-weight: 700; border-radius: 6px; padding: 5px 12px;
   cursor: pointer; transition: all .1s; white-space: nowrap; font-family: 'Patrick Hand', sans-serif;
   box-shadow: 1.5px 1.5px 0 0 var(--ink);
 }
@@ -312,52 +312,52 @@ tr.tr-total .sc { font-size: 14px; font-family: 'Patrick Hand', sans-serif; font
 .wk-toggle-btn.on-purple { background: #f3e5f5; border: 1.5px solid #ce93d8; color: #6a1b9a; }
 .wk-toggle-btn.on-check { background: #e8f5e9; border: 1.5px solid #81c784; color: #2e7d32; }
 .wk-toggle-btn.on-skip { background: #f5f5f5; border: 1.5px dashed var(--muted); color: var(--muted); text-decoration: line-through; box-shadow: none; }
-.wk-qty { min-width: 60px; text-align: right; font-family: 'Kalam', cursive; font-size: 16px; color: var(--ink); font-weight: 700; }
+.wk-qty { min-width: 120px; text-align: right; font-family: 'Kalam', cursive; font-size: 32px; color: var(--ink); font-weight: 700; }
 
 /* ── TAG ── */
-.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 8px; font-family: 'Patrick Hand', sans-serif; }
+.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 22px; font-weight: 700; border-radius: 6px; padding: 3px 8px; font-family: 'Patrick Hand', sans-serif; }
 .tag-l { background: #fff8e7; color: var(--gold); border: 1.5px solid var(--gold); }
 .tag-d { background: #f3e5f5; color: #8e44ad; border: 1.5px solid #8e44ad; }
 
 /* ── INPUT ── */
-.qty-inp { width: 54px; background: white; border: 1.5px solid var(--ink); color: var(--ink); border-radius: 6px; padding: 5px 7px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px; text-align: center; }
+.qty-inp { width: 108px; background: white; border: 1.5px solid var(--ink); color: var(--ink); border-radius: 6px; padding: 5px 7px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; text-align: center; }
 .qty-inp:focus { outline: none; border-color: var(--blue); }
 .qty-inp.purple { color: #8e44ad; }
 
 /* ── STOCK ── */
-.stock-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.stock-panel { display: flex; flex-direction: column; gap: 20px; }
 .s-card {
   background: white; border: 2.5px solid var(--ink);
   border-radius: var(--card-radius); padding: 20px; box-shadow: var(--shadow2);
 }
 .s-card h3 {
-  font-size: 18px; font-family: 'Kalam', cursive; color: var(--ink);
+  font-size: 36px; font-family: 'Kalam', cursive; color: var(--ink);
   margin-bottom: 16px; border-bottom: 2px dashed var(--border2); padding-bottom: 8px;
 }
 .add-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
 .fg { display: flex; flex-direction: column; gap: 5px; }
-.fg label { font-size: 13px; color: var(--ink); font-weight: 700; font-family: 'Patrick Hand', sans-serif; }
+.fg label { font-size: 26px; color: var(--ink); font-weight: 700; font-family: 'Patrick Hand', sans-serif; }
 .fg input {
   background: white; border: 1.5px solid var(--ink); color: var(--ink);
-  border-radius: 6px; padding: 6px 10px; font-size: 14px; font-family: 'Patrick Hand', sans-serif;
+  border-radius: 6px; padding: 6px 10px; font-size: 28px; font-family: 'Patrick Hand', sans-serif;
   font-weight: 700;
 }
 .fg input:focus { outline: none; border-color: var(--blue); }
-.sle { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border2); font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
+.sle { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border2); font-size: 28px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
 .sle:last-child { border-bottom: none; }
-.sle .sd { font-family: 'Patrick Hand', sans-serif; font-size: 12px; color: var(--dim); min-width: 82px; }
+.sle .sd { font-family: 'Patrick Hand', sans-serif; font-size: 24px; color: var(--dim); min-width: 164px; }
 .sle .sn2 { flex: 1; color: var(--ink); margin: 0 10px; }
-.sle .sq { font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px; color: var(--act); }
+.sle .sq { font-family: 'Kalam', cursive; font-weight: 700; font-size: 36px; color: var(--act); }
 
 /* ── BTN ── */
 .btn {
   background: white; color: var(--ink); border: 2.5px solid var(--ink);
   border-radius: var(--hand-radius); padding: 8px 20px;
-  font-size: 14px; font-weight: 700; font-family: 'Patrick Hand', sans-serif;
+  font-size: 28px; font-weight: 700; font-family: 'Patrick Hand', sans-serif;
   cursor: pointer; transition: all .1s; box-shadow: var(--shadow-sm);
 }
 .btn:hover { transform: translate(2px, 2px); box-shadow: 0 0 0 0; }
-.btn-sm { padding: 5px 14px; font-size: 13px; }
+.btn-sm { padding: 5px 14px; font-size: 26px; }
 .btn-out { background: white; }
 .btn-g { background: #e8f5e9; border-color: var(--green); color: var(--green); }
 .btn-red { background: #ffebee; border-color: var(--red); color: var(--red); }
@@ -368,7 +368,7 @@ tr.tr-total .sc { font-size: 14px; font-family: 'Patrick Hand', sans-serif; font
 /* ── SELECT ── */
 select.ds {
   background: white; border: 1.5px solid var(--ink); color: var(--ink);
-  border-radius: 6px; padding: 6px 10px; font-size: 14px; font-weight: 700;
+  border-radius: 6px; padding: 6px 10px; font-size: 28px; font-weight: 700;
   font-family: 'Patrick Hand', sans-serif; cursor: pointer;
 }
 
@@ -403,13 +403,13 @@ select.ds {
   background: var(--s2); flex-shrink: 0;
 }
 .drawer-header h2 {
-  font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700;
+  font-family: 'Kalam', cursive; font-size: 40px; font-weight: 700;
   color: var(--ink); margin: 0; flex: 1;
 }
 .drawer-close {
   background: none; border: 2px solid var(--border); border-radius: 8px;
-  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-  font-size: 16px; cursor: pointer; color: var(--ink); transition: all .1s;
+  width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; cursor: pointer; color: var(--ink); transition: all .1s;
   box-shadow: 2px 2px 0 0 var(--ink);
 }
 .drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
@@ -465,6 +465,7 @@ select.ds {
   </div>
   <div class="drawer-body">
     <div class="sec-title" style="margin-top:4px;">廠區出貨設定</div>
+    <div id="site-filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
     <div class="acc-list" id="acc-list"></div>
   </div>
 </div>
@@ -479,42 +480,32 @@ select.ds {
   <div class="drawer-body">
     <div class="sec-title" style="margin-top:4px;">庫存管理</div>
     <div class="stock-panel">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:28px;color:var(--ink);font-weight:700;font-family:'Patrick Hand', sans-serif;">預警門檻</span>
+        <input type="number" id="thr-in" value="50" style="width:140px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:6px 8px;font-size:32px;font-family:'Kalam', cursive;" min="1">
+        <span style="font-size:28px;color:var(--ink);font-weight:700;font-family:'Patrick Hand', sans-serif;">隻</span>
+        <button class="btn btn-sm btn-out" onclick="updateThreshold()">更新</button>
+      </div>
       <div class="s-card corner-frame">
         <h3>進貨 ／ 盤點調整</h3>
         <div class="add-form">
-          <div class="fg"><label>日期</label><input type="date" id="in-date" style="width:140px;"></div>
-          <div class="fg"><label>數量（正=進貨，負=盤差）</label><input type="number" id="in-qty" placeholder="0" style="width:80px;"></div>
-          <div class="fg"><label>備註</label><input type="text" id="in-note" placeholder="備註" style="width:140px;"></div>
+          <div class="fg"><label>日期</label><input type="date" id="in-date" style="width:280px;"></div>
+          <div class="fg"><label>數量（正=進貨，負=盤差）</label><input type="number" id="in-qty" placeholder="0" style="width:160px;"></div>
+          <div class="fg"><label>備註</label><input type="text" id="in-note" placeholder="備註" style="width:280px;"></div>
           <button class="btn btn-g btn-sm" onclick="addStock()">＋ 新增</button>
         </div>
-        <div style="margin-top:12px;padding:10px 14px;background:#fffbe6;border:1.5px dashed var(--gold);border-radius:8px;font-family:'Patrick Hand',sans-serif;font-size:13px;color:var(--ink);font-weight:700;">
+        <div style="margin-top:12px;padding:10px 14px;background:#fffbe6;border:1.5px dashed var(--gold);border-radius:8px;font-family:'Patrick Hand',sans-serif;font-size:26px;color:var(--ink);font-weight:700;">
           📅 每月初結算
-          <div style="font-size:12px;color:var(--dim);margin:4px 0 8px;">新增一筆「月初實際庫存」後，即可安心刪除舊週次，數字不受影響。</div>
+          <div style="font-size:24px;color:var(--dim);margin:4px 0 8px;">新增一筆「月初實際庫存」後，即可安心刪除舊週次，數字不受影響。</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="date" id="month-init-date" style="background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Patrick Hand',sans-serif;font-weight:700;font-size:13px;">
-            <span style="font-size:13px;">實際庫存</span>
-            <input type="number" id="month-init-qty" placeholder="隻數" style="width:70px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Kalam',cursive;font-weight:700;font-size:15px;text-align:center;">
-            <span style="font-size:13px;">隻</span>
+            <input type="date" id="month-init-date" style="background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Patrick Hand',sans-serif;font-weight:700;font-size:26px;">
+            <span style="font-size:26px;">實際庫存</span>
+            <input type="number" id="month-init-qty" placeholder="隻數" style="width:140px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Kalam',cursive;font-weight:700;font-size:30px;text-align:center;">
+            <span style="font-size:26px;">隻</span>
             <button class="btn btn-sm" style="background:#fff8e1;border-color:var(--gold);color:var(--gold2);" onclick="addMonthInit()">📌 新增月初庫存</button>
           </div>
         </div>
         <div id="stock-log" style="margin-top:12px;"></div>
-      </div>
-      <div class="s-card corner-frame">
-        <h3>庫存統計</h3>
-        <div style="font-size:15px;color:var(--ink);font-family:'Patrick Hand', sans-serif;line-height:2.4;font-weight:700;">
-          <div>累計進貨／調整：<b style="color:var(--act);font-family:'Kalam',cursive;font-size:18px;" id="s-in">0</b> 隻</div>
-          <div>累計實際用量：<b style="color:var(--act);font-family:'Kalam',cursive;font-size:18px;" id="s-used">0</b> 隻</div>
-          <div style="border-top:2px dashed var(--border2);padding-top:10px;margin-top:6px;">
-            目前庫存：<b style="color:var(--gold);font-family:'Kalam',cursive;font-size:36px;line-height:1;" id="s-rem">0</b> <span style="font-size:14px;">隻</span>
-          </div>
-        </div>
-        <div style="margin-top:18px;display:flex;align-items:center;gap:10px;">
-          <label style="font-size:12px;color:var(--ink);font-family:'Patrick Hand', sans-serif;font-weight:700;">預警門檻</label>
-          <input type="number" id="thr-in" value="50" style="width:70px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:6px 8px;font-size:16px;font-family:'Kalam', cursive;" min="1">
-          <span style="font-size:14px;color:var(--ink);font-weight:700;font-family:'Patrick Hand', sans-serif;">隻</span>
-          <button class="btn btn-sm btn-out" onclick="updateThreshold()">更新</button>
-        </div>
       </div>
     </div>
   </div>
@@ -523,25 +514,11 @@ select.ds {
 
 <!-- Overview 主畫面 -->
 <div id="tab-overview">
-  <!-- 上週預覽 -->
-  <div class="wk-preview" id="prev-week-panel">
-    <div class="preview-wk-label" id="prev-week-label">← 上週</div>
-    <div class="ov-wrap">
-      <table class="ov ov-sm"><thead id="prev-ov-head"></thead><tbody id="prev-ov-body"></tbody></table>
-    </div>
-  </div>
   <!-- 本週主表 -->
   <div id="ov-container">
+    <div id="inline-alert"></div>
     <div class="ov-wrap">
       <table class="ov"><thead id="ov-head"></thead><tbody id="ov-body"></tbody></table>
-    </div>
-    <div id="inline-alert"></div>
-  </div>
-  <!-- 下週預覽 -->
-  <div class="wk-preview" id="next-week-panel">
-    <div class="preview-wk-label" id="next-week-label">下週 →</div>
-    <div class="ov-wrap">
-      <table class="ov ov-sm"><thead id="next-ov-head"></thead><tbody id="next-ov-body"></tbody></table>
     </div>
   </div>
 </div>
@@ -698,14 +675,18 @@ function yangchuDayQty(ds) {
   return (d.main==='on'?ycCfg.main:0)+(d.double==='on'?ycCfg.dbl:0);
 }
 
-var lianDianCfg = {main:8, dbl:4, dinner:4, days:{}};
-var lianDianLocked = {};
+var lianDianCfg = {main:8, dbl:4, dinner:4};
+var lianDianWeeks = {};
 
 function lianDianDayQty(ds) {
   if(isWeekend(ds)||isNatHoli(ds)) return 0;
-  var d = lianDianCfg.days[ds];
-  if(!d) return 0;
-  return (d.main==='on'?lianDianCfg.main:0)+(d.double==='on'?lianDianCfg.dbl:0)+(d.dinner==='on'?lianDianCfg.dinner:0);
+  var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+  var mon = weekMonForDate(ds);
+  var w = lianDianWeeks[mon];
+  if(!w) return 0;
+  if(dow===2) return (w.main==='on' ? lianDianCfg.main : 0);       // 週二 → 主餐
+  if(dow===4) return (w.double==='on' ? lianDianCfg.dbl : 0)+(w.dinner==='on' ? lianDianCfg.dinner : 0); // 週四 → 雙拼+晚餐
+  return 0;
 }
 
 // ═══════════════════════════════════════
@@ -729,7 +710,7 @@ var S = {
   initStock: 250,
   threshold: 50,
   extraWeeks: 0,
-  stockLog: [{date:'2026-03-30',qty:250,note:'初始庫存'}],
+  stockLog: [],
   weekData: {},
   sitesOn: null,
   daysOn: null,
@@ -913,15 +894,16 @@ function renderTopStats() {
     if(stab) stab.classList.add('has-alert');
     var alertHtml = '<div class="alert-ok">⚠ <strong>庫存不足</strong><br>'
       +'預計 <b>'+fmt(shortDate)+'</b> 缺少 <b>'+Math.ceil(shortQty)+' 隻</b>，請儘速叫貨！'
-      +(urgent ? '<br><span style="font-size:12px;opacity:.8;">（'+Math.round(diffDays)+'天後）</span>' : '')
+      +(urgent ? '<br><span style="font-size:24px;opacity:.8;">（'+Math.round(diffDays)+'天後）</span>' : '')
       +'</div>';
     if(body) body.innerHTML = alertHtml;
-    if(inline) inline.innerHTML = alertHtml;
+    var tcu = 'text-combine-upright:all;-webkit-text-combine:horizontal;';
+    if(inline) inline.innerHTML = '<div class="alert-ok">⚠ 庫存不足・<span style="'+tcu+'">'+fmt(shortDate)+'</span>缺<span style="'+tcu+'">'+Math.ceil(shortQty)+'</span>隻</div>';
   } else {
     if(stab) stab.classList.remove('has-alert');
     var safeHtml = '<div class="alert-safe">✓ 庫存充足，目前無缺貨風險。</div>';
     if(body) body.innerHTML = safeHtml;
-    if(inline) inline.innerHTML = safeHtml;
+    if(inline) inline.innerHTML = '<div class="alert-safe">✓ 庫存充足</div>';
   }
 }
 
@@ -936,19 +918,19 @@ function renderOverview() {
 
   var wmonDs = WEEK_MONS[wi];
   var h='<tr>';
-  h+='<th class="lft" style="width:90px;">廠區</th>';
+  h+='<th class="lft" style="width:180px;">廠區</th>';
   vd.forEach(function(x){
     var ds=wkDs(wi,x.i); if(!ds) return; var holi=isNatHoli(ds);
     var dow=new Date(ds).getDay();
     var cls = dow===6?'cs': dow===0?'cu': '';
-    h+='<th class="'+cls+'">'+fmt(ds)+'<br><span style="font-size:11px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;opacity:.8;">('+dowLabel(ds)+')</span>'+(holi?'<br><span style="font-size:10px;color:var(--red);background:#ffebee;padding:0 4px;border-radius:4px;border:1px solid var(--red);">假</span>':'')+'</th>';
+    h+='<th class="'+cls+'">'+fmt(ds)+'<br><span style="font-size:22px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;opacity:.8;">('+dowLabel(ds)+')</span>'+(holi?'<br><span style="font-size:20px;color:var(--red);background:#ffebee;padding:0 4px;border-radius:4px;border:1px solid var(--red);">假</span>':'')+'</th>';
   });
-  h+='<th style="width:56px;">小計</th>';
-  h+='<th style="width:80px;font-size:11px;padding:4px;">';
+  h+='<th style="width:112px;">小計</th>';
+  h+='<th style="width:160px;font-size:22px;padding:4px;">';
   if(isArchived){
-    h+='<button onclick="unarchiveWeek('+wi+')" style="font-size:11px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">↩ 移回</button>';
+    h+='<button onclick="unarchiveWeek('+wi+')" style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">↩ 移回</button>';
   } else {
-    h+='<button onclick="archiveWeek('+wi+')" style="font-size:11px;background:#fffbe6;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">📁 封存</button>';
+    h+='<button onclick="archiveWeek('+wi+')" style="font-size:22px;background:#fffbe6;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">📁 封存</button>';
   }
   h+='</th>';
   h+='</tr>';
@@ -995,11 +977,11 @@ function renderOverview() {
       b+='<td class="'+cls+'">'+inner+'</td>';
     });
 
-    b+='<td style="text-align:center;font-family:&apos;Kalam&apos;,cursive;font-size:16px;padding:8px;font-weight:700;color:var(--ink);">'+wTotal+'</td>';
+    b+='<td style="text-align:center;font-family:&apos;Kalam&apos;,cursive;font-size:32px;padding:8px;font-weight:700;color:var(--ink);">'+wTotal+'</td>';
     if(rowConfirmed){
-      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:11px;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 #2e7d32&apos;">✏ 修改</button></td>';
+      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 #2e7d32&apos;">✏ 修改</button></td>';
     } else {
-      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:11px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 var(--red);transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 var(--red)&apos;">✓ 確認</button></td>';
+      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 var(--red);transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 var(--red)&apos;">✓ 確認</button></td>';
     }
     b+='</tr>';
   });
@@ -1028,15 +1010,15 @@ function renderOverview() {
   var stockBeforeWeek=stockIn-usedBefore;
   var runningStock=stockBeforeWeek;
   b+='<tr style="background:var(--s2);border-top:1.5px dashed var(--border2);">';
-  b+='<td class="sc" style="text-align:center;"><span style="font-size:12px;font-family:Patrick Hand,sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
+  b+='<td class="sc" style="text-align:center;"><span style="font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
   vd.forEach(function(x){
     runningStock-=colTotal[x.dk];
     var _dsR=wkDs(wi,x.i); if(!_dsR) return; var dowR=new Date(_dsR).getDay();
     var clsR='dc '+(dowR===6?'cs': dowR===0?'cu': '');
     var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:15px;color:'+color+';">'+runningStock+'</span></td>';
+    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
-  b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:14px;padding:8px;color:var(--dim);">隻</td><td></td></tr>';
+  b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td><td></td></tr>';
 
   document.getElementById('ov-body').innerHTML=b;
 
@@ -1052,7 +1034,7 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
 
   if(wi < 0 || wi >= WEEK_MONS.length) {
     if(labelEl) labelEl.textContent = isPrev ? '← 上週' : '下週 →';
-    headEl.innerHTML = '<tr><th colspan="10" style="color:var(--muted);font-size:12px;padding:24px;text-align:center;">—</th></tr>';
+    headEl.innerHTML = '<tr><th colspan="10" style="color:var(--muted);font-size:24px;padding:24px;text-align:center;">—</th></tr>';
     bodyEl.innerHTML = '';
     return;
   }
@@ -1063,14 +1045,14 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
 
   var vd = []; DK.forEach(function(dk,i){ vd.push({dk:dk,i:i}); });
 
-  var h = '<tr><th class="lft" style="width:60px;">廠區</th>';
+  var h = '<tr><th class="lft" style="width:180px;">廠區</th>';
   vd.forEach(function(x){
     var ds = wkDs(wi,x.i); if(!ds) return;
     var holi = isNatHoli(ds), dow = new Date(ds).getDay();
     var cls = dow===6?'cs': dow===0?'cu': '';
-    h += '<th class="'+cls+'">'+fmt(ds)+'<br><span style="font-size:9px;opacity:.75;">('+dowLabel(ds)+')</span>'+(holi?'<br><span style="font-size:8px;color:var(--red);">假</span>':'')+'</th>';
+    h += '<th class="'+cls+'">'+fmt(ds)+'<br><span style="font-size:22px;opacity:.75;">('+dowLabel(ds)+')</span>'+(holi?'<br><span style="font-size:20px;color:var(--red);">假</span>':'')+'</th>';
   });
-  h += '<th style="width:44px;">小計</th></tr>';
+  h += '<th style="width:112px;">小計</th></tr>';
   headEl.innerHTML = h;
 
   var b = '', colTotal = {};
@@ -1078,7 +1060,7 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
 
   SITES.forEach(function(site){
     var wTotal = 0;
-    b += '<tr><td class="sc"><span class="sn" style="font-size:13px;">'+site+'</span></td>';
+    b += '<tr><td class="sc"><span class="sn">'+site+'</span></td>';
     vd.forEach(function(x){
       var ds = wkDs(wi,x.i); if(!ds) return;
       var holi = isNatHoli(ds), wknd = dsIsWeekend(ds);
@@ -1094,21 +1076,46 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
       var q = (cell.act!==null)?cell.act:cell.est;
       colTotal[x.dk] += q; wTotal += q;
       var color = cell.locked?'var(--ink)':(cell.act!==null?'var(--act)':'var(--red)');
-      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,cursive;font-weight:700;font-size:14px;color:'+color+';">'+q+'</span></div></td>';
+      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,cursive;font-weight:700;font-size:32px;color:'+color+';">'+q+'</span></div></td>';
     });
-    b += '<td style="text-align:center;font-family:Kalam,cursive;font-size:14px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
+    b += '<td style="text-align:center;font-family:Kalam,cursive;font-size:32px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
   });
 
   var gTotal = 0;
-  b += '<tr class="tr-total"><td class="sc" style="font-size:12px;text-align:center;">TOTAL</td>';
+  b += '<tr class="tr-total"><td class="sc">TOTAL</td>';
   vd.forEach(function(x){
     gTotal += colTotal[x.dk];
     var _ds = wkDs(wi,x.i); if(!_ds) return;
     var dow = new Date(_ds).getDay();
     var cls = 'dc '+(dow===6?'cs': dow===0?'cu': '');
-    b += '<td class="'+cls+'" style="text-align:center;font-size:14px;">'+colTotal[x.dk]+'</td>';
+    b += '<td class="'+cls+'" style="text-align:center;">'+colTotal[x.dk]+'</td>';
   });
   b += '<td>'+gTotal+'</td></tr>';
+
+  // 剩餘庫存 row
+  var stockIn = 0; S.stockLog.forEach(function(e){ stockIn += e.qty; });
+  var usedBefore = 0;
+  Object.keys(S.weekData).forEach(function(wi2){
+    if(+wi2 >= wi) return;
+    SITES.forEach(function(site){
+      DK.forEach(function(dk){
+        var d = S.weekData[wi2][site][dk];
+        usedBefore += (d.act!==null ? d.act : d.est);
+      });
+    });
+  });
+  var runningStock = stockIn - usedBefore;
+  b += '<tr style="background:var(--s2);border-top:1.5px dashed var(--border2);">';
+  b += '<td class="sc" style="text-align:center;"><span style="font-size:24px;font-family:\'Patrick Hand\',sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
+  vd.forEach(function(x){
+    runningStock -= colTotal[x.dk];
+    var _dsR = wkDs(wi,x.i); if(!_dsR) return; var dowR = new Date(_dsR).getDay();
+    var clsR = 'dc '+(dowR===6?'cs': dowR===0?'cu': '');
+    var color = runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
+    b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+  });
+  b += '<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td></tr>';
+
   bodyEl.innerHTML = b;
 }
 
@@ -1162,15 +1169,38 @@ function unlockCell(site,wi,dk){
 // ═══════════════════════════════════════
 // CONFIG — ACCORDION
 // ═══════════════════════════════════════
+var configFilter = null;
+function setConfigFilter(site) {
+  configFilter = (configFilter === site) ? null : site;
+  renderConfig();
+}
 function renderConfig() {
   var tmw = twoMonthWeeks();
+  var sites = ['F20','AP6B','P8','群聯','央廚','聯電'];
+  // filter buttons
+  var bar = document.getElementById('site-filter-bar');
+  if(bar) {
+    bar.innerHTML = sites.map(function(s){
+      var active = configFilter === s;
+      var bg = active ? 'var(--ink)' : 'white';
+      var color = active ? 'white' : 'var(--ink)';
+      return '<button onclick="setConfigFilter(&apos;'+s+'&apos;)" style="font-size:26px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;'+
+        'background:'+bg+';color:'+color+';border:2px solid var(--ink);border-radius:8px;'+
+        'padding:4px 14px;cursor:pointer;box-shadow:'+(active?'none':'2px 2px 0 0 var(--ink)')+';transition:all .1s;">'+s+'</button>';
+    }).join('');
+  }
+  // acc blocks
+  var builders = {
+    'F20':  function(){ return buildF20Block(tmw); },
+    'AP6B': function(){ return buildAP6BBlock(tmw); },
+    'P8':   function(){ return buildP8Block(tmw); },
+    '群聯':  function(){ return buildQunlianBlock(tmw); },
+    '央廚':  function(){ return buildYangchuBlock(tmw); },
+    '聯電':  function(){ return buildLianDianBlock(tmw); }
+  };
+  var toShow = configFilter ? [configFilter] : sites;
   var html = '';
-  html += renderAccBlock('F20',  buildF20Block(tmw));
-  html += renderAccBlock('AP6B', buildAP6BBlock(tmw));
-  html += renderAccBlock('P8',   buildP8Block(tmw));
-  html += renderAccBlock('群聯',  buildQunlianBlock(tmw));
-  html += renderAccBlock('央廚',  buildYangchuBlock(tmw));
-  html += renderAccBlock('聯電',  buildLianDianBlock(tmw));
+  toShow.forEach(function(s){ html += renderAccBlock(s, builders[s]()); });
   document.getElementById('acc-list').innerHTML = html;
 }
 
@@ -1178,7 +1208,7 @@ function renderAccBlock(id, content) {
   var open = S.openBlock === id;
   var badge = getBlockBadge(id);
   var emoji = {F20:'🏢',AP6B:'🏢',P8:'🍱','群聯':'🏭','央廚':'🍳','聯電':'🏭'}[id]||'🏢';
-  var desc  = {F20:'每日午餐 '+f20Cfg.lunchBase+'隻（固定）・15:00 +'+f20Cfg.lunch1500+'隻・晚餐 +'+f20Cfg.dinnerQty+'隻',
+  var desc  = {F20:'午餐固定 '+f20Cfg.lunchBase+'隻・15:00 +'+f20Cfg.lunch1500+'隻・晚餐 +'+f20Cfg.dinnerQty+'隻',
                AP6B:'固定午餐・隔週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
                '群聯':'主餐'+qlCfg.main+'隻/天 / 雙拼'+qlCfg.dbl+'隻/天','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
                '聯電':'主餐'+lianDianCfg.main+'隻 / 雙拼'+lianDianCfg.dbl+'隻 / 晚餐'+lianDianCfg.dinner+'隻（以日為單位）'}[id]||'';
@@ -1222,9 +1252,9 @@ function getBlockBadge(id) {
     return allYcDays.length?allYcDays.length+'天・'+totalYc+'隻':'未設定';
   }
   if(id==='聯電'){
-    var allLdDays = Object.keys(lianDianCfg.days).filter(function(d){var dd=lianDianCfg.days[d];return dd&&(dd.main==='on'||dd.double==='on'||dd.dinner==='on');});
-    var totalLd = allLdDays.reduce(function(s,d){return s+lianDianDayQty(d);},0);
-    return allLdDays.length?allLdDays.length+'天・'+totalLd+'隻':'未設定';
+    var activeLdWeeks = tmw.filter(function(mon){var w=lianDianWeeks[mon];return w&&(w.main==='on'||w.double==='on'||w.dinner==='on');});
+    var totalLd = activeLdWeeks.reduce(function(s,mon){return s+lianDianDayQty(addDays(mon,1))+lianDianDayQty(addDays(mon,3));},0);
+    return activeLdWeeks.length?activeLdWeeks.length+'週・'+totalLd+'隻':'未設定';
   }
   return '';
 }
@@ -1240,25 +1270,25 @@ function buildF20Block(tmw) {
     var btnDincls  = hasDinner ? 'wk-toggle-btn on-purple' : 'wk-toggle-btn off';
     return '<div class="wk-row">'+
       '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
-      '<span style="font-size:12px;color:var(--est);font-family:Patrick Hand,sans-serif;font-weight:700;margin-right:4px;">☀️ 午餐 '+f20Cfg.lunchBase+'隻</span>'+
-      '<button class="'+btn1500cls+'" style="font-size:12px;padding:4px 10px;" onclick="toggle1500(&apos;'+mon+'&apos;)">'+(has1500?'✓ 15:00':'+ 15:00')+'</button>'+
-      '<button class="'+btnDincls+'" style="font-size:12px;padding:4px 10px;" onclick="toggleF20Dinner(&apos;'+mon+'&apos;)">'+(hasDinner?'✓ 晚餐':'+ 晚餐')+'</button>'+
+      '<span style="font-size:24px;color:var(--est);font-family:Patrick Hand,sans-serif;font-weight:700;margin-right:4px;">☀️ 午餐 '+f20Cfg.lunchBase+'隻</span>'+
+      '<button class="'+btn1500cls+'" style="font-size:24px;padding:4px 10px;" onclick="toggle1500(&apos;'+mon+'&apos;)">'+(has1500?'✓ 15:00':'+ 15:00')+'</button>'+
+      '<button class="'+btnDincls+'" style="font-size:24px;padding:4px 10px;" onclick="toggleF20Dinner(&apos;'+mon+'&apos;)">'+(hasDinner?'✓ 晚餐':'+ 晚餐')+'</button>'+
       '<div class="wk-qty">'+dayQty+'隻/天</div>'+
       '</div>';
   }).join('');
 
   var qtyPanel='<div class="cfg-qty-panel">'+
-    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:Patrick Hand,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:Patrick Hand,sans-serif;align-self:center;white-space:nowrap;">設定</span>'+
     cfgQtyField('☀️ 午餐','f20-lb',f20Cfg.lunchBase,'隻/天','var(--est)')+
     cfgQtyField('15:00加點','f20-l15',f20Cfg.lunch1500,'+隻','var(--gold)')+
     cfgQtyField('🌙 晚餐','f20-dn',f20Cfg.dinnerQty,'隻/天','var(--purple)')+
-    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyF20Qty()">套用</button>'+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyF20Qty()">套用</button>'+
     '</div>';
 
   var holiCal = buildF20HoliSection();
 
   return qtyPanel+
-    '<div style="font-size:13px;color:var(--dim);font-family:Patrick Hand,sans-serif;margin-bottom:8px;">平日每天預設有午餐 '+f20Cfg.lunchBase+' 隻，可按週開啟 15:00 加點或晚餐</div>'+
+    '<div style="font-size:26px;color:var(--dim);font-family:Patrick Hand,sans-serif;margin-bottom:8px;">平日每天預設有午餐 '+f20Cfg.lunchBase+' 隻，可按週開啟 15:00 加點或晚餐</div>'+
     '<div class="week-list" style="margin-bottom:14px;">'+weekRows+'</div>'+
     '<div class="hdivide"></div>'+
     holiCal;
@@ -1266,13 +1296,13 @@ function buildF20Block(tmw) {
 
 function buildF20HoliSection(){
   var monthCtrl='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
-  monthCtrl+='<span style="font-size:14px;color:var(--red);font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">📅 假日值班（'+( f20Cfg.lunchBase+f20Cfg.dinnerQty)+' 隻）</span>';
-  monthCtrl+='<button class="btn btn-sm" style="background:#e8f5e9;border-color:var(--green);color:var(--green);font-size:12px;padding:3px 10px;" onclick="f20AddMonth()">＋ 新增月份</button>';
+  monthCtrl+='<span style="font-size:28px;color:var(--red);font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">📅 假日值班（'+( f20Cfg.lunchBase+f20Cfg.dinnerQty)+' 隻）</span>';
+  monthCtrl+='<button class="btn btn-sm" style="background:#e8f5e9;border-color:var(--green);color:var(--green);font-size:24px;padding:3px 10px;" onclick="f20AddMonth()">＋ 新增月份</button>';
   monthCtrl+='</div>';
 
   var cals='';
   if(!f20HoliMonths || f20HoliMonths.length===0){
-    cals='<div style="font-size:13px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">點選「＋ 新增月份」加入假日日曆</div>';
+    cals='<div style="font-size:26px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">點選「＋ 新增月份」加入假日日曆</div>';
   } else {
     cals='<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;">';
     f20HoliMonths.slice().sort().forEach(function(ym){
@@ -1284,15 +1314,15 @@ function buildF20HoliSection(){
   var selDays=Object.keys(f20HoliDays).sort();
   var tags=selDays.map(function(ds){
     var d=new Date(ds), dl=['日','一','二','三','四','五','六'][d.getDay()];
-    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#fff0f0;border:1.5px solid var(--red);border-radius:8px;padding:3px 8px;font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;color:var(--red);margin:2px;">'+
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#fff0f0;border:1.5px solid var(--red);border-radius:8px;padding:3px 8px;font-size:26px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;color:var(--red);margin:2px;">'+
       '📅 '+fmt(ds)+' 週'+dl+(isNatHoli(ds)?' 國定':'')+
-      ' <button onclick="removeF20Holi(&apos;'+ds+'&apos;)" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:14px;font-weight:900;padding:0 2px;line-height:1;" title="移除">✕</button>'+
+      ' <button onclick="removeF20Holi(&apos;'+ds+'&apos;)" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:28px;font-weight:900;padding:0 2px;line-height:1;" title="移除">✕</button>'+
       '</span>';
   }).join('');
 
-  var tagsHtml='<div style="margin-top:4px;"><div style="font-size:13px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--ink);margin-bottom:6px;">已選值班日（'+selDays.length+' 天）</div>'+
+  var tagsHtml='<div style="margin-top:4px;"><div style="font-size:26px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--ink);margin-bottom:6px;">已選值班日（'+selDays.length+' 天）</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:3px;min-height:26px;">'+
-    (tags||'<span style="font-size:13px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">尚無假日值班</span>')+
+    (tags||'<span style="font-size:26px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">尚無假日值班</span>')+
     '</div></div>';
 
   return monthCtrl+cals+tagsHtml;
@@ -1309,12 +1339,12 @@ function buildOneMonthCal(ym){
 
   var html='<div style="background:#fdfbf7;border:2px solid var(--border2);border-radius:12px;padding:12px 14px;min-width:200px;">';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;border-bottom:1px dashed var(--border2);padding-bottom:6px;">';
-  html+='<span style="font-size:14px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--ink);">📆 '+mLabel+'</span>';
-  html+='<button onclick="f20RemoveMonth(&apos;'+ym+'&apos;)" style="font-size:11px;background:#fff0f0;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;" title="移除此月份（不影響已選日期）">移除月份</button>';
+  html+='<span style="font-size:28px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--ink);">📆 '+mLabel+'</span>';
+  html+='<button onclick="f20RemoveMonth(&apos;'+ym+'&apos;)" style="font-size:22px;background:#fff0f0;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;" title="移除此月份（不影響已選日期）">移除月份</button>';
   html+='</div>';
 
   if(allDays.length===0){
-    html+='<div style="font-size:12px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">該月無假日</div>';
+    html+='<div style="font-size:24px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;">該月無假日</div>';
   } else {
     html+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
     allDays.forEach(function(ds){
@@ -1330,11 +1360,11 @@ function buildOneMonthCal(ym){
       html+='<button onclick="toggleF20HoliDay(&apos;'+ds+'&apos;)" '+
         'style="background:'+bg+';border:2px solid '+bc+';color:'+tc+';border-radius:8px;'+
         'padding:5px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;'+
-        'font-size:12px;line-height:1.3;text-align:center;min-width:44px;'+
+        'font-size:24px;line-height:1.3;text-align:center;min-width:88px;'+
         'box-shadow:'+(isSel?'none':'1px 1px 0 rgba(0,0,0,.1)')+'">';
-      html+='<div style="font-size:17px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;">'+(isSel?'✓':dayNum)+'</div>';
+      html+='<div style="font-size:34px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;">'+(isSel?'✓':dayNum)+'</div>';
       html+='<div>週'+dl+'</div>';
-      if(isNH) html+='<div style="font-size:9px;opacity:.85;">國定</div>';
+      if(isNH) html+='<div style="font-size:18px;opacity:.85;">國定</div>';
       html+='</button>';
     });
     html+='</div>';
@@ -1383,10 +1413,10 @@ function toggle1500(mon){
 }
 
 function cfgQtyField(label, id, val, unit, color){
-  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--dim);">'+
+  return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:24px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--dim);">'+
     label+' '+
-    '<input type="number" id="'+id+'" value="'+val+'" min="0" max="99" style="width:40px;background:white;border:1.5px solid var(--border2);color:'+(color||'var(--ink)')+';border-radius:5px;padding:2px 4px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;font-size:14px;text-align:center;">'+
-    '<span style="color:var(--muted);font-size:11px;">'+unit+'</span>'+
+    '<input type="number" id="'+id+'" value="'+val+'" min="0" max="99" style="width:80px;background:white;border:1.5px solid var(--border2);color:'+(color||'var(--ink)')+';border-radius:5px;padding:2px 4px;font-family:&apos;Kalam&apos;,cursive;font-weight:700;font-size:28px;text-align:center;">'+
+    '<span style="color:var(--muted);font-size:22px;">'+unit+'</span>'+
     '</span>';
 }
 
@@ -1417,20 +1447,20 @@ function buildAP6BBlock(tmw) {
     return '<div class="wk-row" style="cursor:default;">'+
       '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
       '<span class="tag tag-l">☀️ 午 '+ap6bCfg.lunchQty+'隻</span>'+
-      (hasDinner?'<span class="tag tag-d" style="margin-left:4px;">🌙 晚 '+ap6bCfg.dinnerQty+'隻</span>':'<span style="font-size:12px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;margin-left:4px;">無晚餐</span>')+
+      (hasDinner?'<span class="tag tag-d" style="margin-left:4px;">🌙 晚 '+ap6bCfg.dinnerQty+'隻</span>':'<span style="font-size:24px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;margin-left:4px;">無晚餐</span>')+
       '<div class="wk-qty">'+total+'隻</div>'+
       '</div>';
   }).join('');
 
   var qtyPanel='<div class="cfg-qty-panel">'+
-    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">設定</span>'+
     cfgQtyField('☀️ 午餐','ap-l',ap6bCfg.lunchQty,'隻/天','var(--est)')+
     cfgQtyField('🌙 晚餐','ap-d',ap6bCfg.dinnerQty,'隻/天','var(--purple)')+
-    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyAP6BQty()">套用</button>'+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyAP6BQty()">套用</button>'+
     '</div>';
 
   return qtyPanel+
-    '<div style="font-size:13px;color:var(--dim);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">4/1 那週起<b style="color:var(--purple);">隔週</b>有晚餐</div>'+
+    '<div style="font-size:26px;color:var(--dim);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;"><b style="color:var(--purple);">偶數週</b>有晚餐</div>'+
     '<div class="week-list" style="max-height:280px;">'+rows+'</div>';
 }
 
@@ -1450,14 +1480,14 @@ function buildP8Block(tmw) {
   var cnt=tmw.filter(function(m){return p8Weeks[m]==='on';}).length;
 
   var qtyPanel='<div class="cfg-qty-panel">'+
-    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">設定</span>'+
     cfgQtyField('每週固定','p8-wk',p8Cfg.wkQty,'隻/週','var(--green)')+
-    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyP8Qty()">套用</button>'+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyP8Qty()">套用</button>'+
     '</div>';
 
   return qtyPanel+
     '<div class="week-list">'+rows+'</div>'+
-    '<div style="font-size:13px;color:var(--dim);margin-top:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:16px;">'+cnt+'</b> 週・預計 <b style="color:var(--gold);font-size:16px;">'+(cnt*p8Cfg.wkQty)+'</b> 隻</div>';
+    '<div style="font-size:26px;color:var(--dim);margin-top:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:32px;">'+cnt+'</b> 週・預計 <b style="color:var(--gold);font-size:32px;">'+(cnt*p8Cfg.wkQty)+'</b> 隻</div>';
 }
 
 function applyP8Qty(){
@@ -1479,27 +1509,27 @@ function buildQunlianBlock(tmw) {
     var mainQty=(w.main==='on'?qlCfg.main:0);
     var dblQty=(w.double==='on'?qlCfg.dbl:0);
     var qtyLabel='';
-    if(mainQty&&dblQty) qtyLabel='<span style="color:var(--est);">主餐'+mainQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span> <span style="color:var(--purple);">雙拼'+dblQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span>';
-    else if(mainQty) qtyLabel='<span style="color:var(--est);">主餐'+mainQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span>';
-    else if(dblQty)  qtyLabel='<span style="color:var(--purple);">雙拼'+dblQty+'</span><span style="color:var(--muted);font-size:12px;">隻/天</span>';
+    if(mainQty&&dblQty) qtyLabel='<span style="color:var(--est);">主餐'+mainQty+'</span><span style="color:var(--muted);font-size:24px;">隻/天</span> <span style="color:var(--purple);">雙拼'+dblQty+'</span><span style="color:var(--muted);font-size:24px;">隻/天</span>';
+    else if(mainQty) qtyLabel='<span style="color:var(--est);">主餐'+mainQty+'</span><span style="color:var(--muted);font-size:24px;">隻/天</span>';
+    else if(dblQty)  qtyLabel='<span style="color:var(--purple);">雙拼'+dblQty+'</span><span style="color:var(--muted);font-size:24px;">隻/天</span>';
     else             qtyLabel='<span style="color:var(--muted);">—</span>';
     return '<div class="wk-row">'+
       '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
       mkToggleBtn(w.main,'on-amber','toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)','主餐')+
       mkToggleBtn(w.double,'on-purple','toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)','雙拼')+
-      '<div class="wk-qty" style="min-width:120px;text-align:right;font-size:14px;line-height:1.4;">'+qtyLabel+'</div>'+
+      '<div class="wk-qty" style="min-width:240px;text-align:right;font-size:28px;line-height:1.4;">'+qtyLabel+'</div>'+
       '</div>';
   }).join('');
 
   var qtyPanel='<div class="cfg-qty-panel">'+
-    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">設定</span>'+
     cfgQtyField('主餐','ql-main',qlCfg.main,'隻/天','var(--est)')+
     cfgQtyField('雙拼','ql-dbl',qlCfg.dbl,'隻/天','var(--purple)')+
-    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyQlQty()">套用</button>'+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyQlQty()">套用</button>'+
     '</div>';
 
   return qtyPanel+
-    '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">刪除線 = 不調整（略過）</div>'+
+    '<div style="font-size:24px;color:var(--muted);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">刪除線 = 不調整（略過）</div>'+
     '<div class="week-list">'+rows+'</div>';
 }
 
@@ -1529,10 +1559,10 @@ function buildYangchuBlock(tmw) {
   var totalDucks = allDays.reduce(function(s,ds){return s+yangchuDayQty(ds);},0);
 
   var qtyPanel='<div class="cfg-qty-panel">'+
-    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">設定</span>'+
     cfgQtyField('主餐','yc-main',ycCfg.main,'隻/天','var(--est)')+
     cfgQtyField('雙拼','yc-dbl',ycCfg.dbl,'隻/天','var(--purple)')+
-    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyYcQty()">套用</button>'+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyYcQty()">套用</button>'+
     '</div>';
 
   var rows = Object.keys(weekGroups).sort().map(function(mon){
@@ -1553,25 +1583,25 @@ function buildYangchuBlock(tmw) {
         var lockedColor = hasData ? 'var(--green)' : 'var(--muted)';
         var lockedLabel = hasData ? (dayTotal+'隻 ('+(mainOn?'主餐':'')+(mainOn&&dblOn?'+':'')+(dblOn?'雙拼':'')+')') : '— 無出貨';
         return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--border2);">'+
-          '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
-          '<span style="font-size:13px;font-weight:700;color:'+lockedColor+';flex:1;">🔒 '+lockedLabel+'</span>'+
-          '<button class="wk-toggle-btn off" style="font-size:11px;padding:2px 8px;border-color:var(--muted);box-shadow:none;" onclick="ycUnlock(&apos;'+ds+'&apos;)">修改</button>'+
+          '<div style="font-size:26px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:144px;color:var(--dim);">'+dateLabel+'</div>'+
+          '<span style="font-size:26px;font-weight:700;color:'+lockedColor+';flex:1;">🔒 '+lockedLabel+'</span>'+
+          '<button class="wk-toggle-btn off" style="font-size:22px;padding:2px 8px;border-color:var(--muted);box-shadow:none;" onclick="ycUnlock(&apos;'+ds+'&apos;)">修改</button>'+
           '</div>';
       }
 
       return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--border2);">'+
-        '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
-        '<button class="wk-toggle-btn '+(mainOn?'on-amber':'off')+'" style="font-size:12px;padding:3px 8px;" onclick="toggleYangchu(&apos;'+ds+'&apos;,&apos;main&apos;)">'+(mainOn?'✓ 主餐':'+ 主餐')+'</button>'+
-        '<button class="wk-toggle-btn '+(dblOn?'on-purple':'off')+'" style="font-size:12px;padding:3px 8px;" onclick="toggleYangchu(&apos;'+ds+'&apos;,&apos;double&apos;)">'+(dblOn?'✓ 雙拼':'+ 雙拼')+'</button>'+
-        '<div style="font-size:16px;font-family:&apos;Kalam&apos;,cursive;color:var(--est);min-width:36px;text-align:right;font-weight:700;">'+(dayTotal?dayTotal+'隻':'—')+'</div>'+
-        '<button class="wk-toggle-btn off" style="font-size:12px;padding:3px 8px;border-color:var(--green);color:var(--green);" onclick="ycLockDay(&apos;'+ds+'&apos;)">🔒 確認</button>'+
+        '<div style="font-size:26px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:144px;color:var(--dim);">'+dateLabel+'</div>'+
+        '<button class="wk-toggle-btn '+(mainOn?'on-amber':'off')+'" style="font-size:24px;padding:3px 8px;" onclick="toggleYangchu(&apos;'+ds+'&apos;,&apos;main&apos;)">'+(mainOn?'✓ 主餐':'+ 主餐')+'</button>'+
+        '<button class="wk-toggle-btn '+(dblOn?'on-purple':'off')+'" style="font-size:24px;padding:3px 8px;" onclick="toggleYangchu(&apos;'+ds+'&apos;,&apos;double&apos;)">'+(dblOn?'✓ 雙拼':'+ 雙拼')+'</button>'+
+        '<div style="font-size:32px;font-family:&apos;Kalam&apos;,cursive;color:var(--est);min-width:72px;text-align:right;font-weight:700;">'+(dayTotal?dayTotal+'隻':'—')+'</div>'+
+        '<button class="wk-toggle-btn off" style="font-size:24px;padding:3px 8px;border-color:var(--green);color:var(--green);" onclick="ycLockDay(&apos;'+ds+'&apos;)">🔒 確認</button>'+
         '</div>';
     }).join('');
 
     var weekHeader='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
-      '<div style="font-size:16px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--est);">第 '+wn+' 週</div>'+
-      (anyUnlocked?'<button class="btn btn-sm" style="font-size:12px;padding:4px 10px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);" onclick="ycLockWeekEmpty(&apos;'+mon+'&apos;)">🔒 鎖定本週空白</button>':
-       '<span style="font-size:13px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已確認</span>')+
+      '<div style="font-size:32px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--est);">第 '+wn+' 週</div>'+
+      (anyUnlocked?'<button class="btn btn-sm" style="font-size:24px;padding:4px 10px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);" onclick="ycLockWeekEmpty(&apos;'+mon+'&apos;)">🔒 鎖定本週空白</button>':
+       '<span style="font-size:26px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已確認</span>')+
       '</div>';
 
     return '<div style="background:white;border:1.5px solid var(--border2);border-radius:8px;padding:12px 16px;margin-bottom:10px;">'+
@@ -1579,7 +1609,7 @@ function buildYangchuBlock(tmw) {
   }).join('');
 
   return qtyPanel+
-    '<div style="font-size:14px;color:var(--dim);margin-bottom:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:18px;">'+totalOn+'</b> 天・預計 <b style="color:var(--gold);font-size:18px;">'+totalDucks+'</b> 隻</div>'+
+    '<div style="font-size:28px;color:var(--dim);margin-bottom:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:36px;">'+totalOn+'</b> 天・預計 <b style="color:var(--gold);font-size:36px;">'+totalDucks+'</b> 隻</div>'+
     '<div style="max-height:420px;overflow-y:auto;padding-right:5px;">'+rows+'</div>';
 }
 
@@ -1614,100 +1644,48 @@ function ycLockWeekEmpty(mon){
 
 // ── 聯電 ──
 function buildLianDianBlock(tmw) {
-  var firstMon2 = WEEK_MONS[0], lastMon2 = WEEK_MONS[WEEK_MONS.length-1];
-  var allDays = dateRange(firstMon2, addDays(lastMon2,6)).filter(function(ds){return isWorkday(ds);});
-  var weekGroups = {};
-  allDays.forEach(function(ds){
-    var mon = weekMonForDate(ds);
-    if(!weekGroups[mon]) weekGroups[mon]=[];
-    weekGroups[mon].push(ds);
-  });
-  var totalDucks = allDays.reduce(function(s,ds){return s+lianDianDayQty(ds);},0);
-  var totalOn = Object.keys(lianDianCfg.days).filter(function(d){
-    var dd=lianDianCfg.days[d]; return dd&&(dd.main==='on'||dd.double==='on'||dd.dinner==='on');
+  var totalDucks = tmw.reduce(function(s,mon){
+    return s + lianDianDayQty(addDays(mon,1)) + lianDianDayQty(addDays(mon,3));
+  }, 0);
+  var totalOn = tmw.filter(function(mon){
+    var w=lianDianWeeks[mon]; return w&&(w.main==='on'||w.double==='on'||w.dinner==='on');
   }).length;
 
   var qtyPanel='<div class="cfg-qty-panel">'+
-    '<span style="font-size:12px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
-    cfgQtyField('主餐','ld-main',lianDianCfg.main,'隻/天','var(--est)')+
-    cfgQtyField('雙拼','ld-dbl',lianDianCfg.dbl,'隻/天','var(--purple)')+
-    cfgQtyField('晚餐','ld-din',lianDianCfg.dinner,'隻/天','var(--blue)')+
-    '<button class="btn btn-sm" style="padding:3px 10px;font-size:12px;" onclick="applyLdQty()">套用</button>'+
+    '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">隻數設定</span>'+
+    cfgQtyField('主餐（週二）','ld-main',lianDianCfg.main,'隻','var(--est)')+
+    cfgQtyField('雙拼（週四）','ld-dbl',lianDianCfg.dbl,'隻','var(--purple)')+
+    cfgQtyField('晚餐（週四）','ld-din',lianDianCfg.dinner,'隻','var(--blue)')+
+    '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyLdQty()">套用</button>'+
     '</div>';
 
-  var rows = Object.keys(weekGroups).sort().map(function(mon){
-    var wn = WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM;
-    var anyUnlocked = weekGroups[mon].some(function(ds){return !lianDianLocked[ds];});
-
-    var dayBtns = weekGroups[mon].map(function(ds){
-      var d=new Date(ds), dl=['日','一','二','三','四','五','六'][d.getDay()];
-      var dateLabel=(d.getMonth()+1)+'/'+d.getDate()+' 週'+dl;
-      var dd=lianDianCfg.days[ds]||{};
-      var mainOn=dd.main==='on', dblOn=dd.double==='on', dinOn=dd.dinner==='on';
-      var dayTotal=lianDianDayQty(ds);
-      var locked=lianDianLocked[ds];
-      var hasData=mainOn||dblOn||dinOn;
-
-      if(locked){
-        var parts=[];
-        if(mainOn) parts.push('主餐');
-        if(dblOn)  parts.push('雙拼');
-        if(dinOn)  parts.push('晚餐');
-        var lockedColor = hasData ? 'var(--green)' : 'var(--muted)';
-        var lockedLabel = hasData ? (dayTotal+'隻 ('+parts.join('+')+')') : '— 無出貨';
-        return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--border2);">'+
-          '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
-          '<span style="font-size:13px;font-weight:700;color:'+lockedColor+';flex:1;">🔒 '+lockedLabel+'</span>'+
-          '<button class="wk-toggle-btn off" style="font-size:11px;padding:2px 8px;border-color:var(--muted);box-shadow:none;" onclick="ldUnlock(&apos;'+ds+'&apos;)">修改</button>'+
-          '</div>';
-      }
-
-      return '<div style="display:flex;align-items:center;gap:5px;padding:8px 0;border-bottom:1px dashed var(--border2);flex-wrap:wrap;">'+
-        '<div style="font-size:13px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;min-width:72px;color:var(--dim);">'+dateLabel+'</div>'+
-        '<button class="wk-toggle-btn '+(mainOn?'on-amber':'off')+'" style="font-size:12px;padding:3px 7px;" onclick="toggleLdDay(&apos;'+ds+'&apos;,&apos;main&apos;)">'+(mainOn?'✓ 主餐':'+ 主餐')+'</button>'+
-        '<button class="wk-toggle-btn '+(dblOn?'on-purple':'off')+'" style="font-size:12px;padding:3px 7px;" onclick="toggleLdDay(&apos;'+ds+'&apos;,&apos;double&apos;)">'+(dblOn?'✓ 雙拼':'+ 雙拼')+'</button>'+
-        '<button class="wk-toggle-btn '+(dinOn?'on-check':'off')+'" style="font-size:12px;padding:3px 7px;" onclick="toggleLdDay(&apos;'+ds+'&apos;,&apos;dinner&apos;)">'+(dinOn?'✓ 晚餐':'+ 晚餐')+'</button>'+
-        '<div style="font-size:16px;font-family:&apos;Kalam&apos;,cursive;color:var(--est);min-width:36px;text-align:right;font-weight:700;">'+(dayTotal?dayTotal+'隻':'—')+'</div>'+
-        '<button class="wk-toggle-btn off" style="font-size:12px;padding:3px 8px;border-color:var(--green);color:var(--green);" onclick="ldLockDay(&apos;'+ds+'&apos;)">🔒 確認</button>'+
-        '</div>';
-    }).join('');
-
-    var weekHeader='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
-      '<div style="font-size:16px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--est);">第 '+wn+' 週</div>'+
-      (anyUnlocked?'<button class="btn btn-sm" style="font-size:12px;padding:4px 10px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);" onclick="ldLockWeekEmpty(&apos;'+mon+'&apos;)">🔒 鎖定本週空白</button>':
-       '<span style="font-size:13px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已確認</span>')+
+  var rows = tmw.map(function(mon){
+    var wn = WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM, wd = workdaysInWeek(mon);
+    var w = lianDianWeeks[mon]||{main:'',double:'',dinner:''};
+    var tue = addDays(mon,1), thu = addDays(mon,3);
+    var wkTotal = lianDianDayQty(tue) + lianDianDayQty(thu);
+    return '<div class="wk-row">'+
+      '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
+      '<div style="display:flex;flex-direction:column;gap:2px;font-size:22px;color:var(--dim);font-family:&apos;Patrick Hand&apos;,sans-serif;margin-right:8px;line-height:1.3;">'+
+        '<span>週二 '+fmt(tue)+'</span><span>週四 '+fmt(thu)+'</span>'+
+      '</div>'+
+      mkToggleBtn(w.main,'on-amber','toggleLd(&apos;'+mon+'&apos;,&apos;main&apos;)','主餐')+
+      mkToggleBtn(w.double,'on-purple','toggleLd(&apos;'+mon+'&apos;,&apos;double&apos;)','雙拼')+
+      mkToggleBtn(w.dinner,'on-check','toggleLd(&apos;'+mon+'&apos;,&apos;dinner&apos;)','晚餐')+
+      '<div class="wk-qty">'+(wkTotal?wkTotal+'隻/週':'—')+'</div>'+
       '</div>';
-
-    return '<div style="background:white;border:1.5px solid var(--border2);border-radius:8px;padding:12px 16px;margin-bottom:10px;">'+
-      weekHeader+dayBtns+'</div>';
   }).join('');
 
   return qtyPanel+
-    '<div style="font-size:14px;color:var(--dim);margin-bottom:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:18px;">'+totalOn+'</b> 天・預計 <b style="color:var(--gold);font-size:18px;">'+totalDucks+'</b> 隻</div>'+
-    '<div style="max-height:420px;overflow-y:auto;padding-right:5px;">'+rows+'</div>';
+    '<div style="font-size:26px;color:var(--dim);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;">主餐→週二・雙拼＋晚餐→週四</div>'+
+    '<div style="font-size:28px;color:var(--dim);margin-bottom:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;">已選 <b style="color:var(--gold);font-size:36px;">'+totalOn+'</b> 週・預計 <b style="color:var(--gold);font-size:36px;">'+totalDucks+'</b> 隻</div>'+
+    '<div class="week-list">'+rows+'</div>';
 }
 
-function toggleLdDay(ds, type){
-  if(lianDianLocked[ds]) return;
-  if(!lianDianCfg.days[ds]) lianDianCfg.days[ds]={main:'',double:'',dinner:''};
-  lianDianCfg.days[ds][type]=(lianDianCfg.days[ds][type]==='on')?'':'on';
+function toggleLd(mon, type){
+  if(!lianDianWeeks[mon]) lianDianWeeks[mon]={main:'',double:'',dinner:''};
+  lianDianWeeks[mon][type]=(lianDianWeeks[mon][type]==='on')?'':'on';
   recompSite('聯電');renderConfig();renderOverview();renderTopStats();saveState();
-}
-function ldLockDay(ds){
-  lianDianLocked[ds]=true;
-  renderConfig();saveState();
-}
-function ldUnlock(ds){
-  delete lianDianLocked[ds];
-  renderConfig();saveState();
-}
-function ldLockWeekEmpty(mon){
-  var fm2=WEEK_MONS[0],lm2=WEEK_MONS[WEEK_MONS.length-1];
-  var allDays=dateRange(fm2,addDays(lm2,6)).filter(function(d){return isWorkday(d)&&weekMonForDate(d)===mon;});
-  allDays.forEach(function(ds){
-    if(!lianDianLocked[ds]) lianDianLocked[ds]=true;
-  });
-  renderConfig();saveState();
 }
 
 function applyLdQty(){
@@ -1742,7 +1720,7 @@ function wkRow3(mon, wn, wd, state, onCls, fnName, activeLabel, extra){
     '<div class="wr-info"><div class="wr-label">第 '+wn+' 週</div><div class="wr-range">'+weekRange(mon)+'・'+wd+'平日</div></div>'+
     '<button class="'+cls+'" onclick="'+fnName+'(&apos;'+mon+'&apos;)">'+ txt+'</button>'+
     (extra||'')+
-    '<div class="wk-qty">'+(state==='on'?activeLabel:state==='skip'?'<span style="color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;font-size:14px;">略過</span>':'—')+'</div>'+
+    '<div class="wk-qty">'+(state==='on'?activeLabel:state==='skip'?'<span style="color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;font-size:28px;">略過</span>':'—')+'</div>'+
     '</div>';
 }
 
@@ -1769,27 +1747,18 @@ function addMonthInit(){
   document.getElementById('month-init-qty').value='';
   renderStockLog();updStockCalc();renderTopStats();saveState();
 }
-function removeStock(i){S.stockLog.splice(i,1);renderStockLog();updStockCalc();renderTopStats();saveState();}
+function removeStock(i){S.stockLog.splice(i,1);renderStockLog();updStockCalc();renderTopStats();renderOverview();saveState();}
 function renderStockLog(){
   document.getElementById('stock-log').innerHTML=S.stockLog.map(function(e,i){
     return '<div class="sle"><span class="sd">'+e.date+'</span><span class="sn2">'+(e.note||'—')+'</span><span class="sq" style="color:'+(e.qty<0?'var(--red)':'var(--act)')+';">'+(e.qty>0?'+':'')+e.qty+' 隻</span>'+
-      '<button onclick="removeStock('+i+')" style="font-size:12px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">刪</button>'+'</div>';
+      '<button onclick="removeStock('+i+')" style="font-size:24px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">刪</button>'+'</div>';
   }).join('');
 }
 function updStockCalc(){
-  var ti=0; S.stockLog.forEach(function(e){ti+=e.qty;});
-  var u=0;
-  Object.keys(S.weekData).forEach(function(wi){
-    SITES.forEach(function(site){
-      DK.forEach(function(dk){var d=S.weekData[wi][site][dk];if(d.act!==null)u+=d.act;});
-    });
-  });
-  document.getElementById('s-in').textContent=ti;
-  document.getElementById('s-used').textContent=u;
-  document.getElementById('s-rem').textContent=ti-u;
   renderTopStats();
+  renderOverview();
 }
-function updateThreshold(){S.threshold=+document.getElementById('thr-in').value||50;renderTopStats();}
+function updateThreshold(){S.threshold=+document.getElementById('thr-in').value||50;renderTopStats();renderOverview();saveState();}
 
 // ═══════════════════════════════════════
 // DRAWER
@@ -1839,10 +1808,11 @@ function saveState(){
     localStorage.setItem('duck_yangchuDays', JSON.stringify(yangchuDays));
     localStorage.setItem('duck_yangchuLocked', JSON.stringify(yangchuLocked));
     localStorage.setItem('duck_lianDianCfg', JSON.stringify(lianDianCfg));
-    localStorage.setItem('duck_lianDianLocked', JSON.stringify(lianDianLocked));
+    localStorage.setItem('duck_lianDianWeeks', JSON.stringify(lianDianWeeks));
     localStorage.setItem('duck_extraWeeks', JSON.stringify(S.extraWeeks||0));
     localStorage.setItem('duck_archivedWeeks', JSON.stringify(S.archivedWeeks||{}));
     localStorage.setItem('duck_f20HoliMonths', JSON.stringify(f20HoliMonths||[]));
+    localStorage.setItem('duck_threshold', JSON.stringify(S.threshold||50));
   }catch(e){}
   if(_triggerSave) _triggerSave();
 }
@@ -1866,11 +1836,12 @@ function loadState(){
     var ycc=localStorage.getItem('duck_ycCfg'); if(ycc) Object.assign(ycCfg,JSON.parse(ycc));
     var ycd=localStorage.getItem('duck_yangchuDays'); if(ycd) yangchuDays=JSON.parse(ycd);
     var ycl=localStorage.getItem('duck_yangchuLocked'); if(ycl) yangchuLocked=JSON.parse(ycl);
-    var ldc=localStorage.getItem('duck_lianDianCfg'); if(ldc) lianDianCfg=JSON.parse(ldc);
-    var ldl=localStorage.getItem('duck_lianDianLocked'); if(ldl) lianDianLocked=JSON.parse(ldl);
+    var ldc=localStorage.getItem('duck_lianDianCfg'); if(ldc) Object.assign(lianDianCfg,JSON.parse(ldc));
+    var ldw=localStorage.getItem('duck_lianDianWeeks'); if(ldw) lianDianWeeks=JSON.parse(ldw);
     var ew=localStorage.getItem('duck_extraWeeks'); if(ew) S.extraWeeks=JSON.parse(ew);
     var awk=localStorage.getItem('duck_archivedWeeks'); if(awk) S.archivedWeeks=JSON.parse(awk);
     var f20hm=localStorage.getItem('duck_f20HoliMonths'); if(f20hm) f20HoliMonths=JSON.parse(f20hm);
+    var thr=localStorage.getItem('duck_threshold'); if(thr) S.threshold=JSON.parse(thr);
   }catch(e){}
 }
 
@@ -1897,7 +1868,7 @@ function getEstimateData() {
     yangchuDays: yangchuDays,
     yangchuLocked: yangchuLocked,
     lianDianCfg: lianDianCfg,
-    lianDianLocked: lianDianLocked,
+    lianDianWeeks: lianDianWeeks,
     extraWeeks: S.extraWeeks||0,
     archivedWeeks: S.archivedWeeks||{},
     f20HoliMonths: f20HoliMonths||[],
@@ -1923,7 +1894,7 @@ function applyRemoteData(data) {
   if(data.yangchuDays)    yangchuDays       = data.yangchuDays;
   if(data.yangchuLocked)  yangchuLocked     = data.yangchuLocked;
   if(data.lianDianCfg)    Object.assign(lianDianCfg,   data.lianDianCfg);
-  if(data.lianDianLocked) lianDianLocked    = data.lianDianLocked;
+  if(data.lianDianWeeks)  lianDianWeeks     = data.lianDianWeeks;
   if(data.extraWeeks !== undefined) S.extraWeeks = data.extraWeeks;
   if(data.archivedWeeks)  S.archivedWeeks   = data.archivedWeeks;
   if(data.f20HoliMonths)  f20HoliMonths     = data.f20HoliMonths;
@@ -1974,6 +1945,7 @@ function _finishInit() {
   }
   S.week = curWi;
   document.getElementById('in-date').value = todayDs;
+  var thrEl = document.getElementById('thr-in'); if(thrEl) thrEl.value = S.threshold||50;
   var mid=document.getElementById('month-init-date'); if(mid) mid.value=todayDs;
   renderWeekNav();
   renderOverview();
