@@ -213,7 +213,27 @@ th, td { border: 1px solid rgba(45,45,45,0.25); text-align: center; vertical-ali
 }
 
 .td-l1 { padding: 3px; min-width: 78px}
-.td-l2 { padding: 3px; min-width: 152px}
+.td-l2 { padding: 3px; min-width: 152px; position: relative; }
+
+/* 品項複製貼上按鈕 */
+.item-cp-wrap {
+  position: absolute; top: 2px; right: 2px;
+  display: flex; gap: 2px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s; z-index: 2;
+}
+.td-l2:hover .item-cp-wrap { opacity: 1; pointer-events: auto; }
+.item-cp-btn {
+  font-size: 0.65rem; padding: 1px 5px;
+  background: rgba(255,255,255,0.93); border: 1px solid #bbb;
+  border-radius: 3px; cursor: pointer; line-height: 1.6;
+  font-family: inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  white-space: nowrap;
+}
+.item-cp-btn:hover { background: #e8e8e8; border-color: #999; }
+.item-cp-btn.item-copied { background: #d4f5d4; border-color: #4caf50; }
+.item-paste-btn { display: none !important; }
+body.has-item-clipboard .item-paste-btn { display: inline-block !important; }
 
 /* 健康餐（綠色系）/ 風味餐（藍色系）— 白色底 + 極淡色調 */
 .h-rice    { background: #f5fdf5; }
@@ -1549,6 +1569,10 @@ let _isLoading = false;   // 載入中旗標，避免 dispatchEvent 觸發不必
 // ===== 地點複製貼上 clipboard =====
 // { cells: [{row, v1, v2}] }  —— 登出時清除
 let _locClipboard = null;
+
+// ===== 品項複製貼上 clipboard =====
+// { v1, v2 }  —— 單一格子
+let _itemClipboard = null;
 
 const STORAGE_KEY = "yupin_menu_v2";
 const HISTORY_KEY = "yupin_menu_history_v1";
@@ -3114,8 +3138,34 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
   inp2._applyColor = applyItemColor;
   inp2._reset = applyClosedState;
 
+  // ── 品項複製 / 貼上按鈕 ──
+  const cpWrap = document.createElement("div");
+  cpWrap.className = "item-cp-wrap";
+
+  const itemCopyBtn = document.createElement("button");
+  itemCopyBtn.className = "item-cp-btn";
+  itemCopyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="15" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>`;
+  itemCopyBtn.title = "複製此品項";
+  itemCopyBtn.addEventListener("mousedown", e => {
+    e.preventDefault(); e.stopPropagation();
+    copyItem(sel1.value, inp2.value, itemCopyBtn);
+  });
+
+  const itemPasteBtn = document.createElement("button");
+  itemPasteBtn.className = "item-cp-btn item-paste-btn";
+  itemPasteBtn.textContent = "📋";
+  itemPasteBtn.title = "貼上品項";
+  itemPasteBtn.addEventListener("mousedown", e => {
+    e.preventDefault(); e.stopPropagation();
+    pasteItem(sel1, inp2);
+  });
+
+  cpWrap.appendChild(itemCopyBtn);
+  cpWrap.appendChild(itemPasteBtn);
+
   td1.appendChild(sel1);
   td2.appendChild(inp2);
+  td2.appendChild(cpWrap);
   return [td1, td2];
 }
 
@@ -3191,6 +3241,37 @@ function pasteLocColumn(block, colIdx) {
 
   scheduleAutoSave();
   showSaveToast("✅ 已貼上品項到此欄");
+}
+
+// ===== 品項格子複製 =====
+function copyItem(v1, v2, btn) {
+  if (!v2 || v2 === "-" || v2 === "-- 品項 --") {
+    showSaveToast("⚠️ 此格無品項可複製"); return;
+  }
+  _itemClipboard = { v1, v2 };
+  document.body.classList.add("has-item-clipboard");
+  if (btn) {
+    const origHTML = btn.innerHTML;
+    btn.textContent = "✓";
+    btn.classList.add("item-copied");
+    setTimeout(() => { btn.innerHTML = origHTML; btn.classList.remove("item-copied"); }, 1500);
+  }
+  showSaveToast(`📋 已複製：${v2}`);
+}
+
+// ===== 品項格子貼上 =====
+function pasteItem(sel1, inp2) {
+  if (!_itemClipboard) { showSaveToast("⚠️ 尚未複製任何品項"); return; }
+  const { v1, v2 } = _itemClipboard;
+  if (v1 && v1 !== "-") {
+    sel1.value = v1;
+    sel1.dispatchEvent(new Event("change"));
+  }
+  setTimeout(() => {
+    inp2.value = v2;
+    if (inp2._applyColor) inp2._applyColor(v2);
+    scheduleAutoSave();
+  }, 30);
 }
 
 // ===== 地點欄清除 =====
