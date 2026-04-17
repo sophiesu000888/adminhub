@@ -89,6 +89,10 @@ h1 {
 .btn-clear:hover { box-shadow: 1px 1px 0 0 var(--red) !important; }
 .btn-history-save { background: white !important; color: var(--gold) !important; border-color: var(--gold) !important; box-shadow: 3px 3px 0 0 var(--gold) !important; cursor: pointer !important; }
 .btn-history-save:hover { box-shadow: 1px 1px 0 0 var(--gold) !important; }
+.btn-backup  { background: #f0fff4 !important; color: #276749 !important; border-color: #276749 !important; box-shadow: 3px 3px 0 0 #276749 !important; }
+.btn-backup:hover  { box-shadow: 1px 1px 0 0 #276749 !important; }
+.btn-restore { background: #fff8f0 !important; color: #c05621 !important; border-color: #c05621 !important; box-shadow: 3px 3px 0 0 #c05621 !important; }
+.btn-restore:hover { box-shadow: 1px 1px 0 0 #c05621 !important; }
 
 .schedule-area { display: flex; flex-direction: column; gap: 24px; }
 
@@ -1215,6 +1219,10 @@ button {
   <button class="btn-add"       onclick="addWeek()">➕ 新增日期</button>
   <button class="btn-add-hloc"  onclick="addGlobalHLoc()">🟢 新增健康餐地點</button>
   <button class="btn-add-wloc"  onclick="addGlobalWLoc()">🔵 新增風味餐地點</button>
+  <button class="btn-history-save" onclick="saveAllToHistory()">📌 一鍵存入歷史</button>
+  <button class="btn-backup"  onclick="backupData()">💾 備份資料</button>
+  <button class="btn-restore" onclick="document.getElementById('restoreFileInput').click()">📂 匯入恢復</button>
+  <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreData(this)">
   <button class="btn-clear"     onclick="clearAll()">🗑️ 清除全部</button>
 </div>
 
@@ -2381,6 +2389,80 @@ async function saveAllToHistory() {
   } else {
     showSaveToast(`⏭️ 全部略過，共 ${skippedCount} 筆`);
   }
+}
+
+// ===== 備份 & 匯入恢復 =====
+function backupData() {
+  const backup = {
+    version: "backup_v1",
+    exportedAt: new Date().toLocaleString("zh-TW"),
+    menu: collectMenuData(),
+    history: JSON.parse(JSON.stringify(historyList)),
+    db: collectDbData()
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const a = document.createElement("a");
+  const dateStr = new Date().toLocaleDateString("zh-TW").replace(/\//g, "-");
+  a.href = URL.createObjectURL(blob);
+  a.download = `menu_backup_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showSaveToast("💾 備份已下載");
+}
+
+async function restoreData(input) {
+  const file = input.files[0];
+  input.value = "";
+  if (!file) return;
+  let backup;
+  try {
+    backup = JSON.parse(await file.text());
+  } catch(e) {
+    alert("❌ 檔案格式錯誤，無法解析 JSON。"); return;
+  }
+  if (!backup.version || !backup.version.startsWith("backup_")) {
+    alert("❌ 不是合法的備份檔。"); return;
+  }
+
+  const hasmenu = backup.menu && Array.isArray(backup.menu.data) && backup.menu.data.length > 0;
+  const hasHistory = Array.isArray(backup.history) && backup.history.length > 0;
+  const parts = [];
+  if (hasmenu) parts.push(`主畫面菜單 ${backup.menu.data.length} 筆`);
+  if (hasHistory) parts.push(`歷史紀錄 ${backup.history.length} 筆`);
+  if (parts.length === 0) { alert("備份檔中沒有可恢復的資料。"); return; }
+
+  const msg = `確定要匯入恢復以下資料嗎？\n\n• ${parts.join("\n• ")}\n\n（主畫面現有菜單將被覆蓋，歷史紀錄將合併）`;
+  if (!confirm(msg)) return;
+
+  // 恢復 DB（品項/顏色等設定）
+  if (backup.db) {
+    applyDbData(backup.db);
+    if (_dbAutoSave) _dbAutoSave();
+  }
+
+  // 恢復主畫面菜單
+  if (hasmenu) {
+    await applyMenuData(backup.menu);
+    scheduleAutoSave();
+  }
+
+  // 恢復歷史紀錄（以日期去重合併，備份的優先）
+  if (hasHistory) {
+    backup.history.forEach(entry => {
+      const existIdx = historyList.findIndex(h => h.date === entry.date);
+      if (existIdx >= 0) {
+        historyList[existIdx] = entry; // 備份覆蓋同日期
+      } else {
+        historyList.push(entry);
+      }
+    });
+    historyList.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    await saveHistory();
+    renderHistoryPanel();
+  }
+
+  showSaveToast(`✅ 恢復完成：${parts.join("、")}`);
 }
 
 // ===== 匯出抽屜日期篩選提示 =====
