@@ -45,7 +45,7 @@ body {
 .btn-lock.hidden { visibility: hidden; pointer-events: none; }
 
 /* ── Main ── */
-main { flex: 1; overflow: hidden; padding: 0 12px 10px 12px; max-width: 1200px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; }
+main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; }
 .card { background: var(--card-bg); border-radius: 14px; border: 3px solid var(--border-dark); padding: 10px; margin-bottom: 10px; }
 
 .cat-bar { display: flex; gap: 8px; margin-bottom: 8px; overflow-x: auto; flex-shrink: 0; }
@@ -133,8 +133,8 @@ main { flex: 1; overflow: hidden; padding: 0 12px 10px 12px; max-width: 1200px; 
 .p-chip-del:hover { opacity: 1; color: #d32f2f; }
 
 /* ── Table ── */
-.table-wrapper { overflow-x: auto; border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 12px; background: #fff; }
-table { width: 100%; border-collapse: collapse; }
+.table-wrapper { border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 12px; background: #fff; width: max-content; min-width: 100%; }
+table { width: max-content; min-width: 100%; border-collapse: collapse; }
 th { background: #f8f8f8; padding: 2px 2px; font-size: 22px; border-bottom: 2px solid var(--border-dark); border-right: 1px solid #ddd; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.1; }
 td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; text-align: center; vertical-align: middle; min-width: 64px; }
 .sticky-col {
@@ -186,7 +186,7 @@ td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #d
 .sum-card.chef { background: var(--chef-bg); border-color: var(--chef-bd); box-shadow: 3px 3px 0 var(--chef-bd); color: var(--chef-tx); }
 .sum-card.assist { background: var(--assist-bg); border-color: var(--assist-bd); box-shadow: 3px 3px 0 var(--assist-bd); color: var(--assist-tx); }
 
-.vw { display: none; flex: 1; overflow: hidden; flex-direction: column; min-height: 0; }
+.vw { display: none; flex: 1; overflow-y: hidden; overflow-x: visible; flex-direction: column; min-height: 0; }
 .vw.active { display: flex; }
 
 .input-group { display: flex; gap: 5px; margin-top: 8px; }
@@ -448,7 +448,7 @@ th.week-b { background: #e8eeff; }
     <div id="moTabsRow">
       <div class="mo-tabs" id="moTabs"></div>
     </div>
-    <div style="flex:1;overflow-y:auto;">
+    <div style="flex:1;overflow:auto;">
       <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:14px;">📌 晚班</div>
       <div class="table-wrapper"><table><thead id="nHead"></thead><tbody id="nBody"></tbody></table></div>
       <div id="holSection">
