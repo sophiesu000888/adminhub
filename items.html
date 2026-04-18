@@ -1,266 +1,508 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>便當品項 — Admin Hub</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, 'PingFang TC', sans-serif;
-      background: #f9f9f7; color: #1a1a1a;
-      padding-top: 60px; min-height: 100vh;
-    }
-    .page { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
-    h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>便當品項管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Patrick+Hand&display=swap');
 
-    .top-bar {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 18px; flex-wrap: wrap;
-    }
-    .top-bar input[type="text"] {
-      flex: 1; min-width: 160px; padding: 7px 12px;
-      border: 1.5px solid #ddd; border-radius: 6px; font-size: 14px;
-      outline: none;
-    }
-    .top-bar input:focus { border-color: #3b6fd4; }
-    .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter-btn {
-      padding: 5px 12px; border: 1.5px solid #ccc; border-radius: 20px;
-      background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap;
-    }
-    .filter-btn:hover { border-color: #3b6fd4; color: #3b6fd4; }
-    .filter-btn.active { border-color: #3b6fd4; background: #ebf0ff; color: #3b6fd4; font-weight: 600; }
-    .btn {
-      padding: 7px 16px; border-radius: 6px; border: 1.5px solid #1a1a1a;
-      background: #1a1a1a; color: #fff; font-size: 14px;
-      cursor: pointer; white-space: nowrap;
-    }
-    .btn:hover { background: #333; }
+:root {
+  --paper: #fdfbf7;
+  --ink: #2d2d2d;
+  --s1: #ffffff;
+  --s2: #f8f5ef;
+  --s3: #ece8df;
+  --border: #2d2d2d;
+  --border2: rgba(45,45,45,0.25);
+  --dim: #555555;
+  --muted: #888888;
+  --red: #c0392b;
+  --act: #27ae60;
+  --blue: #2980b9;
+  --gold: #b8942a;
+  --purple: #8e44ad;
+  --shadow: 3px 3px 0 0 var(--ink);
+  --shadow2: 4px 4px 0 0 var(--ink);
+  --shadow-sm: 2px 2px 0 0 var(--ink);
+  --hand-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --card-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
+}
 
-    /* 新增表單 */
-    .add-form {
-      display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap;
-    }
-    .add-form input, .add-form select {
-      padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px;
-      font-size: 13px; outline: none; font-family: inherit;
-    }
-    .add-form input:focus, .add-form select:focus { border-color: #3b6fd4; }
-    .add-form .f-name  { flex: 2; min-width: 110px; }
-    .add-form .f-cat   { flex: 1; min-width: 90px; }
-    .add-form .f-price { width: 80px; }
-    .add-form .f-note  { flex: 2; min-width: 110px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 卡片格線 */
-    .items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .item-card {
-      background: #fff; border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
-      padding: 14px 16px; position: relative;
-      border-left: 4px solid #e0e0e0;
-      transition: box-shadow .15s;
-    }
-    .item-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-    .item-card.avail  { border-left-color: #4caf50; }
-    .item-card.unavail { border-left-color: #ccc; opacity: .65; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  background-image: radial-gradient(#c8c4bc 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  padding-top: 44px;
+}
 
-    .ic-top {
-      display: flex; justify-content: space-between;
-      align-items: flex-start; margin-bottom: 6px;
-    }
-    .ic-name {
-      font-size: 15px; font-weight: 700;
-      outline: none; flex: 1; margin-right: 6px;
-      min-height: 22px;
-    }
-    .ic-name:focus { background: #ebf0ff; border-radius: 3px; }
-    .ic-actions { display: flex; gap: 4px; }
-    .ic-toggle {
-      font-size: 11px; padding: 3px 7px;
-      border-radius: 4px; border: 1.5px solid #ccc;
-      background: #fff; cursor: pointer; white-space: nowrap;
-    }
-    .avail  .ic-toggle { border-color: #4caf50; color: #4caf50; }
-    .unavail .ic-toggle { border-color: #bbb; color: #bbb; }
-    .ic-del {
-      background: none; border: none; cursor: pointer;
-      color: #ddd; font-size: 14px; padding: 2px;
-    }
-    .ic-del:hover { color: #e53935; }
+/* ── HEADER ── */
+#page-header {
+  text-align: center;
+  padding: 14px 16px 10px;
+}
+#page-title {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 2.6rem; font-weight: 700;
+  color: var(--ink); letter-spacing: 2px;
+  -webkit-text-stroke: 1px rgba(45,45,45,0.2);
+  transform: rotate(-1deg);
+  display: inline-block; margin-bottom: 10px;
+}
 
-    .ic-meta {
-      display: flex; gap: 8px; font-size: 12px; color: #888;
-      flex-wrap: wrap; margin-bottom: 4px;
-    }
-    .ic-cat {
-      background: #f0f0f0; border-radius: 4px;
-      padding: 1px 6px; font-size: 11px;
-    }
-    .ic-price { font-weight: 600; color: #3b6fd4; font-size: 14px; }
+/* ── MAIN ── */
+#main { padding: 10px 20px 40px; max-width: 1200px; margin: 0 auto; }
 
-    .ic-note {
-      font-size: 12px; color: #999;
-      outline: none; display: block; width: 100%;
-      min-height: 16px; margin-top: 4px;
-    }
-    .ic-note:focus { background: #ebf0ff; border-radius: 3px; }
-    .ic-note[data-ph]:empty::before { content: attr(data-ph); color: #ddd; }
+/* ── TOOLBAR ── */
+.toolbar {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow2);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-    .empty-msg {
-      text-align: center; padding: 48px; color: #ccc; font-size: 15px;
-    }
+/* site filter buttons */
+.site-btn {
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  background: white; color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 4px 14px; cursor: pointer;
+  box-shadow: 2px 2px 0 0 var(--ink); transition: all .1s;
+}
+.site-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
+.site-btn.active { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); }
 
-    /* 統計 */
-    .stats {
-      display: flex; gap: 16px; flex-wrap: wrap;
-      margin-bottom: 16px; font-size: 13px; color: #888;
-    }
-    .stats strong { color: #1a1a1a; }
-  </style>
+/* search */
+#search {
+  flex: 1; min-width: 160px;
+  padding: 7px 12px; border: 2px solid var(--border2);
+  border-radius: 8px; font-size: 16px;
+  font-family: 'Patrick Hand', sans-serif;
+  outline: none; background: var(--s2);
+}
+#search:focus { border-color: var(--ink); background: white; }
+
+/* avail filter */
+.avail-btn {
+  font-family: 'Patrick Hand', sans-serif; font-weight: 700; font-size: 16px;
+  background: white; color: var(--dim);
+  border: 1.5px solid var(--border2); border-radius: 20px;
+  padding: 4px 14px; cursor: pointer; white-space: nowrap; transition: all .1s;
+}
+.avail-btn.active { border-color: var(--act); color: var(--act); background: #f0fff4; }
+.avail-btn.active-stop { border-color: var(--red); color: var(--red); background: #fff0f0; }
+
+/* stats */
+.stats {
+  font-family: 'Patrick Hand', sans-serif; font-size: 16px; color: var(--muted);
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.stats strong { color: var(--ink); }
+
+/* ── ADD FORM ── */
+.add-form {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow2);
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+}
+.add-form label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 15px; font-weight: 700; color: var(--dim);
+  font-family: 'Patrick Hand', sans-serif;
+}
+.add-form input, .add-form select {
+  padding: 7px 10px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 16px;
+  font-family: 'Patrick Hand', sans-serif;
+  outline: none; background: var(--s2); color: var(--ink);
+  transition: border-color .1s;
+}
+.add-form input:focus, .add-form select:focus { border-color: var(--ink); background: white; }
+.add-form .f-site  { min-width: 110px; }
+.add-form .f-name  { min-width: 140px; }
+.add-form .f-price { width: 90px; }
+.add-form .f-box   { min-width: 140px; }
+.add-form .f-note  { min-width: 130px; }
+
+.btn {
+  font-family: 'Patrick Hand', sans-serif; font-weight: 700; font-size: 17px;
+  background: var(--ink); color: white;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 8px 20px; cursor: pointer;
+  box-shadow: var(--shadow-sm); transition: all .1s; white-space: nowrap;
+}
+.btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
+.btn-out {
+  background: white; color: var(--ink);
+}
+
+/* ── GRID ── */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+/* ── ITEM CARD ── */
+.item-card {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  position: relative;
+  transition: box-shadow .1s, transform .1s;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.item-card:hover { box-shadow: var(--shadow2); }
+.item-card.unavail { opacity: .55; }
+
+.ic-top {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;
+}
+.ic-name {
+  font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700;
+  color: var(--ink); flex: 1;
+  outline: none; min-height: 24px;
+}
+.ic-name:focus { background: #ebf5ff; border-radius: 4px; }
+
+.ic-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.ic-toggle {
+  font-family: 'Patrick Hand', sans-serif; font-size: 13px; font-weight: 700;
+  padding: 3px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  border: 1.5px solid var(--act); color: var(--act); background: #f0fff4;
+}
+.unavail .ic-toggle { border-color: var(--muted); color: var(--muted); background: var(--s2); }
+.ic-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--border2); font-size: 16px; padding: 2px 4px;
+  border-radius: 4px; transition: color .1s;
+}
+.ic-del:hover { color: var(--red); }
+
+.ic-site {
+  display: inline-block;
+  font-family: 'Kalam', cursive; font-size: 13px; font-weight: 700;
+  background: var(--ink); color: white;
+  padding: 2px 8px; border-radius: 6px; align-self: flex-start;
+}
+
+.ic-meta {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.ic-price {
+  font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700; color: var(--blue);
+}
+.ic-box {
+  font-family: 'Patrick Hand', sans-serif; font-size: 14px; color: var(--dim);
+  background: var(--s2); border: 1px solid var(--border2);
+  padding: 2px 8px; border-radius: 4px;
+}
+
+.ic-note {
+  font-family: 'Patrick Hand', sans-serif; font-size: 14px; color: var(--muted);
+  outline: none; display: block; width: 100%; min-height: 18px;
+}
+.ic-note:focus { background: #ebf5ff; border-radius: 3px; }
+.ic-note[data-ph]:empty::before { content: attr(data-ph); color: #ccc; }
+
+/* site accent bar */
+.item-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 5px; border-radius: var(--card-radius) 0 0 var(--card-radius);
+}
+.item-card[data-site="F20"]::before  { background: #e67e22; }
+.item-card[data-site="AP6B"]::before { background: #8e44ad; }
+.item-card[data-site="聯電"]::before  { background: #2980b9; }
+.item-card[data-site="群聯"]::before  { background: #27ae60; }
+.item-card[data-site="央廚"]::before  { background: #c0392b; }
+.item-card[data-site="P8"]::before   { background: #b8942a; }
+
+/* site badge colors */
+.ic-site[data-site="F20"]  { background: #e67e22; }
+.ic-site[data-site="AP6B"] { background: #8e44ad; }
+.ic-site[data-site="聯電"]  { background: #2980b9; }
+.ic-site[data-site="群聯"]  { background: #27ae60; }
+.ic-site[data-site="央廚"]  { background: #c0392b; }
+.ic-site[data-site="P8"]   { background: #b8942a; }
+
+.empty-msg {
+  text-align: center; padding: 60px; color: var(--muted);
+  font-size: 20px; font-family: 'Patrick Hand', sans-serif;
+}
+
+/* group header */
+.group-header {
+  font-family: 'Kalam', cursive; font-size: 24px; font-weight: 700;
+  color: var(--ink); margin: 20px 0 8px;
+  border-bottom: 2px dashed var(--border2); padding-bottom: 4px;
+}
+.group-header:first-child { margin-top: 0; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
 </head>
 <body>
 
-  <div class="page">
-    <h1>🍱 便當品項一覽</h1>
+<div id="page-header">
+  <div id="page-title">🍱 便當品項管理</div>
+</div>
 
-    <div class="add-form">
-      <input class="f-name"  id="f-name"  placeholder="品名">
-      <input class="f-cat"   id="f-cat"   placeholder="分類">
-      <input class="f-price" id="f-price" placeholder="售價" type="number">
-      <input class="f-note"  id="f-note"  placeholder="備註">
-      <button class="btn" onclick="addItem()">＋ 新增</button>
-    </div>
+<div id="main">
 
-    <div class="top-bar">
-      <input type="text" id="search" placeholder="搜尋品項…">
-      <div class="filter-btns" id="filter-btns">
-        <button class="filter-btn active" data-f="all">全部</button>
-        <button class="filter-btn" data-f="avail">供應中</button>
-        <button class="filter-btn" data-f="unavail">暫停</button>
-      </div>
-    </div>
-
-    <div class="stats" id="stats"></div>
-    <div class="items-grid" id="items-grid"></div>
-    <div class="empty-msg" id="empty-msg" style="display:none">沒有符合的品項</div>
+  <!-- 新增表單 -->
+  <div class="add-form">
+    <label>廠區
+      <select class="f-site" id="f-site">
+        <option value="">選擇廠區</option>
+        <option>F20</option>
+        <option>AP6B</option>
+        <option>聯電</option>
+        <option>群聯</option>
+        <option>央廚</option>
+        <option>台積</option>
+        <option>P8</option>
+      </select>
+    </label>
+    <label>品項名稱
+      <input class="f-name" id="f-name" placeholder="e.g. 烤鴨飯">
+    </label>
+    <label>價格
+      <input class="f-price" id="f-price" placeholder="120" type="number" min="0">
+    </label>
+    <label>餐盒樣式
+      <input class="f-box" id="f-box" placeholder="e.g. 圓形鋁盒">
+    </label>
+    <label>備註
+      <input class="f-note" id="f-note" placeholder="選填">
+    </label>
+    <button class="btn" onclick="addItem()" style="align-self:flex-end;">＋ 新增</button>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="shared.js"></script>
-  <script>
-    let items = [];
-    let autoSave;
-    let filterMode = 'all';
-    let _remoteUpdate = false;
+  <!-- 工具列 -->
+  <div class="toolbar">
+    <!-- 廠區篩選 -->
+    <div class="toolbar-row">
+      <span style="font-size:16px;font-weight:700;color:var(--dim);white-space:nowrap;">廠區</span>
+      <div id="site-filter-btns" style="display:flex;flex-wrap:wrap;gap:6px;">
+        <button class="site-btn active" data-site="">全部</button>
+        <button class="site-btn" data-site="F20">F20</button>
+        <button class="site-btn" data-site="AP6B">AP6B</button>
+        <button class="site-btn" data-site="聯電">聯電</button>
+        <button class="site-btn" data-site="群聯">群聯</button>
+        <button class="site-btn" data-site="央廚">央廚</button>
+        <button class="site-btn" data-site="台積">台積</button>
+        <button class="site-btn" data-site="P8">P8</button>
+      </div>
+    </div>
+    <!-- 搜尋 + 供應篩選 + 統計 -->
+    <div class="toolbar-row">
+      <input type="text" id="search" placeholder="搜尋品項、餐盒…">
+      <button class="avail-btn active" id="btn-all"   onclick="setAvailFilter('all')">全部</button>
+      <button class="avail-btn"        id="btn-avail" onclick="setAvailFilter('avail')">供應中</button>
+      <button class="avail-btn"        id="btn-stop"  onclick="setAvailFilter('stop')">暫停</button>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
 
-    requireAuth((user) => {
-      injectStatusBar('items');
-      autoSave = makeAutoSave('items', () => items);
-      startSync('items', user, (content) => {
-        if (!content) return;
-        _remoteUpdate = true;
-        items = content;
-        render();
-        _remoteUpdate = false;
-      });
-    });
+  <!-- 品項格線 -->
+  <div id="items-grid"></div>
+  <div class="empty-msg" id="empty-msg" style="display:none;">沒有符合的品項</div>
+</div>
 
-    document.getElementById('search').addEventListener('input', render);
-    document.getElementById('filter-btns').addEventListener('click', (e) => {
-      const btn = e.target.closest('.filter-btn');
-      if (!btn) return;
-      filterMode = btn.dataset.f;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="shared.js"></script>
+<script>
+  const SITES = ['F20','AP6B','聯電','群聯','央廚','台積','P8'];
+
+  let items = [];
+  let autoSave;
+  let filterSite  = '';
+  let filterAvail = 'all';
+  let searchQ     = '';
+  let _remoteUpdate = false;
+
+  requireAuth((user) => {
+    injectStatusBar('items');
+    autoSave = makeAutoSave('items', () => items);
+    startSync('items', user, (content) => {
+      if (!content) return;
+      _remoteUpdate = true;
+      items = content;
       render();
+      _remoteUpdate = false;
+    });
+  });
+
+  // ── 廠區篩選 ──
+  document.getElementById('site-filter-btns').addEventListener('click', (e) => {
+    const btn = e.target.closest('.site-btn');
+    if (!btn) return;
+    filterSite = btn.dataset.site;
+    document.querySelectorAll('.site-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+
+  // ── 搜尋 ──
+  document.getElementById('search').addEventListener('input', (e) => {
+    searchQ = e.target.value.toLowerCase();
+    render();
+  });
+
+  // ── 供應篩選 ──
+  function setAvailFilter(mode) {
+    filterAvail = mode;
+    document.getElementById('btn-all').classList.toggle('active',        mode==='all');
+    document.getElementById('btn-avail').classList.toggle('active',      mode==='avail');
+    document.getElementById('btn-avail').classList.toggle('active-stop', false);
+    document.getElementById('btn-stop').classList.toggle('active',       false);
+    document.getElementById('btn-stop').classList.toggle('active-stop',  mode==='stop');
+    render();
+  }
+
+  // ── RENDER ──
+  function render() {
+    let list = items.filter(it => {
+      const matchSite  = !filterSite || it.site === filterSite;
+      const matchAvail = filterAvail === 'all' ||
+                         (filterAvail === 'avail' && it.avail !== false) ||
+                         (filterAvail === 'stop'  && it.avail === false);
+      const matchQ     = !searchQ ||
+                         (it.name||'').toLowerCase().includes(searchQ) ||
+                         (it.box||'').toLowerCase().includes(searchQ)  ||
+                         (it.site||'').toLowerCase().includes(searchQ);
+      return matchSite && matchAvail && matchQ;
     });
 
-    function render() {
-      const q = document.getElementById('search').value.toLowerCase();
-      let list = items.filter(it => {
-        const matchQ = (it.name||'').toLowerCase().includes(q) ||
-                       (it.cat||'').toLowerCase().includes(q);
-        const matchF = filterMode === 'all' ||
-                       (filterMode === 'avail'   && it.avail !== false) ||
-                       (filterMode === 'unavail' && it.avail === false);
-        return matchQ && matchF;
+    // Stats
+    const total = items.length;
+    const avail = items.filter(i => i.avail !== false).length;
+    document.getElementById('stats').innerHTML =
+      `<span>全部 <strong>${total}</strong></span>
+       <span style="color:var(--act);">供應中 <strong>${avail}</strong></span>
+       <span style="color:var(--muted);">暫停 <strong>${total - avail}</strong></span>`;
+
+    const grid  = document.getElementById('items-grid');
+    const empty = document.getElementById('empty-msg');
+    grid.innerHTML = '';
+    empty.style.display = list.length ? 'none' : 'block';
+
+    // Group by site if no site filter
+    if (!filterSite && !searchQ) {
+      SITES.forEach(site => {
+        const group = list.filter(it => it.site === site);
+        if (!group.length) return;
+        const hdr = document.createElement('div');
+        hdr.className = 'group-header';
+        hdr.textContent = site;
+        grid.appendChild(hdr);
+        const subGrid = document.createElement('div');
+        subGrid.className = 'items-grid';
+        group.forEach(it => subGrid.appendChild(makeCard(it)));
+        grid.appendChild(subGrid);
       });
-
-      // Stats
-      const total  = items.length;
-      const avail  = items.filter(i => i.avail !== false).length;
-      document.getElementById('stats').innerHTML =
-        `<span>全部 <strong>${total}</strong></span>
-         <span>供應中 <strong style="color:#4caf50">${avail}</strong></span>
-         <span>暫停 <strong>${total - avail}</strong></span>`;
-
-      const grid = document.getElementById('items-grid');
-      const empty = document.getElementById('empty-msg');
-      grid.innerHTML = '';
-      empty.style.display = list.length ? 'none' : 'block';
-
-      list.forEach((it) => {
-        const ri = items.indexOf(it);
-        const isAvail = it.avail !== false;
-        const card = document.createElement('div');
-        card.className = `item-card ${isAvail ? 'avail' : 'unavail'}`;
-        card.innerHTML = `
-          <div class="ic-top">
-            <div class="ic-name" contenteditable data-idx="${ri}" data-field="name">${esc(it.name)}</div>
-            <div class="ic-actions">
-              <button class="ic-toggle" onclick="toggleAvail(${ri})">${isAvail ? '供應中' : '已暫停'}</button>
-              <button class="ic-del" onclick="delItem(${ri})">✕</button>
-            </div>
-          </div>
-          <div class="ic-meta">
-            <span class="ic-cat">${esc(it.cat||'未分類')}</span>
-            <span class="ic-price">${it.price ? '$' + it.price : '—'}</span>
-          </div>
-          <div class="ic-note" contenteditable data-idx="${ri}" data-field="note"
-               data-ph="備註…">${esc(it.note)}</div>
-        `;
-        grid.appendChild(card);
-      });
-
-      grid.querySelectorAll('[contenteditable]').forEach(el => {
-        el.addEventListener('input', () => {
-          if (_remoteUpdate) return;
-          items[+el.dataset.idx][el.dataset.field] = el.textContent.trim();
-          autoSave();
-        });
-      });
+      // uncategorised
+      const other = list.filter(it => !SITES.includes(it.site));
+      if (other.length) {
+        const hdr = document.createElement('div');
+        hdr.className = 'group-header';
+        hdr.textContent = '其他';
+        grid.appendChild(hdr);
+        const subGrid = document.createElement('div');
+        subGrid.className = 'items-grid';
+        other.forEach(it => subGrid.appendChild(makeCard(it)));
+        grid.appendChild(subGrid);
+      }
+    } else {
+      const subGrid = document.createElement('div');
+      subGrid.className = 'items-grid';
+      list.forEach(it => subGrid.appendChild(makeCard(it)));
+      grid.appendChild(subGrid);
     }
 
-    function addItem() {
-      items.unshift({
-        name:  document.getElementById('f-name').value.trim(),
-        cat:   document.getElementById('f-cat').value.trim(),
-        price: document.getElementById('f-price').value.trim(),
-        note:  document.getElementById('f-note').value.trim(),
-        avail: true
+    // contenteditable listeners
+    grid.querySelectorAll('[contenteditable]').forEach(el => {
+      el.addEventListener('input', () => {
+        if (_remoteUpdate) return;
+        items[+el.dataset.idx][el.dataset.field] = el.textContent.trim();
+        autoSave();
       });
-      render(); autoSave();
-      ['f-name','f-cat','f-price','f-note'].forEach(id => document.getElementById(id).value = '');
-    }
+    });
+  }
 
-    function toggleAvail(i) {
-      items[i].avail = items[i].avail === false ? true : false;
-      render(); autoSave();
-    }
+  function makeCard(it) {
+    const ri = items.indexOf(it);
+    const isAvail = it.avail !== false;
+    const card = document.createElement('div');
+    card.className = `item-card${isAvail ? '' : ' unavail'}`;
+    card.dataset.site = it.site || '';
+    card.innerHTML = `
+      <div class="ic-top">
+        <div class="ic-name" contenteditable data-idx="${ri}" data-field="name">${esc(it.name)}</div>
+        <div class="ic-actions">
+          <button class="ic-toggle" onclick="toggleAvail(${ri})">${isAvail ? '供應中' : '已暫停'}</button>
+          <button class="ic-del"    onclick="delItem(${ri})">✕</button>
+        </div>
+      </div>
+      <span class="ic-site" data-site="${esc(it.site)}">${esc(it.site||'—')}</span>
+      <div class="ic-meta">
+        <span class="ic-price">${it.price ? '$' + it.price : '—'}</span>
+        <span class="ic-box">${esc(it.box||'—')}</span>
+      </div>
+      <div class="ic-note" contenteditable data-idx="${ri}" data-field="note"
+           data-ph="備註…">${esc(it.note)}</div>
+    `;
+    return card;
+  }
 
-    function delItem(i) { items.splice(i,1); render(); autoSave(); }
+  // ── CRUD ──
+  function addItem() {
+    const site  = document.getElementById('f-site').value.trim();
+    const name  = document.getElementById('f-name').value.trim();
+    const price = document.getElementById('f-price').value.trim();
+    const box   = document.getElementById('f-box').value.trim();
+    const note  = document.getElementById('f-note').value.trim();
+    if (!name) { alert('請填入品項名稱'); return; }
+    items.unshift({ site, name, price, box, note, avail: true });
+    render(); autoSave();
+    ['f-name','f-price','f-box','f-note'].forEach(id => document.getElementById(id).value = '');
+  }
 
-    function esc(s) {
-      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-  </script>
+  function toggleAvail(i) {
+    items[i].avail = items[i].avail === false;
+    render(); autoSave();
+  }
+
+  function delItem(i) {
+    if (!confirm(`刪除「${items[i].name}」？`)) return;
+    items.splice(i, 1);
+    render(); autoSave();
+  }
+
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
 </body>
 </html>

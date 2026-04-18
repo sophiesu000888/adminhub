@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>匯入品項到 Firestore</title>
+<style>
+  body { font-family: 'Noto Sans TC', sans-serif; max-width: 600px; margin: 60px auto; padding: 20px; background: #fdfbf7; }
+  h2 { margin-bottom: 8px; }
+  p  { color: #555; font-size: 15px; margin-bottom: 20px; }
+  button { padding: 10px 28px; font-size: 16px; background: #2d2d2d; color: white; border: none; border-radius: 8px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #log { margin-top: 24px; background: #f0f0f0; border-radius: 8px; padding: 16px; font-size: 14px; font-family: monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+</style>
+</head>
+<body>
+<h2>📦 品項批次匯入</h2>
+<p>點擊下方按鈕，將 121 筆品項（央廚 62、群聯 42、台積 17）寫入 Firestore 的 <code>items</code> 文件。</p>
+<button id="btn" onclick="doImport()">開始匯入</button>
+<div id="log">等待匯入…</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="shared.js"></script>
+<script>
+const ITEMS = 
+[
+  {
+    "site": "央廚",
+    "name": "深井脆皮掛爐烤鴨",
+    "price": "115",
+    "box": "",
+    "note": "類別:鴨",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "深井脆皮掛爐烤鴨",
+    "price": "117",
+    "box": "",
+    "note": "類別:鴨",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "深井脆皮掛爐烤鴨",
+    "price": "100",
+    "box": "",
+    "note": "類別:鴨",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "三杯雞",
+    "price": "115",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "三杯雞",
+    "price": "117",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "川椒左宗棠雞",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "川椒左宗棠雞",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "香酥雞排",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "香腸咔啦雞",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "泰式打拋雞",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "泰式打拋雞",
+    "price": "122",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "紐奧良烤雞",
+    "price": "115",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "御品鳳城玫瑰油雞",
+    "price": "110",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "御品鳳城玫瑰油雞",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "御品轟炸雞腿",
+    "price": "125",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "義式烤腿排",
+    "price": "125",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蜜汁烤雞腿",
+    "price": "125",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "蜜汁烤雞腿",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "台式烤雞腿",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蜜椒腿排",
+    "price": "115",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "蜜椒腿排",
+    "price": "117",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "鳳梨糖醋雞",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "鳳梨糖醋雞",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "鳳梨糖醋雞",
+    "price": "80",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蔥油白斬雞",
+    "price": "100",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "新加坡海南雞",
+    "price": "110",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "韓式炸雞",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "韓式炸雞",
+    "price": "117",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "韓式炸雞",
+    "price": "99",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "橙汁雞丁",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "臘味蒸滑雞",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "臘味蒸滑雞",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "臘味蒸滑雞",
+    "price": "100",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "古早味紅糟肉",
+    "price": "95",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "古早味紅糟肉",
+    "price": "108",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "古早味紅糟肉",
+    "price": "80",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "沙茶豬肉",
+    "price": "110",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "梅干扣肉",
+    "price": "110",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "梅干扣肉",
+    "price": "113",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "梅干扣肉",
+    "price": "99",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蔥爆豬五花",
+    "price": "110",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "蔥爆豬五花",
+    "price": "99",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "古早味滷排骨",
+    "price": "110",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "古早味滷排骨",
+    "price": "117",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "筍乾紅燒肉",
+    "price": "115",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "筍乾紅燒肉",
+    "price": "113",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "黑胡椒豬柳",
+    "price": "115",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "黑胡椒豬柳",
+    "price": "95",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "傳統炸排骨",
+    "price": "110",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "傳統炸排骨",
+    "price": "80",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蜜汁金牌叉燒飯",
+    "price": "120",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "蜜汁金牌叉燒飯",
+    "price": "113",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "蜜汁金牌叉燒飯",
+    "price": "90",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "臘味豉汁排骨",
+    "price": "120",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "臘味豉汁排骨",
+    "price": "113",
+    "box": "",
+    "note": "類別:雞",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "厚切鐵路排骨",
+    "price": "120",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "港式化皮燒肉",
+    "price": "120",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "港式化皮燒肉",
+    "price": "117",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "港式化皮燒肉",
+    "price": "100",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "客家桔醬豬里肌",
+    "price": "99",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "壽喜燒豚肉",
+    "price": "110",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "壽喜燒豚肉",
+    "price": "95",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "黑松露豬棒腿",
+    "price": "117",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "黑松露豬棒腿",
+    "price": "117",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "日式叉燒",
+    "price": "120",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "日式叉燒",
+    "price": "117",
+    "box": "",
+    "note": "類別:豬",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "波隆納佐雪花魚",
+    "price": "105",
+    "box": "",
+    "note": "類別:魚",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "波隆納佐雪花魚",
+    "price": "108",
+    "box": "",
+    "note": "類別:魚",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "紅醬酥炸魚排",
+    "price": "115",
+    "box": "",
+    "note": "類別:魚",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "泰式酥魚柳",
+    "price": "110",
+    "box": "",
+    "note": "類別:魚",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "泰式酥魚柳",
+    "price": "108",
+    "box": "",
+    "note": "類別:魚",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(叉燒+油雞)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(叉燒+油雞)",
+    "price": "113",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(叉燒+烤鴨)",
+    "price": "120",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(叉燒+烤鴨)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(叉燒+香腸)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(叉燒+香腸)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(叉燒+燒肉)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(叉燒+燒肉)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(油雞+烤鴨)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(油雞+烤鴨)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(油雞+香腸)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(油雞+香腸)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(油雞+燒肉)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(油雞+燒肉)",
+    "price": "122",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(烤雞+香腸)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(烤雞+香腸)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼(烤鴨+香腸)",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼(烤鴨+香腸)",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "御品三寶",
+    "price": "125",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "御品三寶",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "台積",
+    "name": "御品三寶",
+    "price": "100",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "御品四寶",
+    "price": "125",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "鳳爪排骨",
+    "price": "120",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "鳳爪排骨",
+    "price": "113",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "燒臘雙拼",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "燒臘雙拼",
+    "price": "117",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "港式煲仔飯雙拼",
+    "price": "125",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "港式煲仔飯雙拼",
+    "price": "113",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "叉燒拼香腸",
+    "price": "115",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "叉燒拼香腸",
+    "price": "113",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "炸雞腿拼糖醋雞",
+    "price": "125",
+    "box": "",
+    "note": "類別:拼",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "西芹黑松露牛肉",
+    "price": "120",
+    "box": "",
+    "note": "類別:牛",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蠔油四季牛肉",
+    "price": "120",
+    "box": "",
+    "note": "類別:牛",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "低GI舒肥嫩雞胸",
+    "price": "115",
+    "box": "",
+    "note": "類別:舒肥",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "低GI雙拼舒肥嫩雞胸",
+    "price": "115",
+    "box": "",
+    "note": "類別:舒肥",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蔥油舒肥雞胸",
+    "price": "115",
+    "box": "",
+    "note": "類別:舒肥",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "蔥油舒肥雞胸",
+    "price": "113",
+    "box": "",
+    "note": "類別:舒肥",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "低脂鱸魚排",
+    "price": "115",
+    "box": "",
+    "note": "類別:舒肥",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "青咖喱雞丁燴飯",
+    "price": "125",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "青咖喱雞丁燴飯",
+    "price": "117",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "沙茶菌菇豬肉燴飯",
+    "price": "120",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "沙茶菌菇豬肉燴飯",
+    "price": "108",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "黑胡椒豬柳燴飯",
+    "price": "120",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "黑胡椒豬柳燴飯",
+    "price": "108",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "川麻豆腐燴吉列魚排燴飯",
+    "price": "120",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "川麻豆腐燴吉列魚排燴飯",
+    "price": "108",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "蠔油牛肉燴飯",
+    "price": "130",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "蠔油牛肉燴飯",
+    "price": "117",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "央廚",
+    "name": "滑蛋豬肉燴飯",
+    "price": "130",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  },
+  {
+    "site": "群聯",
+    "name": "滑蛋豬肉燴飯",
+    "price": "117",
+    "box": "",
+    "note": "類別:燴飯",
+    "avail": true
+  }
+];
+
+function log(msg) {
+  const el = document.getElementById('log');
+  el.textContent += msg + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+
+async function doImport() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  document.getElementById('log').textContent = '';
+  log('🔐 登入驗證中…');
+
+  requireAuth(async (user) => {
+    log(`✅ 已登入：${user.email}`);
+    log(`📝 準備寫入 ${ITEMS.length} 筆品項…`);
+
+    try {
+      const db = firebase.firestore();
+      // 讀取現有資料
+      const snap = await db.collection('userData').doc(user.uid).get();
+      const existing = snap.exists ? (snap.data().items || []) : [];
+      log(`ℹ️  現有品項：${existing.length} 筆`);
+
+      if (existing.length > 0) {
+        const ok = confirm(`Firestore 已有 ${existing.length} 筆品項，確定要覆蓋嗎？`);
+        if (!ok) { log('❌ 已取消'); btn.disabled = false; return; }
+      }
+
+      await db.collection('userData').doc(user.uid).set(
+        { items: ITEMS },
+        { merge: true }
+      );
+
+      log(`✅ 成功匯入 ${ITEMS.length} 筆品項！`);
+      log('👉 請前往 items.html 確認資料。');
+    } catch (e) {
+      log('❌ 錯誤：' + e.message);
+      btn.disabled = false;
+    }
+  });
+}
+</script>
+</body>
+</html>
