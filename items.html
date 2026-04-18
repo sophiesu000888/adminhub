@@ -379,6 +379,20 @@ tr.group-row td {
   border-bottom: 1px solid var(--border2);
   padding: 7px 14px; position: sticky; left: 0;
 }
+/* ── COMBO SELECT (下拉+新增) ── */
+.combo-wrap { position: relative; display: inline-flex; gap: 0; }
+.combo-wrap select {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+}
+.combo-add-btn {
+  font-family: inherit; font-weight: 700; font-size: 26px;
+  padding: 6px 10px; border: 2px solid var(--border2);
+  border-radius: 0 6px 6px 0; background: var(--s2);
+  cursor: pointer; color: var(--dim); line-height: 1;
+  transition: all .1s; white-space: nowrap;
+}
+.combo-add-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
 </style>
 </head>
 <body>
@@ -418,10 +432,16 @@ tr.group-row td {
       <input class="f-price" id="f-price" placeholder="120" type="number" min="0">
     </label>
     <label>類別
-      <input class="f-cat" id="f-cat" placeholder="e.g. 雞">
+      <div class="combo-wrap">
+        <select id="f-cat"></select>
+        <button type="button" class="combo-add-btn" onclick="addOption('cat')" title="新增類別">＋</button>
+      </div>
     </label>
     <label>餐盒
-      <input class="f-box" id="f-box" placeholder="e.g. 圓形鋁盒">
+      <div class="combo-wrap">
+        <select id="f-box"></select>
+        <button type="button" class="combo-add-btn" onclick="addOption('box')" title="新增餐盒">＋</button>
+      </div>
     </label>
     <button class="btn" onclick="addItem()" style="align-self:flex-end;">＋ 新增</button>
   </div>
@@ -520,11 +540,17 @@ tr.group-row td {
     </div>
     <div class="modal-field">
       <label>類別 Category</label>
-      <input id="m-cat" type="text">
+      <div class="combo-wrap" style="width:100%;">
+        <select id="m-cat" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
+        <button type="button" class="combo-add-btn" onclick="addOption('cat')">＋</button>
+      </div>
     </div>
     <div class="modal-field">
       <label>餐盒 Box</label>
-      <input id="m-box" type="text">
+      <div class="combo-wrap" style="width:100%;">
+        <select id="m-box" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
+        <button type="button" class="combo-add-btn" onclick="addOption('box')">＋</button>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -541,6 +567,37 @@ tr.group-row td {
 <script src="shared.js"></script>
 <script>
   const SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
+  let CATS  = ['豬','雞','牛','鴨','雙拼','舒肥'];
+  let BOXES = ['SP24-5黑色餐盒','CR900植纖餐盒','十貫牛皮壽司盒','7號輕食盒','902碗'];
+
+  // ── 同步所有類別/餐盒下拉選單 ──
+  function syncSelects(type) {
+    const list = type === 'cat' ? CATS : BOXES;
+    const ids  = type === 'cat' ? ['f-cat','m-cat'] : ['f-box','m-box'];
+    ids.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if (list.includes(cur)) sel.value = cur;
+    });
+  }
+
+  function addOption(type) {
+    const label = type === 'cat' ? '類別' : '餐盒';
+    const val = prompt(`新增${label}名稱：`);
+    if (!val || !val.trim()) return;
+    const trimmed = val.trim();
+    const list = type === 'cat' ? CATS : BOXES;
+    if (list.includes(trimmed)) { alert(`「${trimmed}」已存在`); return; }
+    list.push(trimmed);
+    syncSelects(type);
+    // 自動選到新增的那個
+    ['f-','m-'].forEach(p => {
+      const sel = document.getElementById(p + type);
+      if (sel) sel.value = trimmed;
+    });
+  }
 
   let items = [];
   let autoSave;
@@ -550,6 +607,8 @@ tr.group-row td {
   let _remoteUpdate = false;
 
   requireAuth((user) => {
+    syncSelects('cat');
+    syncSelects('box');
     injectStatusBar('items');
     requestAnimationFrame(() => {
       const bar = document.querySelector('#status-bar, [id^="status"], header, nav');
@@ -681,11 +740,18 @@ tr.group-row td {
   function openModal(ri) {
     _editingRi = ri;
     const it = items[ri];
+    syncSelects('cat');
+    syncSelects('box');
+    // 若品項的類別/餐盒不在清單中，動態補入
+    const cat = getCat(it);
+    if (cat && !CATS.includes(cat))  { CATS.push(cat);       syncSelects('cat'); }
+    const box = it.box || '';
+    if (box && !BOXES.includes(box)) { BOXES.push(box);      syncSelects('box'); }
     document.getElementById('m-site').value  = it.site  || '';
     document.getElementById('m-name').value  = it.name  || '';
     document.getElementById('m-price').value = it.price || '';
-    document.getElementById('m-cat').value   = getCat(it);
-    document.getElementById('m-box').value   = it.box   || '';
+    document.getElementById('m-cat').value   = cat;
+    document.getElementById('m-box').value   = box;
     document.getElementById('editModal').style.display = 'flex';
     document.getElementById('m-name').focus();
   }
@@ -731,7 +797,7 @@ tr.group-row td {
     buildFilterBtns();
     render();
     autoSave();
-    ['f-name','f-price','f-cat','f-box'].forEach(id => document.getElementById(id).value = '');
+    ['f-name','f-price'].forEach(id => document.getElementById(id).value = '');
   }
 
   function delItem(i) {
