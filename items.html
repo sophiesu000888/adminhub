@@ -395,6 +395,20 @@ tr.group-row td {
 .combo-add-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
 /* ── MANAGE OPTIONS MODAL ── */
 #manageModal .modal { width: min(400px, calc(100vw - 32px)); }
+.manage-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 10px;
+}
+.manage-header h3 { margin: 0; font-size: 28px; font-weight: 700;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; }
+.manage-done-btn {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 26px;
+  background: var(--ink); color: white;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 6px 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 2px 2px 0 0 var(--ink); transition: all .1s;
+}
+.manage-done-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
 .opt-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 260px; overflow-y: auto; }
 .opt-row {
   display: flex; align-items: center; gap: 8px;
@@ -410,9 +424,10 @@ tr.group-row td {
   font-family: inherit;
 }
 .opt-del-btn:hover { color: var(--red); }
-.opt-add-row { display: flex; gap: 6px; }
+.opt-add-row { display: flex; gap: 6px; align-items: stretch; }
 .opt-add-row input {
-  flex: 1; padding: 7px 10px; border: 2px solid var(--border2);
+  flex: 1; min-width: 0;
+  padding: 7px 10px; border: 2px solid var(--border2);
   border-radius: 8px; font-size: 26px; font-family: inherit;
   background: var(--s2); outline: none;
 }
@@ -421,8 +436,10 @@ tr.group-row td {
   font-family: inherit; font-weight: 700; font-size: 26px;
   background: var(--ink); color: white;
   border: 2px solid var(--ink); border-radius: 8px;
-  padding: 7px 16px; cursor: pointer;
+  padding: 7px 16px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
 }
+.opt-add-row button:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 /* ── IMPORT/EXPORT DRAWER ── */
 #drawer-overlay {
   position: fixed; inset: 0; background: rgba(45,45,45,.4);
@@ -605,14 +622,14 @@ tr.group-row td {
 <!-- 管理選項 Modal -->
 <div class="modal-overlay" id="manageModal" style="display:none;" onclick="if(event.target===this)closeManage()">
   <div class="modal">
-    <h3 id="manage-title">管理類別</h3>
+    <div class="manage-header">
+      <h3 id="manage-title">管理類別</h3>
+      <button class="manage-done-btn" onclick="closeManage()">完成</button>
+    </div>
     <div class="opt-list" id="opt-list"></div>
     <div class="opt-add-row">
       <input id="opt-new-input" type="text" placeholder="輸入新選項…" onkeydown="if(event.key==='Enter')addOptionFromManage()">
       <button onclick="addOptionFromManage()">＋ 新增</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-confirm" onclick="closeManage()">完成</button>
     </div>
   </div>
 </div>
@@ -664,16 +681,9 @@ tr.group-row td {
 <script src="firebase-config.js"></script>
 <script src="shared.js"></script>
 <script>
-  // 預設清單（只在雲端從未存過時使用）
-  const DEFAULT_SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
-  const DEFAULT_CATS  = ['豬','雞','牛','鴨','雙拼','舒肥'];
-  const DEFAULT_BOXES = ['SP24-5黑色餐盒','CR900植纖餐盒','十貫牛皮壽司盒','7號輕食盒','902碗'];
-
-  let SITES = [...DEFAULT_SITES];
-  let CATS  = [...DEFAULT_CATS];
-  let BOXES = [...DEFAULT_BOXES];
-
-  let autoSaveOptions;
+  let SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
+  let CATS  = ['豬','雞','牛','鴨','雙拼','舒肥'];
+  let BOXES = ['SP24-5黑色餐盒','CR900植纖餐盒','十貫牛皮壽司盒','7號輕食盒','902碗'];
 
   // ── 同步所有類別/餐盒下拉選單 ──
   function syncSelects(type) {
@@ -740,7 +750,6 @@ tr.group-row td {
     input.value = '';
     renderOptList();
     input.focus();
-    if (autoSaveOptions) autoSaveOptions();
   }
   function deleteOption(idx) {
     const list = _manageType === 'cat' ? CATS : _manageType === 'box' ? BOXES : SITES;
@@ -750,14 +759,13 @@ tr.group-row td {
     syncSelects(_manageType);
     if (_manageType === 'site') buildFilterBtns();
     renderOptList();
-    if (autoSaveOptions) autoSaveOptions();
   }
 
   let items = [];
   let autoSave;
-  let filterSites = new Set();
-  let filterCats  = new Set();
-  let filterBoxes = new Set();
+  let filterSites = new Set();  // 空 = 全部
+  let filterCats  = new Set();  // 空 = 全部
+  let filterBoxes = new Set();  // 空 = 全部
   let searchQ     = '';
   let _remoteUpdate = false;
 
@@ -772,18 +780,6 @@ tr.group-row td {
       document.body.style.paddingTop = h + 'px';
       document.querySelectorAll('thead th').forEach(th => th.style.top = h + 'px');
     });
-
-    // 同步選項清單（廠區 / 類別 / 餐盒）
-    autoSaveOptions = makeAutoSave('options', () => ({ sites: SITES, cats: CATS, boxes: BOXES }));
-    startSync('options', user, (content) => {
-      if (!content) return;
-      if (Array.isArray(content.sites) && content.sites.length) SITES = content.sites;
-      if (Array.isArray(content.cats)  && content.cats.length)  CATS  = content.cats;
-      if (Array.isArray(content.boxes) && content.boxes.length) BOXES = content.boxes;
-      syncSelects('site'); syncSelects('cat'); syncSelects('box');
-      buildFilterBtns();
-    });
-
     autoSave = makeAutoSave('items', () => items);
     startSync('items', user, (content) => {
       if (!content) return;
