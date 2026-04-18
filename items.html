@@ -37,7 +37,7 @@ body {
 #page-header { text-align: center; padding: 14px 16px 8px; }
 #page-title {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 3.2rem; font-weight: 700;
+  font-size: 2.4rem; font-weight: 700;
   color: var(--ink); letter-spacing: 2px;
   -webkit-text-stroke: 1px rgba(45,45,45,0.2);
   transform: rotate(-1deg);
@@ -395,6 +395,22 @@ tr.group-row td {
 .combo-add-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
 /* ── MANAGE OPTIONS MODAL ── */
 #manageModal .modal { width: min(400px, calc(100vw - 32px)); }
+.manage-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 16px;
+}
+.manage-header h3 {
+  margin: 0; font-size: 28px; font-weight: 700;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+}
+.manage-done-btn {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 26px;
+  background: var(--ink); color: white;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 6px 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
+}
+.manage-done-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 .opt-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 260px; overflow-y: auto; }
 .opt-row {
   display: flex; align-items: center; gap: 8px;
@@ -410,9 +426,10 @@ tr.group-row td {
   font-family: inherit;
 }
 .opt-del-btn:hover { color: var(--red); }
-.opt-add-row { display: flex; gap: 6px; }
+.opt-add-row { display: flex; gap: 6px; align-items: stretch; }
 .opt-add-row input {
-  flex: 1; padding: 7px 10px; border: 2px solid var(--border2);
+  flex: 1; min-width: 0;
+  padding: 7px 10px; border: 2px solid var(--border2);
   border-radius: 8px; font-size: 26px; font-family: inherit;
   background: var(--s2); outline: none;
 }
@@ -422,140 +439,52 @@ tr.group-row td {
   background: var(--ink); color: white;
   border: 2px solid var(--ink); border-radius: 8px;
   padding: 7px 16px; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
 }
-/* ── SIDE TAB RAIL (Menu 風格) ── */
-.drawer-tabs-rail {
-  position: fixed; right: 0; top: 50%; transform: translateY(-50%);
-  z-index: 1100; display: flex; flex-direction: column; gap: 4px;
+.opt-add-row button:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+/* ── IMPORT/EXPORT DRAWER ── */
+#drawer-overlay {
+  position: fixed; inset: 0; background: rgba(45,45,45,.4);
+  z-index: 9000; display: none; animation: fadeIn .15s;
 }
-.side-tab {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 5px; width: 48px; padding: 15px 0;
-  border-radius: 12px 0 0 12px;
-  cursor: pointer; user-select: none;
-  box-shadow: -3px 0 8px rgba(0,0,0,0.12);
-  transition: width .15s, box-shadow .15s;
-  border-top: 1.5px solid rgba(45,45,45,.18);
-  border-bottom: 1.5px solid rgba(45,45,45,.18);
-  border-left: 3px solid rgba(45,45,45,.18);
+#drawer-overlay.open { display: block; }
+#drawer {
+  position: fixed; top: 0; right: -360px; width: 340px; height: 100%;
+  background: var(--s1); border-left: 2.5px solid var(--ink);
+  box-shadow: -6px 0 24px rgba(45,45,45,.15);
+  z-index: 9001; display: flex; flex-direction: column;
+  padding: 28px 24px; gap: 16px;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
 }
-.side-tab:hover { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,0.2); }
-.side-tab.open  { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,0.25); }
-.side-tab .st-icon  { font-size: 1.38rem; line-height: 1; }
-.side-tab .st-label {
-  writing-mode: vertical-rl; text-orientation: mixed;
-  font-size: 0.87rem; font-weight: 700; letter-spacing: 2px;
-  opacity: .9; line-height: 1;
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+#drawer.open { right: 0; }
+#drawer h3 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+#drawer .drawer-btn {
+  font-family: inherit; font-weight: 700; font-size: 26px;
+  border: 2px solid var(--ink); border-radius: 10px;
+  padding: 12px 18px; cursor: pointer; text-align: left;
+  box-shadow: 3px 3px 0 var(--ink); transition: all .1s;
+  display: flex; align-items: center; gap: 10px;
 }
-#tab-add    { background: #e6f4e7; color: #2e7d32; border-left: 3px solid #2e7d32; }
-#tab-export { background: #e7f0ff; color: #2d5da1; border-left: 3px solid #2d5da1; }
-
-/* ── DRAWER OVERLAY ── */
-.drawer-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(45,45,45,.25); z-index: 1150;
-  backdrop-filter: blur(2px);
+#drawer .drawer-btn:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
+#drawer .drawer-btn.export { background: #f0fff4; color: #1e8449; border-color: #27ae60; box-shadow: 3px 3px 0 #27ae60; }
+#drawer .drawer-btn.export:hover { box-shadow: 2px 2px 0 #27ae60; }
+#drawer .drawer-btn.import { background: #eaf3fb; color: #1a5f8a; border-color: #2980b9; box-shadow: 3px 3px 0 #2980b9; }
+#drawer .drawer-btn.import:hover { box-shadow: 2px 2px 0 #2980b9; }
+#drawer .drawer-close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; font-size: 28px; cursor: pointer;
+  color: var(--muted); padding: 4px 8px; border-radius: 6px;
 }
-.drawer-overlay.show { display: block; }
-
-/* ── DRAWER PANEL ── */
-.side-drawer {
-  position: fixed; top: 0; right: -53vw;
-  width: 52vw; max-width: 420px;
-  height: 100vh;
-  background-color: var(--paper);
-  background-image: radial-gradient(#c8c4bc 1.5px, transparent 1.5px);
-  background-size: 20px 20px;
-  z-index: 1200;
-  box-shadow: -6px 0 28px rgba(0,0,0,.18);
-  transition: right .3s cubic-bezier(.4,0,.2,1);
-  display: flex; flex-direction: column; overflow: hidden;
-  border-left: 3px solid var(--ink);
+#drawer .drawer-close:hover { background: var(--s2); color: var(--ink); }
+#drawer-toggle {
+  font-family: inherit; font-weight: 700; font-size: 26px;
+  background: white; color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 10px;
+  padding: 5px 14px; cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
 }
-.side-drawer.open { right: 0; }
-
-/* ── DRAWER HEADER ── */
-.drawer-header {
-  color: var(--ink); padding: 20px 24px 17px;
-  display: flex; align-items: center; gap: 15px;
-  flex-shrink: 0; border-bottom: 2.5px solid var(--ink);
-  background: white;
-}
-.drawer-header h2 {
-  font-size: 1.5rem; font-weight: 700; margin: 0; flex: 1;
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-}
-.drawer-close {
-  background: white; border: 2px solid var(--ink); color: var(--ink);
-  border-radius: 8px; padding: 6px 15px; font-size: 1.1rem;
-  cursor: pointer; font-family: inherit; font-weight: 700;
-  transition: all .1s; box-shadow: 2px 2px 0 0 var(--ink);
-}
-.drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
-
-#drawer-add    .drawer-header { background: #e6f4e7; border-bottom-color: #2e7d32; }
-#drawer-export .drawer-header { background: #e7f0ff; border-bottom-color: #2d5da1; }
-
-/* ── DRAWER BODY ── */
-.drawer-body {
-  flex: 1; overflow-y: auto; padding: 20px 22px 28px;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* ── ADD DRAWER FIELDS ── */
-.add-field {
-  display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px;
-}
-.add-field label {
-  font-size: 0.9rem; font-weight: 700; color: var(--dim);
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-}
-.add-field input, .add-field select {
-  padding: 9px 12px; border: 2px solid var(--border2);
-  border-radius: 8px; font-size: 1rem;
-  font-family: 'Noto Sans TC', sans-serif;
-  outline: none; background: white; color: var(--ink);
-  transition: border-color .1s; width: 100%;
-  box-shadow: 2px 2px 0 0 rgba(45,45,45,.08);
-}
-.add-field input:focus, .add-field select:focus { border-color: var(--ink); background: #fffef9; }
-.add-combo { display: flex; }
-.add-combo select { border-radius: 8px 0 0 8px; border-right: none; flex: 1; }
-.add-combo .combo-add-btn {
-  border-radius: 0 8px 8px 0; border: 2px solid var(--border2);
-  background: var(--s2); color: var(--dim); font-size: 1rem;
-  padding: 9px 13px; cursor: pointer; transition: all .1s; white-space: nowrap;
-  font-family: inherit; font-weight: 700;
-}
-.add-combo .combo-add-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
-.add-submit {
-  width: 100%; margin-top: 8px;
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 1.1rem;
-  background: #2e7d32; color: white;
-  border: 2.5px solid #1b5e20; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  padding: 12px 18px; cursor: pointer;
-  box-shadow: 3px 3px 0 #1b5e20; transition: all .1s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.add-submit:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1b5e20; }
-
-/* ── EXPORT DRAWER BUTTONS ── */
-.exp-btn {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; margin-bottom: 12px;
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 1.05rem;
-  border: 2.5px solid var(--ink); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  padding: 12px 20px; cursor: pointer; text-align: left;
-  box-shadow: 3px 3px 0 var(--ink); transition: all .1s; background: white;
-}
-.exp-btn:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
-.exp-btn.export { background: #f0fff4; color: #1b5e20; border-color: #2e7d32; box-shadow: 3px 3px 0 #2e7d32; }
-.exp-btn.export:hover { box-shadow: 2px 2px 0 #2e7d32; }
-.exp-btn.import { background: #e7f0ff; color: #1a3a7a; border-color: #2d5da1; box-shadow: 3px 3px 0 #2d5da1; }
-.exp-btn.import:hover { box-shadow: 2px 2px 0 #2d5da1; }
-.exp-btn .btn-icon { font-size: 1.4rem; }
-
+#drawer-toggle:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 </style>
 </head>
 <body>
@@ -621,10 +550,13 @@ tr.group-row td {
       <span class="filter-row-label">餐盒</span>
       <div id="box-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
     </div>
-    <!-- 搜尋 + 統計 -->
+    <!-- 搜尋 + 統計 + 匯出入 -->
     <div class="toolbar-row">
       <input type="text" id="search" placeholder="搜尋品項、餐盒…">
       <div class="stats" id="stats"></div>
+      <div style="margin-left:auto;">
+        <button id="drawer-toggle" onclick="openDrawer()">☰ 匯出入</button>
+      </div>
     </div>
   </div>
 
@@ -673,77 +605,19 @@ tr.group-row td {
 
 </div>
 
-<!-- 豎排標籤軌道 -->
-<div class="drawer-tabs-rail">
-  <div class="side-tab" id="tab-add" onclick="toggleDrawer('add')">
-    <span class="st-icon">＋</span>
-    <span class="st-label">新增</span>
-  </div>
-  <div class="side-tab" id="tab-export" onclick="toggleDrawer('export')">
-    <span class="st-icon">📤</span>
-    <span class="st-label">匯出</span>
-  </div>
-</div>
-
-<!-- 遮罩 -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeAllDrawers()"></div>
-
-<!-- 新增品項抽屜 -->
-<div class="side-drawer" id="drawer-add">
-  <div class="drawer-header">
-    <h2>＋ 新增品項</h2>
-    <button class="drawer-close" onclick="closeAllDrawers()">✕ 關閉</button>
-  </div>
-  <div class="drawer-body">
-    <div class="add-field">
-      <label>廠區</label>
-      <div class="add-combo">
-        <select id="f-site"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('site')">⚙</button>
-      </div>
-    </div>
-    <div class="add-field">
-      <label>品項名稱</label>
-      <input id="f-name" placeholder="e.g. 烤鴨飯" onkeydown="if(event.key==='Enter')addItem()">
-    </div>
-    <div class="add-field">
-      <label>價格</label>
-      <input id="f-price" placeholder="120" type="number" min="0" onkeydown="if(event.key==='Enter')addItem()">
-    </div>
-    <div class="add-field">
-      <label>類別</label>
-      <div class="add-combo">
-        <select id="f-cat"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('cat')">⚙</button>
-      </div>
-    </div>
-    <div class="add-field">
-      <label>餐盒</label>
-      <div class="add-combo">
-        <select id="f-box"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('box')">⚙</button>
-      </div>
-    </div>
-    <button class="add-submit" onclick="addItem()">＋ 新增</button>
-  </div>
-</div>
-
 <!-- 匯出入抽屜 -->
-<div class="side-drawer" id="drawer-export">
-  <div class="drawer-header">
-    <h2>📂 匯出 / 匯入</h2>
-    <button class="drawer-close" onclick="closeAllDrawers()">✕ 關閉</button>
-  </div>
-  <div class="drawer-body">
-    <button class="exp-btn export" onclick="exportExcel();closeAllDrawers()">
-      <span class="btn-icon">⬇</span><span>匯出 Excel</span>
-    </button>
-    <label class="exp-btn import" style="cursor:pointer;">
-      <span class="btn-icon">⬆</span><span>匯入 Excel</span>
-      <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeAllDrawers()">
-    </label>
-    <p style="font-size:0.88rem;color:var(--muted);margin-top:12px;line-height:1.6;">匯入時可選擇覆蓋或附加到現有資料</p>
-  </div>
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h3>📂 匯出 / 匯入</h3>
+  <button class="drawer-btn export" onclick="exportExcel();closeDrawer()">
+    <span>⬇</span><span>匯出 Excel</span>
+  </button>
+  <label class="drawer-btn import" style="cursor:pointer;">
+    <span>⬆</span><span>匯入 Excel</span>
+    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeDrawer()">
+  </label>
+  <p style="font-size:22px;color:var(--muted);margin-top:8px;">匯入時可選擇覆蓋或附加到現有資料</p>
 </div>
 
 <div id="saveToast" class="save-toast"></div>
@@ -751,14 +625,14 @@ tr.group-row td {
 <!-- 管理選項 Modal -->
 <div class="modal-overlay" id="manageModal" style="display:none;" onclick="if(event.target===this)closeManage()">
   <div class="modal">
-    <h3 id="manage-title">管理類別</h3>
+    <div class="manage-header">
+      <h3 id="manage-title">管理類別</h3>
+      <button class="manage-done-btn" onclick="closeManage()">完成</button>
+    </div>
     <div class="opt-list" id="opt-list"></div>
     <div class="opt-add-row">
       <input id="opt-new-input" type="text" placeholder="輸入新選項…" onkeydown="if(event.key==='Enter')addOptionFromManage()">
       <button onclick="addOptionFromManage()">＋ 新增</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-confirm" onclick="closeManage()">完成</button>
     </div>
   </div>
 </div>
@@ -1089,7 +963,7 @@ tr.group-row td {
 
   // Enter key in modal confirms
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeModal(); closeAllDrawers(); }
+    if (e.key === 'Escape') closeModal();
   });
 
   // ── CRUD ──
@@ -1099,14 +973,12 @@ tr.group-row td {
     const price = document.getElementById('f-price').value.trim();
     const cat   = document.getElementById('f-cat').value.trim();
     const box   = document.getElementById('f-box').value.trim();
-    if (!name) { document.getElementById('f-name').focus(); return; }
+    if (!name) { alert('請填入品項名稱'); return; }
     items.unshift({ site, name, price, cat, box });
     buildFilterBtns();
     render();
     autoSave();
-    document.getElementById('f-name').value  = '';
-    document.getElementById('f-price').value = '';
-    document.getElementById('f-name').focus();
+    ['f-name','f-price'].forEach(id => document.getElementById(id).value = '');
   }
 
   function delItem(i) {
@@ -1381,37 +1253,15 @@ tr.group-row td {
     table.appendChild(tbody);
   }
 
-  // ── DRAWERS ──
-  function toggleDrawer(name) {
-    const drawer  = document.getElementById('drawer-' + name);
-    const tab     = document.getElementById('tab-' + name);
-    const overlay = document.getElementById('drawer-overlay');
-    const isOpen  = drawer.classList.contains('open');
-    // close all first
-    ['add','export'].forEach(n => {
-      document.getElementById('drawer-' + n).classList.remove('open');
-      document.getElementById('tab-' + n).classList.remove('open');
-    });
-    overlay.classList.remove('show');
-    if (!isOpen) {
-      drawer.classList.add('open');
-      tab.classList.add('open');
-      overlay.classList.add('show');
-      if (name === 'add') {
-        setTimeout(() => { const el = document.getElementById('f-name'); if (el) el.focus(); }, 320);
-      }
-    }
+  // ── DRAWER ──
+  function openDrawer() {
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('open');
   }
-  function closeAllDrawers() {
-    ['add','export'].forEach(n => {
-      document.getElementById('drawer-' + n).classList.remove('open');
-      document.getElementById('tab-' + n).classList.remove('open');
-    });
-    document.getElementById('drawer-overlay').classList.remove('show');
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('open');
   }
-  // keep old names working for any remaining references
-  function openDrawer()  { toggleDrawer('export'); }
-  function closeDrawer() { closeAllDrawers(); }
 
   function esc(s) {
     return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
