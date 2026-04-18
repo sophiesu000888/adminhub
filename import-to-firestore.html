@@ -1014,9 +1014,9 @@ async function doImport() {
 
     try {
       const db = firebase.firestore();
-      // 讀取現有資料
-      const snap = await db.collection('userData').doc(user.uid).get();
-      const existing = snap.exists ? (snap.data().items || []) : [];
+      // 讀取現有資料（路徑與 items.html 一致：modules/items）
+      const snap = await db.collection('modules').doc('items').get();
+      const existing = snap.exists ? (snap.data().content || []) : [];
       log(`ℹ️  現有品項：${existing.length} 筆`);
 
       if (existing.length > 0) {
@@ -1024,10 +1024,14 @@ async function doImport() {
         if (!ok) { log('❌ 已取消'); btn.disabled = false; return; }
       }
 
-      await db.collection('userData').doc(user.uid).set(
-        { items: ITEMS },
-        { merge: true }
-      );
+      await db.collection('modules').doc('items').set({
+        content: ITEMS,
+        lastSaved: {
+          uid: user.uid,
+          displayName: user.displayName || user.email,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      });
 
       log(`✅ 成功匯入 ${ITEMS.length} 筆品項！`);
       log('👉 請前往 items.html 確認資料。');
