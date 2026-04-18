@@ -483,6 +483,11 @@ tr.group-row td {
       <span class="filter-row-label">類別</span>
       <div id="cat-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
     </div>
+    <!-- 餐盒多重篩選 -->
+    <div class="toolbar-row">
+      <span class="filter-row-label">餐盒</span>
+      <div id="box-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+    </div>
     <!-- 搜尋 + 統計 + 匯出入 -->
     <div class="toolbar-row">
       <input type="text" id="search" placeholder="搜尋品項、餐盒…">
@@ -690,6 +695,7 @@ tr.group-row td {
   let autoSave;
   let filterSites = new Set();  // 空 = 全部
   let filterCats  = new Set();  // 空 = 全部
+  let filterBoxes = new Set();  // 空 = 全部
   let searchQ     = '';
   let _remoteUpdate = false;
 
@@ -749,6 +755,19 @@ tr.group-row td {
     });
   }
 
+    // 餐盒：從資料動態抽取
+    const allBoxes = [...new Set(items.map(i => i.box).filter(Boolean))].sort();
+    const boxDiv = document.getElementById('box-filter-btns');
+    boxDiv.innerHTML = '';
+    allBoxes.forEach(box => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag' + (filterBoxes.has(box) ? ' active' : '');
+      btn.textContent = box;
+      btn.onclick = () => toggleFilter(filterBoxes, box, btn, render);
+      boxDiv.appendChild(btn);
+    });
+  }
+
   function toggleFilter(set, val, btn, onUpdate) {
     if (set.has(val)) { set.delete(val); btn.classList.remove('active'); }
     else              { set.add(val);    btn.classList.add('active'); }
@@ -766,10 +785,11 @@ tr.group-row td {
       const matchSite = filterSites.size === 0 || filterSites.has(it.site);
       const cat = getCat(it);
       const matchCat  = filterCats.size  === 0 || filterCats.has(cat);
+      const matchBox  = filterBoxes.size === 0 || filterBoxes.has(it.box);
       const matchQ    = !searchQ ||
                         (it.name||'').toLowerCase().includes(searchQ) ||
                         (it.box||'').toLowerCase().includes(searchQ);
-      return matchSite && matchCat && matchQ;
+      return matchSite && matchCat && matchBox && matchQ;
     });
 
     const total = items.length;
