@@ -5,27 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>便當品項管理</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
 :root {
   --paper: #fdfbf7;
   --ink: #2d2d2d;
   --s1: #ffffff;
   --s2: #f8f5ef;
-  --s3: #ece8df;
-  --border: #2d2d2d;
-  --border2: rgba(45,45,45,0.25);
-  --dim: #555555;
-  --muted: #888888;
+  --border2: rgba(45,45,45,0.18);
+  --dim: #555;
+  --muted: #888;
   --red: #c0392b;
   --act: #27ae60;
   --blue: #2980b9;
   --gold: #b8942a;
-  --purple: #8e44ad;
-  --shadow: 3px 3px 0 0 var(--ink);
-  --shadow2: 4px 4px 0 0 var(--ink);
-  --shadow-sm: 2px 2px 0 0 var(--ink);
-  --hand-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   --card-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
 }
 
@@ -34,78 +27,67 @@
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
+  font-family: 'Noto Sans TC', sans-serif;
   min-height: 100vh;
   background-image: radial-gradient(#c8c4bc 1.5px, transparent 1.5px);
   background-size: 20px 20px;
   padding-top: 44px;
 }
 
-/* ── HEADER ── */
-#page-header {
-  text-align: center;
-  padding: 14px 16px 10px;
-}
+#page-header { text-align: center; padding: 14px 16px 8px; }
 #page-title {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 2.6rem; font-weight: 700;
+  font-size: 2.4rem; font-weight: 700;
   color: var(--ink); letter-spacing: 2px;
   -webkit-text-stroke: 1px rgba(45,45,45,0.2);
   transform: rotate(-1deg);
-  display: inline-block; margin-bottom: 10px;
+  display: inline-block; margin-bottom: 8px;
 }
 
-/* ── MAIN ── */
-#main { padding: 10px 20px 40px; max-width: 1200px; margin: 0 auto; }
+#main { padding: 8px 20px 40px; max-width: 1100px; margin: 0 auto; }
 
 /* ── TOOLBAR ── */
 .toolbar {
   background: var(--s1);
   border: 2.5px solid var(--ink);
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow2);
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 4px 4px 0 0 var(--ink);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 10px;
 }
-.toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-/* site filter buttons */
 .site-btn {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 18px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
   background: white; color: var(--ink);
   border: 2px solid var(--ink); border-radius: 8px;
-  padding: 4px 14px; cursor: pointer;
+  padding: 3px 12px; cursor: pointer;
   box-shadow: 2px 2px 0 0 var(--ink); transition: all .1s;
 }
 .site-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
 .site-btn.active { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); }
 
-/* search */
 #search {
   flex: 1; min-width: 160px;
-  padding: 7px 12px; border: 2px solid var(--border2);
-  border-radius: 8px; font-size: 16px;
-  font-family: 'Patrick Hand', sans-serif;
+  padding: 6px 12px; border: 2px solid var(--border2);
+  border-radius: 8px; font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2);
 }
 #search:focus { border-color: var(--ink); background: white; }
 
-/* avail filter */
 .avail-btn {
-  font-family: 'Patrick Hand', sans-serif; font-weight: 700; font-size: 16px;
+  font-size: 14px; font-weight: 700;
   background: white; color: var(--dim);
   border: 1.5px solid var(--border2); border-radius: 20px;
-  padding: 4px 14px; cursor: pointer; white-space: nowrap; transition: all .1s;
+  padding: 3px 12px; cursor: pointer; white-space: nowrap; transition: all .1s;
+  font-family: 'Noto Sans TC', sans-serif;
 }
-.avail-btn.active { border-color: var(--act); color: var(--act); background: #f0fff4; }
-.avail-btn.active-stop { border-color: var(--red); color: var(--red); background: #fff0f0; }
+.avail-btn.active       { border-color: var(--act); color: var(--act); background: #f0fff4; }
+.avail-btn.active-stop  { border-color: var(--red); color: var(--red); background: #fff0f0; }
 
-/* stats */
-.stats {
-  font-family: 'Patrick Hand', sans-serif; font-size: 16px; color: var(--muted);
-  display: flex; gap: 16px; flex-wrap: wrap;
-}
+.stats { font-size: 14px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
 .stats strong { color: var(--ink); }
 
 /* ── ADD FORM ── */
@@ -113,156 +95,133 @@ body {
   background: var(--s1);
   border: 2.5px solid var(--ink);
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow2);
-  padding: 16px 20px;
-  margin-bottom: 18px;
-  display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+  box-shadow: 4px 4px 0 0 var(--ink);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;
 }
 .add-form label {
-  display: flex; flex-direction: column; gap: 4px;
-  font-size: 15px; font-weight: 700; color: var(--dim);
-  font-family: 'Patrick Hand', sans-serif;
+  display: flex; flex-direction: column; gap: 3px;
+  font-size: 13px; font-weight: 700; color: var(--dim);
 }
 .add-form input, .add-form select {
-  padding: 7px 10px; border: 2px solid var(--border2);
-  border-radius: 6px; font-size: 16px;
-  font-family: 'Patrick Hand', sans-serif;
+  padding: 6px 9px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2); color: var(--ink);
   transition: border-color .1s;
 }
 .add-form input:focus, .add-form select:focus { border-color: var(--ink); background: white; }
-.add-form .f-site  { min-width: 110px; }
+.add-form .f-site  { width: 90px; }
 .add-form .f-name  { min-width: 140px; }
-.add-form .f-price { width: 90px; }
-.add-form .f-box   { min-width: 140px; }
-.add-form .f-note  { min-width: 130px; }
+.add-form .f-price { width: 80px; }
+.add-form .f-box   { min-width: 120px; }
+.add-form .f-note  { min-width: 120px; }
 
 .btn {
-  font-family: 'Patrick Hand', sans-serif; font-weight: 700; font-size: 17px;
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 15px;
   background: var(--ink); color: white;
   border: 2px solid var(--ink); border-radius: 8px;
-  padding: 8px 20px; cursor: pointer;
-  box-shadow: var(--shadow-sm); transition: all .1s; white-space: nowrap;
+  padding: 7px 18px; cursor: pointer;
+  box-shadow: 2px 2px 0 0 var(--ink); transition: all .1s; white-space: nowrap;
 }
 .btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
-.btn-out {
-  background: white; color: var(--ink);
-}
 
-/* ── GRID ── */
-.items-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-/* ── ITEM CARD ── */
-.item-card {
+/* ── TABLE ── */
+.tbl-wrap {
   background: var(--s1);
   border: 2.5px solid var(--ink);
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow);
-  padding: 14px 16px;
-  position: relative;
-  transition: box-shadow .1s, transform .1s;
-  display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 4px 4px 0 0 var(--ink);
+  overflow: hidden;
 }
-.item-card:hover { box-shadow: var(--shadow2); }
-.item-card.unavail { opacity: .55; }
 
-.ic-top {
-  display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;
+table {
+  width: 100%; border-collapse: collapse; font-size: 14px;
 }
-.ic-name {
-  font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700;
-  color: var(--ink); flex: 1;
-  outline: none; min-height: 24px;
-}
-.ic-name:focus { background: #ebf5ff; border-radius: 4px; }
 
-.ic-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.ic-toggle {
-  font-family: 'Patrick Hand', sans-serif; font-size: 13px; font-weight: 700;
-  padding: 3px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap;
-  border: 1.5px solid var(--act); color: var(--act); background: #f0fff4;
-}
-.unavail .ic-toggle { border-color: var(--muted); color: var(--muted); background: var(--s2); }
-.ic-del {
-  background: none; border: none; cursor: pointer;
-  color: var(--border2); font-size: 16px; padding: 2px 4px;
-  border-radius: 4px; transition: color .1s;
-}
-.ic-del:hover { color: var(--red); }
-
-.ic-site {
-  display: inline-block;
-  font-family: 'Kalam', cursive; font-size: 13px; font-weight: 700;
+thead th {
   background: var(--ink); color: white;
-  padding: 2px 8px; border-radius: 6px; align-self: flex-start;
+  padding: 10px 12px; text-align: left; font-weight: 700;
+  font-size: 13px; letter-spacing: 1px; white-space: nowrap;
+  position: sticky; top: 44px; z-index: 2;
+}
+thead th:first-child { width: 36px; text-align: center; }
+thead th.col-site  { width: 80px; }
+thead th.col-name  { min-width: 160px; }
+thead th.col-price { width: 80px; }
+thead th.col-cat   { width: 100px; }
+thead th.col-box   { width: 140px; }
+thead th.col-avail { width: 80px; text-align: center; }
+thead th.col-del   { width: 40px; text-align: center; }
+
+tbody tr {
+  border-bottom: 1px solid var(--border2);
+  transition: background .1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #f5f2ea; }
+tbody tr.unavail { opacity: .5; }
+
+tbody td {
+  padding: 7px 12px; vertical-align: middle;
+}
+tbody td:first-child { text-align: center; }
+
+/* site badge */
+.site-badge {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  background: var(--ink); color: white;
+  padding: 1px 7px; border-radius: 5px;
 }
 
-.ic-meta {
-  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+/* editable cells */
+.editable {
+  outline: none; display: block; width: 100%;
+  min-height: 20px; border-radius: 4px;
+  padding: 2px 4px; transition: background .1s;
 }
-.ic-price {
-  font-family: 'Kalam', cursive; font-size: 20px; font-weight: 700; color: var(--blue);
+.editable:hover  { background: #eef4ff; cursor: text; }
+.editable:focus  { background: #ddeeff; }
+.editable[data-ph]:empty::before { content: attr(data-ph); color: #ccc; font-style: italic; }
+
+/* price cell */
+.price-val { color: var(--blue); font-weight: 700; font-size: 15px; }
+
+/* avail toggle */
+.avail-toggle {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  padding: 2px 8px; border-radius: 12px; cursor: pointer;
+  border: 1.5px solid var(--act); color: var(--act); background: #f0fff4;
+  transition: all .1s; white-space: nowrap;
+  font-family: 'Noto Sans TC', sans-serif;
 }
-.ic-box {
-  font-family: 'Patrick Hand', sans-serif; font-size: 14px; color: var(--dim);
-  background: var(--s2); border: 1px solid var(--border2);
-  padding: 2px 8px; border-radius: 4px;
+.unavail .avail-toggle { border-color: var(--muted); color: var(--muted); background: var(--s2); }
+
+/* del btn */
+.del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--border2); font-size: 16px; padding: 2px 5px; border-radius: 4px;
+  transition: color .1s; line-height: 1;
+}
+.del-btn:hover { color: var(--red); }
+
+/* group header row */
+tr.group-row td {
+  background: var(--s2); padding: 6px 14px;
+  font-weight: 700; font-size: 13px; color: var(--dim);
+  letter-spacing: 1px; border-bottom: 1px solid var(--border2);
 }
 
-.ic-note {
-  font-family: 'Patrick Hand', sans-serif; font-size: 14px; color: var(--muted);
-  outline: none; display: block; width: 100%; min-height: 18px;
+#empty-msg {
+  text-align: center; padding: 40px; color: var(--muted); font-size: 15px;
 }
-.ic-note:focus { background: #ebf5ff; border-radius: 3px; }
-.ic-note[data-ph]:empty::before { content: attr(data-ph); color: #ccc; }
-
-/* site accent bar */
-.item-card::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 5px; border-radius: var(--card-radius) 0 0 var(--card-radius);
-}
-.item-card[data-site="F20"]::before  { background: #e67e22; }
-.item-card[data-site="AP6B"]::before { background: #8e44ad; }
-.item-card[data-site="聯電"]::before  { background: #2980b9; }
-.item-card[data-site="群聯"]::before  { background: #27ae60; }
-.item-card[data-site="央廚"]::before  { background: #c0392b; }
-.item-card[data-site="P8"]::before   { background: #b8942a; }
-
-/* site badge colors */
-.ic-site[data-site="F20"]  { background: #e67e22; }
-.ic-site[data-site="AP6B"] { background: #8e44ad; }
-.ic-site[data-site="聯電"]  { background: #2980b9; }
-.ic-site[data-site="群聯"]  { background: #27ae60; }
-.ic-site[data-site="央廚"]  { background: #c0392b; }
-.ic-site[data-site="P8"]   { background: #b8942a; }
-
-.empty-msg {
-  text-align: center; padding: 60px; color: var(--muted);
-  font-size: 20px; font-family: 'Patrick Hand', sans-serif;
-}
-
-/* group header */
-.group-header {
-  font-family: 'Kalam', cursive; font-size: 24px; font-weight: 700;
-  color: var(--ink); margin: 20px 0 8px;
-  border-bottom: 2px dashed var(--border2); padding-bottom: 4px;
-}
-.group-header:first-child { margin-top: 0; }
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 </style>
 </head>
 <body>
 
 <div id="page-header">
-  <div id="page-title">🍱 便當品項管理</div>
+  <div id="page-title">便當品項管理</div>
 </div>
 
 <div id="main">
@@ -271,13 +230,12 @@ body {
   <div class="add-form">
     <label>廠區
       <select class="f-site" id="f-site">
-        <option value="">選擇廠區</option>
+        <option>央廚</option>
+        <option>群聯</option>
+        <option>台積</option>
         <option>F20</option>
         <option>AP6B</option>
         <option>聯電</option>
-        <option>群聯</option>
-        <option>央廚</option>
-        <option>台積</option>
         <option>P8</option>
       </select>
     </label>
@@ -287,34 +245,32 @@ body {
     <label>價格
       <input class="f-price" id="f-price" placeholder="120" type="number" min="0">
     </label>
-    <label>餐盒樣式
-      <input class="f-box" id="f-box" placeholder="e.g. 圓形鋁盒">
+    <label>類別
+      <input class="f-cat" id="f-cat" placeholder="e.g. 雞">
     </label>
-    <label>備註
-      <input class="f-note" id="f-note" placeholder="選填">
+    <label>餐盒
+      <input class="f-box" id="f-box" placeholder="e.g. 圓形鋁盒">
     </label>
     <button class="btn" onclick="addItem()" style="align-self:flex-end;">＋ 新增</button>
   </div>
 
   <!-- 工具列 -->
   <div class="toolbar">
-    <!-- 廠區篩選 -->
     <div class="toolbar-row">
-      <span style="font-size:16px;font-weight:700;color:var(--dim);white-space:nowrap;">廠區</span>
-      <div id="site-filter-btns" style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:14px;font-weight:700;color:var(--dim);white-space:nowrap;">廠區</span>
+      <div id="site-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="site-btn active" data-site="">全部</button>
+        <button class="site-btn" data-site="央廚">央廚</button>
+        <button class="site-btn" data-site="群聯">群聯</button>
+        <button class="site-btn" data-site="台積">台積</button>
         <button class="site-btn" data-site="F20">F20</button>
         <button class="site-btn" data-site="AP6B">AP6B</button>
         <button class="site-btn" data-site="聯電">聯電</button>
-        <button class="site-btn" data-site="群聯">群聯</button>
-        <button class="site-btn" data-site="央廚">央廚</button>
-        <button class="site-btn" data-site="台積">台積</button>
         <button class="site-btn" data-site="P8">P8</button>
       </div>
     </div>
-    <!-- 搜尋 + 供應篩選 + 統計 -->
     <div class="toolbar-row">
-      <input type="text" id="search" placeholder="搜尋品項、餐盒…">
+      <input type="text" id="search" placeholder="搜尋品項、類別、餐盒…">
       <button class="avail-btn active" id="btn-all"   onclick="setAvailFilter('all')">全部</button>
       <button class="avail-btn"        id="btn-avail" onclick="setAvailFilter('avail')">供應中</button>
       <button class="avail-btn"        id="btn-stop"  onclick="setAvailFilter('stop')">暫停</button>
@@ -322,10 +278,29 @@ body {
     </div>
   </div>
 
-  <!-- 品項格線 -->
-  <div id="items-grid"></div>
-  <div class="empty-msg" id="empty-msg" style="display:none;">沒有符合的品項</div>
+  <!-- 表格 -->
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th class="col-site">廠區</th>
+          <th class="col-name">品項</th>
+          <th class="col-price">價格</th>
+          <th class="col-cat">類別</th>
+          <th class="col-box">餐盒</th>
+          <th class="col-avail">狀態</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="items-tbody"></tbody>
+    </table>
+    <div id="empty-msg" style="display:none;">沒有符合的品項</div>
+  </div>
+
 </div>
+
+<div id="saveToast" class="save-toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -333,7 +308,7 @@ body {
 <script src="firebase-config.js"></script>
 <script src="shared.js"></script>
 <script>
-  const SITES = ['F20','AP6B','聯電','群聯','央廚','台積','P8'];
+  const SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
 
   let items = [];
   let autoSave;
@@ -348,7 +323,7 @@ body {
     startSync('items', user, (content) => {
       if (!content) return;
       _remoteUpdate = true;
-      items = content;
+      items = Array.isArray(content) ? content : [];
       render();
       _remoteUpdate = false;
     });
@@ -364,34 +339,42 @@ body {
     render();
   });
 
-  // ── 搜尋 ──
   document.getElementById('search').addEventListener('input', (e) => {
     searchQ = e.target.value.toLowerCase();
     render();
   });
 
-  // ── 供應篩選 ──
   function setAvailFilter(mode) {
     filterAvail = mode;
-    document.getElementById('btn-all').classList.toggle('active',        mode==='all');
-    document.getElementById('btn-avail').classList.toggle('active',      mode==='avail');
+    document.getElementById('btn-all').classList.toggle('active', mode==='all');
+    document.getElementById('btn-avail').classList.toggle('active', mode==='avail');
     document.getElementById('btn-avail').classList.toggle('active-stop', false);
-    document.getElementById('btn-stop').classList.toggle('active',       false);
-    document.getElementById('btn-stop').classList.toggle('active-stop',  mode==='stop');
+    document.getElementById('btn-stop').classList.toggle('active', false);
+    document.getElementById('btn-stop').classList.toggle('active-stop', mode==='stop');
     render();
+  }
+
+  // ── 從 note 欄位解析類別 ──
+  function getCat(it) {
+    if (it.cat) return it.cat;
+    // 舊資料從 note 解析 "類別:xxx"
+    const m = (it.note||'').match(/類別[:：]([^\s,，]+)/);
+    return m ? m[1] : (it.note || '');
   }
 
   // ── RENDER ──
   function render() {
-    let list = items.filter(it => {
+    const list = items.map((it, ri) => ({ it, ri })).filter(({ it }) => {
       const matchSite  = !filterSite || it.site === filterSite;
       const matchAvail = filterAvail === 'all' ||
                          (filterAvail === 'avail' && it.avail !== false) ||
                          (filterAvail === 'stop'  && it.avail === false);
-      const matchQ     = !searchQ ||
-                         (it.name||'').toLowerCase().includes(searchQ) ||
-                         (it.box||'').toLowerCase().includes(searchQ)  ||
-                         (it.site||'').toLowerCase().includes(searchQ);
+      const cat = getCat(it).toLowerCase();
+      const matchQ = !searchQ ||
+                     (it.name||'').toLowerCase().includes(searchQ) ||
+                     cat.includes(searchQ) ||
+                     (it.box||'').toLowerCase().includes(searchQ) ||
+                     (it.site||'').toLowerCase().includes(searchQ);
       return matchSite && matchAvail && matchQ;
     });
 
@@ -403,77 +386,74 @@ body {
        <span style="color:var(--act);">供應中 <strong>${avail}</strong></span>
        <span style="color:var(--muted);">暫停 <strong>${total - avail}</strong></span>`;
 
-    const grid  = document.getElementById('items-grid');
+    const tbody = document.getElementById('items-tbody');
     const empty = document.getElementById('empty-msg');
-    grid.innerHTML = '';
+    tbody.innerHTML = '';
     empty.style.display = list.length ? 'none' : 'block';
 
-    // Group by site if no site filter
-    if (!filterSite && !searchQ) {
-      SITES.forEach(site => {
-        const group = list.filter(it => it.site === site);
-        if (!group.length) return;
-        const hdr = document.createElement('div');
-        hdr.className = 'group-header';
-        hdr.textContent = site;
-        grid.appendChild(hdr);
-        const subGrid = document.createElement('div');
-        subGrid.className = 'items-grid';
-        group.forEach(it => subGrid.appendChild(makeCard(it)));
-        grid.appendChild(subGrid);
-      });
-      // uncategorised
-      const other = list.filter(it => !SITES.includes(it.site));
-      if (other.length) {
-        const hdr = document.createElement('div');
-        hdr.className = 'group-header';
-        hdr.textContent = '其他';
-        grid.appendChild(hdr);
-        const subGrid = document.createElement('div');
-        subGrid.className = 'items-grid';
-        other.forEach(it => subGrid.appendChild(makeCard(it)));
-        grid.appendChild(subGrid);
-      }
+    // 有廠區篩選 or 搜尋 → 直接列出，不分組
+    if (filterSite || searchQ) {
+      list.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
     } else {
-      const subGrid = document.createElement('div');
-      subGrid.className = 'items-grid';
-      list.forEach(it => subGrid.appendChild(makeCard(it)));
-      grid.appendChild(subGrid);
-    }
-
-    // contenteditable listeners
-    grid.querySelectorAll('[contenteditable]').forEach(el => {
-      el.addEventListener('input', () => {
-        if (_remoteUpdate) return;
-        items[+el.dataset.idx][el.dataset.field] = el.textContent.trim();
-        autoSave();
+      // 依廠區分組
+      SITES.forEach(site => {
+        const group = list.filter(({ it }) => it.site === site);
+        if (!group.length) return;
+        const grpRow = document.createElement('tr');
+        grpRow.className = 'group-row';
+        grpRow.innerHTML = `<td colspan="8">${site}　<span style="font-weight:400;font-size:12px;color:var(--muted);">${group.length} 筆</span></td>`;
+        tbody.appendChild(grpRow);
+        group.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
       });
-    });
+      // 其他
+      const other = list.filter(({ it }) => !SITES.includes(it.site));
+      if (other.length) {
+        const grpRow = document.createElement('tr');
+        grpRow.className = 'group-row';
+        grpRow.innerHTML = `<td colspan="8">其他　<span style="font-weight:400;font-size:12px;color:var(--muted);">${other.length} 筆</span></td>`;
+        tbody.appendChild(grpRow);
+        other.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
+      }
+    }
   }
 
-  function makeCard(it) {
-    const ri = items.indexOf(it);
+  function makeRow(it, ri) {
     const isAvail = it.avail !== false;
-    const card = document.createElement('div');
-    card.className = `item-card${isAvail ? '' : ' unavail'}`;
-    card.dataset.site = it.site || '';
-    card.innerHTML = `
-      <div class="ic-top">
-        <div class="ic-name" contenteditable data-idx="${ri}" data-field="name">${esc(it.name)}</div>
-        <div class="ic-actions">
-          <button class="ic-toggle" onclick="toggleAvail(${ri})">${isAvail ? '供應中' : '已暫停'}</button>
-          <button class="ic-del"    onclick="delItem(${ri})">✕</button>
-        </div>
-      </div>
-      <span class="ic-site" data-site="${esc(it.site)}">${esc(it.site||'—')}</span>
-      <div class="ic-meta">
-        <span class="ic-price">${it.price ? '$' + it.price : '—'}</span>
-        <span class="ic-box">${esc(it.box||'—')}</span>
-      </div>
-      <div class="ic-note" contenteditable data-idx="${ri}" data-field="note"
-           data-ph="備註…">${esc(it.note)}</div>
+    const cat = getCat(it);
+    const tr = document.createElement('tr');
+    tr.className = isAvail ? '' : 'unavail';
+    tr.dataset.ri = ri;
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:12px;">${ri + 1}</td>
+      <td><span class="site-badge">${esc(it.site||'—')}</span></td>
+      <td><span class="editable" contenteditable data-ri="${ri}" data-field="name" data-ph="品項名稱">${esc(it.name)}</span></td>
+      <td><span class="editable price-val" contenteditable data-ri="${ri}" data-field="price" data-ph="—">${esc(it.price)}</span></td>
+      <td><span class="editable" contenteditable data-ri="${ri}" data-field="cat" data-ph="—">${esc(cat)}</span></td>
+      <td><span class="editable" contenteditable data-ri="${ri}" data-field="box" data-ph="—">${esc(it.box)}</span></td>
+      <td style="text-align:center;">
+        <span class="avail-toggle" onclick="toggleAvail(${ri})">${isAvail ? '供應中' : '已暫停'}</span>
+      </td>
+      <td style="text-align:center;">
+        <button class="del-btn" onclick="delItem(${ri})">✕</button>
+      </td>
     `;
-    return card;
+
+    // 監聽 contenteditable 修改
+    tr.querySelectorAll('[contenteditable]').forEach(el => {
+      el.addEventListener('blur', () => {
+        if (_remoteUpdate) return;
+        const field = el.dataset.field;
+        const val = el.textContent.trim();
+        items[+el.dataset.ri][field] = val;
+        autoSave();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+        if (e.key === 'Escape') { el.blur(); }
+      });
+    });
+
+    return tr;
   }
 
   // ── CRUD ──
@@ -481,12 +461,12 @@ body {
     const site  = document.getElementById('f-site').value.trim();
     const name  = document.getElementById('f-name').value.trim();
     const price = document.getElementById('f-price').value.trim();
+    const cat   = document.getElementById('f-cat').value.trim();
     const box   = document.getElementById('f-box').value.trim();
-    const note  = document.getElementById('f-note').value.trim();
     if (!name) { alert('請填入品項名稱'); return; }
-    items.unshift({ site, name, price, box, note, avail: true });
+    items.unshift({ site, name, price, cat, box, avail: true });
     render(); autoSave();
-    ['f-name','f-price','f-box','f-note'].forEach(id => document.getElementById(id).value = '');
+    ['f-name','f-price','f-cat','f-box'].forEach(id => document.getElementById(id).value = '');
   }
 
   function toggleAvail(i) {
