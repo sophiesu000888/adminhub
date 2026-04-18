@@ -87,6 +87,24 @@ body {
 .avail-btn.active       { border-color: var(--act); color: var(--act); background: #f0fff4; }
 .avail-btn.active-stop  { border-color: var(--red); color: var(--red); background: #fff0f0; }
 
+/* ── MULTI-FILTER TAGS ── */
+.filter-tag {
+  font-size: 26px; font-weight: 700;
+  background: white; color: var(--dim);
+  border: 1.5px solid var(--border2); border-radius: 20px;
+  padding: 3px 14px; cursor: pointer; white-space: nowrap; transition: all .1s;
+  font-family: 'Noto Sans TC', sans-serif; user-select: none;
+}
+.filter-tag:hover { border-color: var(--ink); color: var(--ink); }
+.filter-tag.active {
+  background: var(--ink); color: white;
+  border-color: var(--ink); box-shadow: 2px 2px 0 0 var(--ink);
+}
+.filter-row-label {
+  font-size: 26px; font-weight: 700; color: var(--muted);
+  white-space: nowrap; min-width: 60px;
+}
+
 .stats { font-size: 28px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
 .stats strong { color: var(--ink); }
 
@@ -161,7 +179,6 @@ tbody tr {
 }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: #f5f2ea; }
-tbody tr.unavail { opacity: .5; }
 
 tbody td {
   padding: 10px 12px; vertical-align: middle;
@@ -175,30 +192,18 @@ tbody td:first-child { text-align: center; }
   padding: 2px 10px; border-radius: 5px;
 }
 
-/* editable cells */
-.editable {
-  outline: none; display: block; width: 100%;
-  min-height: 28px; border-radius: 4px;
-  padding: 2px 4px; transition: background .1s;
-}
-.editable:hover  { background: #eef4ff; cursor: text; }
-.editable:focus  { background: #ddeeff; }
-.editable[data-ph]:empty::before { content: attr(data-ph); color: #ccc; font-style: italic; }
-
 /* price cell */
-.price-val { color: var(--blue); font-weight: 700; font-size: 30px; }
+.price-val { color: var(--blue); font-weight: 700; }
 
-/* avail toggle */
-.avail-toggle {
-  display: inline-block; font-size: 24px; font-weight: 700;
-  padding: 3px 12px; border-radius: 12px; cursor: pointer;
-  border: 1.5px solid var(--act); color: var(--act); background: #f0fff4;
-  transition: all .1s; white-space: nowrap;
-  font-family: 'Noto Sans TC', sans-serif;
+/* edit / del btns */
+.edit-btn {
+  background: white; border: 1.5px solid var(--blue); color: var(--blue);
+  border-radius: 6px; font-size: 24px; font-weight: 700; padding: 3px 14px;
+  cursor: pointer; font-family: inherit; transition: all .1s;
+  box-shadow: 2px 2px 0 0 var(--blue);
 }
-.unavail .avail-toggle { border-color: var(--muted); color: var(--muted); background: var(--s2); }
+.edit-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--blue); }
 
-/* del btn */
 .del-btn {
   background: none; border: none; cursor: pointer;
   color: var(--border2); font-size: 28px; padding: 2px 5px; border-radius: 4px;
@@ -216,12 +221,74 @@ tr.group-row td {
 #empty-msg {
   text-align: center; padding: 40px; color: var(--muted); font-size: 30px;
 }
+
+/* ── EDIT MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(45,45,45,0.5);
+  z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: 6px 6px 0 0 var(--ink);
+  padding: 28px 32px 24px;
+  width: min(520px, calc(100vw - 32px));
+  animation: slideUp .18s ease;
+}
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.modal h3 {
+  font-size: 28px; font-weight: 700; margin-bottom: 20px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+}
+
+.modal-field {
+  display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px;
+}
+.modal-field label {
+  font-size: 24px; font-weight: 700; color: var(--dim);
+}
+.modal-field input,
+.modal-field select {
+  padding: 8px 12px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 26px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none; background: var(--s2); color: var(--ink);
+  transition: border-color .1s;
+}
+.modal-field input:focus,
+.modal-field select:focus { border-color: var(--ink); background: white; }
+
+.modal-actions {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
+}
+.btn-confirm {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 26px;
+  background: var(--ink); color: white;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 7px 24px; cursor: pointer;
+  box-shadow: 2px 2px 0 0 var(--ink); transition: all .1s;
+}
+.btn-confirm:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
+.btn-cancel {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 26px;
+  background: white; color: var(--dim);
+  border: 2px solid var(--border2); border-radius: 8px;
+  padding: 7px 24px; cursor: pointer; transition: all .1s;
+}
+.btn-cancel:hover { border-color: var(--ink); color: var(--ink); }
 </style>
 </head>
 <body>
 
 <div id="page-header">
-  <div id="page-title">便當品項管理</div>
+  <div id="page-title">Bento Item List</div>
 </div>
 
 <div id="main">
@@ -256,24 +323,19 @@ tr.group-row td {
 
   <!-- 工具列 -->
   <div class="toolbar">
+    <!-- 廠區多重篩選 -->
     <div class="toolbar-row">
-      <span style="font-size:14px;font-weight:700;color:var(--dim);white-space:nowrap;">廠區</span>
-      <div id="site-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;">
-        <button class="site-btn active" data-site="">全部</button>
-        <button class="site-btn" data-site="央廚">央廚</button>
-        <button class="site-btn" data-site="群聯">群聯</button>
-        <button class="site-btn" data-site="台積">台積</button>
-        <button class="site-btn" data-site="F20">F20</button>
-        <button class="site-btn" data-site="AP6B">AP6B</button>
-        <button class="site-btn" data-site="聯電">聯電</button>
-        <button class="site-btn" data-site="P8">P8</button>
-      </div>
+      <span class="filter-row-label">廠區</span>
+      <div id="site-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
     </div>
+    <!-- 類別多重篩選 -->
     <div class="toolbar-row">
-      <input type="text" id="search" placeholder="搜尋品項、類別、餐盒…">
-      <button class="avail-btn active" id="btn-all"   onclick="setAvailFilter('all')">全部</button>
-      <button class="avail-btn"        id="btn-avail" onclick="setAvailFilter('avail')">供應中</button>
-      <button class="avail-btn"        id="btn-stop"  onclick="setAvailFilter('stop')">暫停</button>
+      <span class="filter-row-label">類別</span>
+      <div id="cat-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+    </div>
+    <!-- 搜尋 + 統計 + 匯出入 -->
+    <div class="toolbar-row">
+      <input type="text" id="search" placeholder="搜尋品項、餐盒…">
       <div class="stats" id="stats"></div>
       <div style="margin-left:auto;display:flex;gap:6px;">
         <button class="btn" style="font-size:26px;padding:5px 14px;background:white;color:var(--act);border-color:var(--act);box-shadow:2px 2px 0 0 var(--act);" onclick="exportExcel()">⬇ 匯出 Excel</button>
@@ -296,18 +358,51 @@ tr.group-row td {
           <th class="col-price">價格</th>
           <th class="col-cat">類別</th>
           <th class="col-box">餐盒</th>
-          <th class="col-avail">狀態</th>
           <th class="col-del"></th>
         </tr>
       </thead>
       <tbody id="items-tbody"></tbody>
     </table>
-    <div id="empty-msg" style="display:none;">沒有符合的品項</div>
+    <div id="empty-msg" style="display:none;">No items found</div>
   </div>
 
 </div>
 
 <div id="saveToast" class="save-toast"></div>
+
+<!-- 編輯 Modal -->
+<div class="modal-overlay" id="editModal" style="display:none;" onclick="modalOverlayClick(event)">
+  <div class="modal">
+    <h3>✏️ Edit Item</h3>
+    <div class="modal-field">
+      <label>廠區 Site</label>
+      <select id="m-site">
+        <option>央廚</option><option>群聯</option><option>台積</option>
+        <option>F20</option><option>AP6B</option><option>聯電</option><option>P8</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>品項 Name</label>
+      <input id="m-name" type="text">
+    </div>
+    <div class="modal-field">
+      <label>價格 Price</label>
+      <input id="m-price" type="number" min="0">
+    </div>
+    <div class="modal-field">
+      <label>類別 Category</label>
+      <input id="m-cat" type="text">
+    </div>
+    <div class="modal-field">
+      <label>餐盒 Box</label>
+      <input id="m-box" type="text">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmEdit()">Confirm</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -320,8 +415,8 @@ tr.group-row td {
 
   let items = [];
   let autoSave;
-  let filterSite  = '';
-  let filterAvail = 'all';
+  let filterSites = new Set();  // 空 = 全部
+  let filterCats  = new Set();  // 空 = 全部
   let searchQ     = '';
   let _remoteUpdate = false;
 
@@ -332,137 +427,159 @@ tr.group-row td {
       if (!content) return;
       _remoteUpdate = true;
       items = Array.isArray(content) ? content : [];
+      buildFilterBtns();
       render();
       _remoteUpdate = false;
     });
   });
 
-  // ── 廠區篩選 ──
-  document.getElementById('site-filter-btns').addEventListener('click', (e) => {
-    const btn = e.target.closest('.site-btn');
-    if (!btn) return;
-    filterSite = btn.dataset.site;
-    document.querySelectorAll('.site-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    render();
-  });
+  // ── 從 note 欄位解析類別 ──
+  function getCat(it) {
+    if (it.cat) return it.cat;
+    const m = (it.note||'').match(/類別[:：]([^\s,，]+)/);
+    return m ? m[1] : (it.note || '');
+  }
+
+  // ── 動態建立篩選按鈕 ──
+  function buildFilterBtns() {
+    // 廠區：固定清單 + 資料中出現的
+    const allSites = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])];
+    const siteDiv = document.getElementById('site-filter-btns');
+    siteDiv.innerHTML = '';
+    allSites.forEach(site => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag' + (filterSites.has(site) ? ' active' : '');
+      btn.textContent = site;
+      btn.onclick = () => toggleFilter(filterSites, site, btn, render);
+      siteDiv.appendChild(btn);
+    });
+
+    // 類別：從資料動態抽取
+    const allCats = [...new Set(items.map(i => getCat(i)).filter(Boolean))].sort();
+    const catDiv = document.getElementById('cat-filter-btns');
+    catDiv.innerHTML = '';
+    allCats.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag' + (filterCats.has(cat) ? ' active' : '');
+      btn.textContent = cat;
+      btn.onclick = () => toggleFilter(filterCats, cat, btn, render);
+      catDiv.appendChild(btn);
+    });
+  }
+
+  function toggleFilter(set, val, btn, onUpdate) {
+    if (set.has(val)) { set.delete(val); btn.classList.remove('active'); }
+    else              { set.add(val);    btn.classList.add('active'); }
+    onUpdate();
+  }
 
   document.getElementById('search').addEventListener('input', (e) => {
     searchQ = e.target.value.toLowerCase();
     render();
   });
 
-  function setAvailFilter(mode) {
-    filterAvail = mode;
-    document.getElementById('btn-all').classList.toggle('active', mode==='all');
-    document.getElementById('btn-avail').classList.toggle('active', mode==='avail');
-    document.getElementById('btn-avail').classList.toggle('active-stop', false);
-    document.getElementById('btn-stop').classList.toggle('active', false);
-    document.getElementById('btn-stop').classList.toggle('active-stop', mode==='stop');
-    render();
-  }
-
-  // ── 從 note 欄位解析類別 ──
-  function getCat(it) {
-    if (it.cat) return it.cat;
-    // 舊資料從 note 解析 "類別:xxx"
-    const m = (it.note||'').match(/類別[:：]([^\s,，]+)/);
-    return m ? m[1] : (it.note || '');
-  }
-
   // ── RENDER ──
   function render() {
     const list = items.map((it, ri) => ({ it, ri })).filter(({ it }) => {
-      const matchSite  = !filterSite || it.site === filterSite;
-      const matchAvail = filterAvail === 'all' ||
-                         (filterAvail === 'avail' && it.avail !== false) ||
-                         (filterAvail === 'stop'  && it.avail === false);
-      const cat = getCat(it).toLowerCase();
-      const matchQ = !searchQ ||
-                     (it.name||'').toLowerCase().includes(searchQ) ||
-                     cat.includes(searchQ) ||
-                     (it.box||'').toLowerCase().includes(searchQ) ||
-                     (it.site||'').toLowerCase().includes(searchQ);
-      return matchSite && matchAvail && matchQ;
+      const matchSite = filterSites.size === 0 || filterSites.has(it.site);
+      const cat = getCat(it);
+      const matchCat  = filterCats.size  === 0 || filterCats.has(cat);
+      const matchQ    = !searchQ ||
+                        (it.name||'').toLowerCase().includes(searchQ) ||
+                        (it.box||'').toLowerCase().includes(searchQ);
+      return matchSite && matchCat && matchQ;
     });
 
-    // Stats
     const total = items.length;
-    const avail = items.filter(i => i.avail !== false).length;
     document.getElementById('stats').innerHTML =
       `<span>全部 <strong>${total}</strong></span>
-       <span style="color:var(--act);">供應中 <strong>${avail}</strong></span>
-       <span style="color:var(--muted);">暫停 <strong>${total - avail}</strong></span>`;
+       <span style="color:var(--blue);">篩選後 <strong>${list.length}</strong></span>`;
 
     const tbody = document.getElementById('items-tbody');
     const empty = document.getElementById('empty-msg');
     tbody.innerHTML = '';
     empty.style.display = list.length ? 'none' : 'block';
 
-    // 有廠區篩選 or 搜尋 → 直接列出，不分組
-    if (filterSite || searchQ) {
+    // 有篩選或搜尋時直接列出；否則依廠區分組
+    const isFiltered = filterSites.size > 0 || filterCats.size > 0 || searchQ;
+    if (isFiltered) {
       list.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
     } else {
-      // 依廠區分組
-      SITES.forEach(site => {
+      const sitesInData = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])];
+      sitesInData.forEach(site => {
         const group = list.filter(({ it }) => it.site === site);
         if (!group.length) return;
         const grpRow = document.createElement('tr');
         grpRow.className = 'group-row';
-        grpRow.innerHTML = `<td colspan="8">${site}　<span style="font-weight:400;font-size:12px;color:var(--muted);">${group.length} 筆</span></td>`;
+        grpRow.innerHTML = `<td colspan="7">${site}　<span style="font-weight:400;font-size:22px;color:var(--muted);">${group.length} items</span></td>`;
         tbody.appendChild(grpRow);
         group.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
       });
-      // 其他
-      const other = list.filter(({ it }) => !SITES.includes(it.site));
-      if (other.length) {
-        const grpRow = document.createElement('tr');
-        grpRow.className = 'group-row';
-        grpRow.innerHTML = `<td colspan="8">其他　<span style="font-weight:400;font-size:12px;color:var(--muted);">${other.length} 筆</span></td>`;
-        tbody.appendChild(grpRow);
-        other.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
-      }
     }
   }
 
   function makeRow(it, ri) {
-    const isAvail = it.avail !== false;
     const cat = getCat(it);
     const tr = document.createElement('tr');
-    tr.className = isAvail ? '' : 'unavail';
     tr.dataset.ri = ri;
     tr.innerHTML = `
-      <td style="color:var(--muted);font-size:12px;">${ri + 1}</td>
+      <td style="color:var(--muted);font-size:22px;">${ri + 1}</td>
       <td><span class="site-badge">${esc(it.site||'—')}</span></td>
-      <td><span class="editable" contenteditable data-ri="${ri}" data-field="name" data-ph="品項名稱">${esc(it.name)}</span></td>
-      <td><span class="editable price-val" contenteditable data-ri="${ri}" data-field="price" data-ph="—">${esc(it.price)}</span></td>
-      <td><span class="editable" contenteditable data-ri="${ri}" data-field="cat" data-ph="—">${esc(cat)}</span></td>
-      <td><span class="editable" contenteditable data-ri="${ri}" data-field="box" data-ph="—">${esc(it.box)}</span></td>
-      <td style="text-align:center;">
-        <span class="avail-toggle" onclick="toggleAvail(${ri})">${isAvail ? '供應中' : '已暫停'}</span>
-      </td>
-      <td style="text-align:center;">
+      <td>${esc(it.name)}</td>
+      <td class="price-val">${it.price ? '$' + esc(it.price) : '—'}</td>
+      <td>${esc(cat)}</td>
+      <td>${esc(it.box||'—')}</td>
+      <td style="text-align:center;white-space:nowrap;">
+        <button class="edit-btn" onclick="openModal(${ri})">✏️ Edit</button>
         <button class="del-btn" onclick="delItem(${ri})">✕</button>
       </td>
     `;
-
-    // 監聽 contenteditable 修改
-    tr.querySelectorAll('[contenteditable]').forEach(el => {
-      el.addEventListener('blur', () => {
-        if (_remoteUpdate) return;
-        const field = el.dataset.field;
-        const val = el.textContent.trim();
-        items[+el.dataset.ri][field] = val;
-        autoSave();
-      });
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
-        if (e.key === 'Escape') { el.blur(); }
-      });
-    });
-
     return tr;
   }
+
+  // ── MODAL ──
+  let _editingRi = null;
+
+  function openModal(ri) {
+    _editingRi = ri;
+    const it = items[ri];
+    document.getElementById('m-site').value  = it.site  || '';
+    document.getElementById('m-name').value  = it.name  || '';
+    document.getElementById('m-price').value = it.price || '';
+    document.getElementById('m-cat').value   = getCat(it);
+    document.getElementById('m-box').value   = it.box   || '';
+    document.getElementById('editModal').style.display = 'flex';
+    document.getElementById('m-name').focus();
+  }
+
+  function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+    _editingRi = null;
+  }
+
+  function modalOverlayClick(e) {
+    if (e.target === document.getElementById('editModal')) closeModal();
+  }
+
+  function confirmEdit() {
+    if (_editingRi === null) return;
+    items[_editingRi] = {
+      site:  document.getElementById('m-site').value.trim(),
+      name:  document.getElementById('m-name').value.trim(),
+      price: document.getElementById('m-price').value.trim(),
+      cat:   document.getElementById('m-cat').value.trim(),
+      box:   document.getElementById('m-box').value.trim(),
+    };
+    closeModal();
+    buildFilterBtns();
+    render();
+    autoSave();
+  }
+
+  // Enter key in modal confirms
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
 
   // ── CRUD ──
   function addItem() {
@@ -472,20 +589,19 @@ tr.group-row td {
     const cat   = document.getElementById('f-cat').value.trim();
     const box   = document.getElementById('f-box').value.trim();
     if (!name) { alert('請填入品項名稱'); return; }
-    items.unshift({ site, name, price, cat, box, avail: true });
-    render(); autoSave();
+    items.unshift({ site, name, price, cat, box });
+    buildFilterBtns();
+    render();
+    autoSave();
     ['f-name','f-price','f-cat','f-box'].forEach(id => document.getElementById(id).value = '');
-  }
-
-  function toggleAvail(i) {
-    items[i].avail = items[i].avail === false;
-    render(); autoSave();
   }
 
   function delItem(i) {
     if (!confirm(`刪除「${items[i].name}」？`)) return;
     items.splice(i, 1);
-    render(); autoSave();
+    buildFilterBtns();
+    render();
+    autoSave();
   }
 
   // ── 匯出 Excel ──
@@ -496,25 +612,21 @@ tr.group-row td {
       '價格':   it.price || '',
       '類別':   getCat(it),
       '餐盒':   it.box   || '',
-      '狀態':   it.avail === false ? '暫停' : '供應中',
     }));
 
     const ws = XLSX.utils.json_to_sheet(rows);
-
-    // 欄寬
     ws['!cols'] = [
       { wch: 8 },  // 廠區
       { wch: 22 }, // 品項
       { wch: 8 },  // 價格
       { wch: 12 }, // 類別
       { wch: 16 }, // 餐盒
-      { wch: 8 },  // 狀態
     ];
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, '品項');
+    XLSX.utils.book_append_sheet(wb, ws, 'Items');
     const date = new Date().toISOString().slice(0,10);
-    XLSX.writeFile(wb, `便當品項_${date}.xlsx`);
+    XLSX.writeFile(wb, `BentoItemList_${date}.xlsx`);
   }
 
   // ── 匯入 Excel ──
