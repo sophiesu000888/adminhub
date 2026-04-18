@@ -59,7 +59,7 @@ body {
 .toolbar-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .site-btn {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 16px;
+  font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px;
   background: white; color: var(--ink);
   border: 2px solid var(--ink); border-radius: 8px;
   padding: 3px 12px; cursor: pointer;
@@ -71,14 +71,14 @@ body {
 #search {
   flex: 1; min-width: 160px;
   padding: 6px 12px; border: 2px solid var(--border2);
-  border-radius: 8px; font-size: 15px;
+  border-radius: 8px; font-size: 30px;
   font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2);
 }
 #search:focus { border-color: var(--ink); background: white; }
 
 .avail-btn {
-  font-size: 14px; font-weight: 700;
+  font-size: 28px; font-weight: 700;
   background: white; color: var(--dim);
   border: 1.5px solid var(--border2); border-radius: 20px;
   padding: 3px 12px; cursor: pointer; white-space: nowrap; transition: all .1s;
@@ -87,7 +87,7 @@ body {
 .avail-btn.active       { border-color: var(--act); color: var(--act); background: #f0fff4; }
 .avail-btn.active-stop  { border-color: var(--red); color: var(--red); background: #fff0f0; }
 
-.stats { font-size: 14px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.stats { font-size: 28px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
 .stats strong { color: var(--ink); }
 
 /* ── ADD FORM ── */
@@ -102,24 +102,24 @@ body {
 }
 .add-form label {
   display: flex; flex-direction: column; gap: 3px;
-  font-size: 13px; font-weight: 700; color: var(--dim);
+  font-size: 26px; font-weight: 700; color: var(--dim);
 }
 .add-form input, .add-form select {
   padding: 6px 9px; border: 2px solid var(--border2);
-  border-radius: 6px; font-size: 14px;
+  border-radius: 6px; font-size: 28px;
   font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2); color: var(--ink);
   transition: border-color .1s;
 }
 .add-form input:focus, .add-form select:focus { border-color: var(--ink); background: white; }
-.add-form .f-site  { width: 90px; }
-.add-form .f-name  { min-width: 140px; }
-.add-form .f-price { width: 80px; }
-.add-form .f-box   { min-width: 120px; }
-.add-form .f-note  { min-width: 120px; }
+.add-form .f-site  { width: 130px; }
+.add-form .f-name  { min-width: 200px; }
+.add-form .f-price { width: 120px; }
+.add-form .f-box   { min-width: 180px; }
+.add-form .f-note  { min-width: 180px; }
 
 .btn {
-  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 30px;
   background: var(--ink); color: white;
   border: 2px solid var(--ink); border-radius: 8px;
   padding: 7px 18px; cursor: pointer;
@@ -137,23 +137,23 @@ body {
 }
 
 table {
-  width: 100%; border-collapse: collapse; font-size: 14px;
+  width: 100%; border-collapse: collapse; font-size: 28px;
 }
 
 thead th {
   background: var(--ink); color: white;
   padding: 10px 12px; text-align: left; font-weight: 700;
-  font-size: 13px; letter-spacing: 1px; white-space: nowrap;
+  font-size: 26px; letter-spacing: 1px; white-space: nowrap;
   position: sticky; top: 44px; z-index: 2;
 }
 thead th:first-child { width: 36px; text-align: center; }
-thead th.col-site  { width: 80px; }
-thead th.col-name  { min-width: 160px; }
-thead th.col-price { width: 80px; }
-thead th.col-cat   { width: 100px; }
-thead th.col-box   { width: 140px; }
-thead th.col-avail { width: 80px; text-align: center; }
-thead th.col-del   { width: 40px; text-align: center; }
+thead th.col-site  { width: 100px; }
+thead th.col-name  { min-width: 200px; }
+thead th.col-price { width: 100px; }
+thead th.col-cat   { width: 130px; }
+thead th.col-box   { width: 180px; }
+thead th.col-avail { width: 110px; text-align: center; }
+thead th.col-del   { width: 50px; text-align: center; }
 
 tbody tr {
   border-bottom: 1px solid var(--border2);
@@ -164,21 +164,21 @@ tbody tr:hover { background: #f5f2ea; }
 tbody tr.unavail { opacity: .5; }
 
 tbody td {
-  padding: 7px 12px; vertical-align: middle;
+  padding: 10px 12px; vertical-align: middle;
 }
 tbody td:first-child { text-align: center; }
 
 /* site badge */
 .site-badge {
-  display: inline-block; font-size: 12px; font-weight: 700;
+  display: inline-block; font-size: 24px; font-weight: 700;
   background: var(--ink); color: white;
-  padding: 1px 7px; border-radius: 5px;
+  padding: 2px 10px; border-radius: 5px;
 }
 
 /* editable cells */
 .editable {
   outline: none; display: block; width: 100%;
-  min-height: 20px; border-radius: 4px;
+  min-height: 28px; border-radius: 4px;
   padding: 2px 4px; transition: background .1s;
 }
 .editable:hover  { background: #eef4ff; cursor: text; }
@@ -186,12 +186,12 @@ tbody td:first-child { text-align: center; }
 .editable[data-ph]:empty::before { content: attr(data-ph); color: #ccc; font-style: italic; }
 
 /* price cell */
-.price-val { color: var(--blue); font-weight: 700; font-size: 15px; }
+.price-val { color: var(--blue); font-weight: 700; font-size: 30px; }
 
 /* avail toggle */
 .avail-toggle {
-  display: inline-block; font-size: 12px; font-weight: 700;
-  padding: 2px 8px; border-radius: 12px; cursor: pointer;
+  display: inline-block; font-size: 24px; font-weight: 700;
+  padding: 3px 12px; border-radius: 12px; cursor: pointer;
   border: 1.5px solid var(--act); color: var(--act); background: #f0fff4;
   transition: all .1s; white-space: nowrap;
   font-family: 'Noto Sans TC', sans-serif;
@@ -201,20 +201,20 @@ tbody td:first-child { text-align: center; }
 /* del btn */
 .del-btn {
   background: none; border: none; cursor: pointer;
-  color: var(--border2); font-size: 16px; padding: 2px 5px; border-radius: 4px;
+  color: var(--border2); font-size: 28px; padding: 2px 5px; border-radius: 4px;
   transition: color .1s; line-height: 1;
 }
 .del-btn:hover { color: var(--red); }
 
 /* group header row */
 tr.group-row td {
-  background: var(--s2); padding: 6px 14px;
-  font-weight: 700; font-size: 13px; color: var(--dim);
+  background: var(--s2); padding: 8px 14px;
+  font-weight: 700; font-size: 26px; color: var(--dim);
   letter-spacing: 1px; border-bottom: 1px solid var(--border2);
 }
 
 #empty-msg {
-  text-align: center; padding: 40px; color: var(--muted); font-size: 15px;
+  text-align: center; padding: 40px; color: var(--muted); font-size: 30px;
 }
 </style>
 </head>
@@ -275,6 +275,13 @@ tr.group-row td {
       <button class="avail-btn"        id="btn-avail" onclick="setAvailFilter('avail')">供應中</button>
       <button class="avail-btn"        id="btn-stop"  onclick="setAvailFilter('stop')">暫停</button>
       <div class="stats" id="stats"></div>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button class="btn" style="font-size:26px;padding:5px 14px;background:white;color:var(--act);border-color:var(--act);box-shadow:2px 2px 0 0 var(--act);" onclick="exportExcel()">⬇ 匯出 Excel</button>
+        <label class="btn" style="font-size:26px;padding:5px 14px;background:white;color:var(--blue);border-color:var(--blue);box-shadow:2px 2px 0 0 var(--blue);cursor:pointer;">
+          ⬆ 匯入 Excel
+          <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this)">
+        </label>
+      </div>
     </div>
   </div>
 
@@ -302,6 +309,7 @@ tr.group-row td {
 
 <div id="saveToast" class="save-toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -478,6 +486,83 @@ tr.group-row td {
     if (!confirm(`刪除「${items[i].name}」？`)) return;
     items.splice(i, 1);
     render(); autoSave();
+  }
+
+  // ── 匯出 Excel ──
+  function exportExcel() {
+    const rows = items.map(it => ({
+      '廠區':   it.site  || '',
+      '品項':   it.name  || '',
+      '價格':   it.price || '',
+      '類別':   getCat(it),
+      '餐盒':   it.box   || '',
+      '狀態':   it.avail === false ? '暫停' : '供應中',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+
+    // 欄寬
+    ws['!cols'] = [
+      { wch: 8 },  // 廠區
+      { wch: 22 }, // 品項
+      { wch: 8 },  // 價格
+      { wch: 12 }, // 類別
+      { wch: 16 }, // 餐盒
+      { wch: 8 },  // 狀態
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '品項');
+    const date = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `便當品項_${date}.xlsx`);
+  }
+
+  // ── 匯入 Excel ──
+  function importExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = ''; // reset 讓同一檔案可重複選
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        if (!rows.length) { alert('Excel 沒有資料'); return; }
+
+        // 欄位對應（容許中文或英文欄名）
+        const mapped = rows.map(r => ({
+          site:  r['廠區'] || r['site']  || '',
+          name:  r['品項'] || r['name']  || '',
+          price: String(r['價格'] || r['price'] || ''),
+          cat:   r['類別'] || r['cat']   || '',
+          box:   r['餐盒'] || r['box']   || '',
+          avail: (r['狀態'] || r['avail'] || '供應中') !== '暫停',
+        })).filter(r => r.name); // 過濾掉沒有品項名的空行
+
+        if (!mapped.length) { alert('沒有找到有效品項（需有「品項」欄）'); return; }
+
+        const mode = confirm(
+          `讀取到 ${mapped.length} 筆品項。\n\n` +
+          `確定 → 覆蓋現有全部資料\n取消 → 附加到現有資料末尾`
+        );
+
+        if (mode) {
+          items = mapped;
+        } else {
+          items = [...items, ...mapped];
+        }
+
+        render();
+        autoSave();
+        alert(`✅ 已${mode ? '覆蓋匯入' : '附加匯入'} ${mapped.length} 筆品項`);
+      } catch(err) {
+        alert('匯入失敗：' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   }
 
   function esc(s) {
