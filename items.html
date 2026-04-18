@@ -434,29 +434,11 @@ tr.group-row td {
   background: var(--s1); border-left: 2.5px solid var(--ink);
   box-shadow: -6px 0 24px rgba(45,45,45,.15);
   z-index: 9001; display: flex; flex-direction: column;
-  padding: 0; gap: 0;
+  padding: 28px 24px; gap: 16px;
   transition: right .25s cubic-bezier(.4,0,.2,1);
-  overflow: hidden;
 }
 #drawer.open { right: 0; }
-#drawer-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px 14px;
-  border-bottom: 2px solid var(--ink);
-  background: var(--ink);
-  flex-shrink: 0;
-  /* push below any status bar injected at top */
-  padding-top: max(18px, env(safe-area-inset-top, 18px));
-}
-#drawer-header h3 {
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 28px; font-weight: 700; color: white; margin: 0;
-  display: flex; align-items: center; gap: 8px;
-}
-#drawer-body {
-  display: flex; flex-direction: column; gap: 16px;
-  padding: 20px 20px; overflow-y: auto; flex: 1;
-}
+#drawer h3 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
 #drawer .drawer-btn {
   font-family: inherit; font-weight: 700; font-size: 26px;
   border: 2px solid var(--ink); border-radius: 10px;
@@ -470,12 +452,11 @@ tr.group-row td {
 #drawer .drawer-btn.import { background: #eaf3fb; color: #1a5f8a; border-color: #2980b9; box-shadow: 3px 3px 0 #2980b9; }
 #drawer .drawer-btn.import:hover { box-shadow: 2px 2px 0 #2980b9; }
 #drawer .drawer-close {
-  background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.4);
-  font-size: 22px; cursor: pointer; color: white;
-  padding: 4px 10px; border-radius: 8px; line-height: 1;
-  transition: background .1s; flex-shrink: 0;
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; font-size: 28px; cursor: pointer;
+  color: var(--muted); padding: 4px 8px; border-radius: 6px;
 }
-#drawer .drawer-close:hover { background: rgba(255,255,255,.3); }
+#drawer .drawer-close:hover { background: var(--s2); color: var(--ink); }
 #drawer-toggle {
   font-family: inherit; font-weight: 700; font-size: 26px;
   background: white; color: var(--ink);
@@ -607,20 +588,16 @@ tr.group-row td {
 <!-- 匯出入抽屜 -->
 <div id="drawer-overlay" onclick="closeDrawer()"></div>
 <div id="drawer">
-  <div id="drawer-header">
-    <h3>📂 匯出 / 匯入</h3>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  </div>
-  <div id="drawer-body">
-    <button class="drawer-btn export" onclick="exportExcel();closeDrawer()">
-      <span>⬇</span><span>匯出 Excel</span>
-    </button>
-    <label class="drawer-btn import" style="cursor:pointer;">
-      <span>⬆</span><span>匯入 Excel</span>
-      <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeDrawer()">
-    </label>
-    <p style="font-size:22px;color:var(--muted);margin-top:8px;">匯入時可選擇覆蓋或附加到現有資料</p>
-  </div>
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h3>📂 匯出 / 匯入</h3>
+  <button class="drawer-btn export" onclick="exportExcel();closeDrawer()">
+    <span>⬇</span><span>匯出 Excel</span>
+  </button>
+  <label class="drawer-btn import" style="cursor:pointer;">
+    <span>⬆</span><span>匯入 Excel</span>
+    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeDrawer()">
+  </label>
+  <p style="font-size:22px;color:var(--muted);margin-top:8px;">匯入時可選擇覆蓋或附加到現有資料</p>
 </div>
 
 <div id="saveToast" class="save-toast"></div>
@@ -687,9 +664,16 @@ tr.group-row td {
 <script src="firebase-config.js"></script>
 <script src="shared.js"></script>
 <script>
-  let SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
-  let CATS  = ['豬','雞','牛','鴨','雙拼','舒肥'];
-  let BOXES = ['SP24-5黑色餐盒','CR900植纖餐盒','十貫牛皮壽司盒','7號輕食盒','902碗'];
+  // 預設清單（只在雲端從未存過時使用）
+  const DEFAULT_SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
+  const DEFAULT_CATS  = ['豬','雞','牛','鴨','雙拼','舒肥'];
+  const DEFAULT_BOXES = ['SP24-5黑色餐盒','CR900植纖餐盒','十貫牛皮壽司盒','7號輕食盒','902碗'];
+
+  let SITES = [...DEFAULT_SITES];
+  let CATS  = [...DEFAULT_CATS];
+  let BOXES = [...DEFAULT_BOXES];
+
+  let autoSaveOptions;
 
   // ── 同步所有類別/餐盒下拉選單 ──
   function syncSelects(type) {
@@ -756,6 +740,7 @@ tr.group-row td {
     input.value = '';
     renderOptList();
     input.focus();
+    if (autoSaveOptions) autoSaveOptions();
   }
   function deleteOption(idx) {
     const list = _manageType === 'cat' ? CATS : _manageType === 'box' ? BOXES : SITES;
@@ -765,13 +750,14 @@ tr.group-row td {
     syncSelects(_manageType);
     if (_manageType === 'site') buildFilterBtns();
     renderOptList();
+    if (autoSaveOptions) autoSaveOptions();
   }
 
   let items = [];
   let autoSave;
-  let filterSites = new Set();  // 空 = 全部
-  let filterCats  = new Set();  // 空 = 全部
-  let filterBoxes = new Set();  // 空 = 全部
+  let filterSites = new Set();
+  let filterCats  = new Set();
+  let filterBoxes = new Set();
   let searchQ     = '';
   let _remoteUpdate = false;
 
@@ -786,6 +772,18 @@ tr.group-row td {
       document.body.style.paddingTop = h + 'px';
       document.querySelectorAll('thead th').forEach(th => th.style.top = h + 'px');
     });
+
+    // 同步選項清單（廠區 / 類別 / 餐盒）
+    autoSaveOptions = makeAutoSave('options', () => ({ sites: SITES, cats: CATS, boxes: BOXES }));
+    startSync('options', user, (content) => {
+      if (!content) return;
+      if (Array.isArray(content.sites) && content.sites.length) SITES = content.sites;
+      if (Array.isArray(content.cats)  && content.cats.length)  CATS  = content.cats;
+      if (Array.isArray(content.boxes) && content.boxes.length) BOXES = content.boxes;
+      syncSelects('site'); syncSelects('cat'); syncSelects('box');
+      buildFilterBtns();
+    });
+
     autoSave = makeAutoSave('items', () => items);
     startSync('items', user, (content) => {
       if (!content) return;
@@ -1258,11 +1256,6 @@ tr.group-row td {
 
   // ── DRAWER ──
   function openDrawer() {
-    // match drawer header top padding to current status bar height
-    const bar = document.querySelector('#status-bar, [id^="status-bar"]');
-    const barH = bar ? bar.offsetHeight : 0;
-    const header = document.getElementById('drawer-header');
-    if (header) header.style.paddingTop = Math.max(18, barH + 10) + 'px';
     document.getElementById('drawer').classList.add('open');
     document.getElementById('drawer-overlay').classList.add('open');
   }
