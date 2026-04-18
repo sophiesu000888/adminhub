@@ -445,15 +445,10 @@ tr.group-row td {
   <!-- 新增表單 -->
   <div class="add-form">
     <label>廠區
-      <select class="f-site" id="f-site">
-        <option>央廚</option>
-        <option>群聯</option>
-        <option>台積</option>
-        <option>F20</option>
-        <option>AP6B</option>
-        <option>聯電</option>
-        <option>P8</option>
-      </select>
+      <div class="combo-wrap">
+        <select id="f-site"></select>
+        <button type="button" class="combo-add-btn" onclick="openManage('site')" title="管理廠區">⚙</button>
+      </div>
     </label>
     <label>品項名稱
       <input class="f-name" id="f-name" placeholder="e.g. 烤鴨飯">
@@ -570,10 +565,10 @@ tr.group-row td {
     <h3>✏️ Edit Item</h3>
     <div class="modal-field">
       <label>廠區 Site</label>
-      <select id="m-site">
-        <option>央廚</option><option>群聯</option><option>台積</option>
-        <option>F20</option><option>AP6B</option><option>聯電</option><option>P8</option>
-      </select>
+      <div class="combo-wrap" style="width:100%;">
+        <select id="m-site" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
+        <button type="button" class="combo-add-btn" onclick="openManage('site')">⚙</button>
+      </div>
     </div>
     <div class="modal-field">
       <label>品項 Name</label>
@@ -611,14 +606,14 @@ tr.group-row td {
 <script src="firebase-config.js"></script>
 <script src="shared.js"></script>
 <script>
-  const SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
+  let SITES = ['央廚','群聯','台積','F20','AP6B','聯電','P8'];
   let CATS  = ['豬','雞','牛','鴨','雙拼','舒肥'];
   let BOXES = ['SP24-5黑色餐盒','CR900植纖餐盒','十貫牛皮壽司盒','7號輕食盒','902碗'];
 
   // ── 同步所有類別/餐盒下拉選單 ──
   function syncSelects(type) {
-    const list = type === 'cat' ? CATS : BOXES;
-    const ids  = type === 'cat' ? ['f-cat','m-cat'] : ['f-box','m-box'];
+    const list = type === 'cat' ? CATS : type === 'box' ? BOXES : SITES;
+    const ids  = type === 'cat' ? ['f-cat','m-cat'] : type === 'box' ? ['f-box','m-box'] : ['f-site','m-site'];
     ids.forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
@@ -646,7 +641,8 @@ tr.group-row td {
   let _manageType = null;
   function openManage(type) {
     _manageType = type;
-    document.getElementById('manage-title').textContent = type === 'cat' ? '⚙ 管理類別' : '⚙ 管理餐盒';
+    const titles = { cat: '⚙ 管理類別', box: '⚙ 管理餐盒', site: '⚙ 管理廠區' };
+    document.getElementById('manage-title').textContent = titles[type];
     renderOptList();
     document.getElementById('opt-new-input').value = '';
     document.getElementById('manageModal').style.display = 'flex';
@@ -657,7 +653,7 @@ tr.group-row td {
     _manageType = null;
   }
   function renderOptList() {
-    const list = _manageType === 'cat' ? CATS : BOXES;
+    const list = _manageType === 'cat' ? CATS : _manageType === 'box' ? BOXES : SITES;
     const div = document.getElementById('opt-list');
     div.innerHTML = '';
     list.forEach((val, idx) => {
@@ -671,20 +667,22 @@ tr.group-row td {
     const input = document.getElementById('opt-new-input');
     const trimmed = input.value.trim();
     if (!trimmed) return;
-    const list = _manageType === 'cat' ? CATS : BOXES;
+    const list = _manageType === 'cat' ? CATS : _manageType === 'box' ? BOXES : SITES;
     if (list.includes(trimmed)) { alert(`「${trimmed}」已存在`); return; }
     list.push(trimmed);
     syncSelects(_manageType);
+    if (_manageType === 'site') buildFilterBtns();
     input.value = '';
     renderOptList();
     input.focus();
   }
   function deleteOption(idx) {
-    const list = _manageType === 'cat' ? CATS : BOXES;
+    const list = _manageType === 'cat' ? CATS : _manageType === 'box' ? BOXES : SITES;
     const val = list[idx];
     if (!confirm(`刪除「${val}」？`)) return;
     list.splice(idx, 1);
     syncSelects(_manageType);
+    if (_manageType === 'site') buildFilterBtns();
     renderOptList();
   }
 
@@ -696,6 +694,7 @@ tr.group-row td {
   let _remoteUpdate = false;
 
   requireAuth((user) => {
+    syncSelects('site');
     syncSelects('cat');
     syncSelects('box');
     injectStatusBar('items');
@@ -829,14 +828,15 @@ tr.group-row td {
   function openModal(ri) {
     _editingRi = ri;
     const it = items[ri];
-    syncSelects('cat');
-    syncSelects('box');
-    // 若品項的類別/餐盒不在清單中，動態補入
+    syncSelects('site'); syncSelects('cat'); syncSelects('box');
+    // 若品項的廠區/類別/餐盒不在清單中，動態補入
+    const site = it.site || '';
+    if (site && !SITES.includes(site)) { SITES.push(site); syncSelects('site'); }
     const cat = getCat(it);
-    if (cat && !CATS.includes(cat))  { CATS.push(cat);       syncSelects('cat'); }
+    if (cat && !CATS.includes(cat))  { CATS.push(cat);  syncSelects('cat'); }
     const box = it.box || '';
-    if (box && !BOXES.includes(box)) { BOXES.push(box);      syncSelects('box'); }
-    document.getElementById('m-site').value  = it.site  || '';
+    if (box && !BOXES.includes(box)) { BOXES.push(box); syncSelects('box'); }
+    document.getElementById('m-site').value  = site;
     document.getElementById('m-name').value  = it.name  || '';
     document.getElementById('m-price').value = it.price || '';
     document.getElementById('m-cat').value   = cat;
