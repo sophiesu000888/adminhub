@@ -434,11 +434,29 @@ tr.group-row td {
   background: var(--s1); border-left: 2.5px solid var(--ink);
   box-shadow: -6px 0 24px rgba(45,45,45,.15);
   z-index: 9001; display: flex; flex-direction: column;
-  padding: 28px 24px; gap: 16px;
+  padding: 0; gap: 0;
   transition: right .25s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
 }
 #drawer.open { right: 0; }
-#drawer h3 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+#drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--ink);
+  flex-shrink: 0;
+  /* push below any status bar injected at top */
+  padding-top: max(18px, env(safe-area-inset-top, 18px));
+}
+#drawer-header h3 {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 28px; font-weight: 700; color: white; margin: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+#drawer-body {
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 20px 20px; overflow-y: auto; flex: 1;
+}
 #drawer .drawer-btn {
   font-family: inherit; font-weight: 700; font-size: 26px;
   border: 2px solid var(--ink); border-radius: 10px;
@@ -452,11 +470,12 @@ tr.group-row td {
 #drawer .drawer-btn.import { background: #eaf3fb; color: #1a5f8a; border-color: #2980b9; box-shadow: 3px 3px 0 #2980b9; }
 #drawer .drawer-btn.import:hover { box-shadow: 2px 2px 0 #2980b9; }
 #drawer .drawer-close {
-  position: absolute; top: 16px; right: 16px;
-  background: none; border: none; font-size: 28px; cursor: pointer;
-  color: var(--muted); padding: 4px 8px; border-radius: 6px;
+  background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.4);
+  font-size: 22px; cursor: pointer; color: white;
+  padding: 4px 10px; border-radius: 8px; line-height: 1;
+  transition: background .1s; flex-shrink: 0;
 }
-#drawer .drawer-close:hover { background: var(--s2); color: var(--ink); }
+#drawer .drawer-close:hover { background: rgba(255,255,255,.3); }
 #drawer-toggle {
   font-family: inherit; font-weight: 700; font-size: 26px;
   background: white; color: var(--ink);
@@ -588,16 +607,20 @@ tr.group-row td {
 <!-- 匯出入抽屜 -->
 <div id="drawer-overlay" onclick="closeDrawer()"></div>
 <div id="drawer">
-  <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  <h3>📂 匯出 / 匯入</h3>
-  <button class="drawer-btn export" onclick="exportExcel();closeDrawer()">
-    <span>⬇</span><span>匯出 Excel</span>
-  </button>
-  <label class="drawer-btn import" style="cursor:pointer;">
-    <span>⬆</span><span>匯入 Excel</span>
-    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeDrawer()">
-  </label>
-  <p style="font-size:22px;color:var(--muted);margin-top:8px;">匯入時可選擇覆蓋或附加到現有資料</p>
+  <div id="drawer-header">
+    <h3>📂 匯出 / 匯入</h3>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div id="drawer-body">
+    <button class="drawer-btn export" onclick="exportExcel();closeDrawer()">
+      <span>⬇</span><span>匯出 Excel</span>
+    </button>
+    <label class="drawer-btn import" style="cursor:pointer;">
+      <span>⬆</span><span>匯入 Excel</span>
+      <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeDrawer()">
+    </label>
+    <p style="font-size:22px;color:var(--muted);margin-top:8px;">匯入時可選擇覆蓋或附加到現有資料</p>
+  </div>
 </div>
 
 <div id="saveToast" class="save-toast"></div>
@@ -1235,6 +1258,11 @@ tr.group-row td {
 
   // ── DRAWER ──
   function openDrawer() {
+    // match drawer header top padding to current status bar height
+    const bar = document.querySelector('#status-bar, [id^="status-bar"]');
+    const barH = bar ? bar.offsetHeight : 0;
+    const header = document.getElementById('drawer-header');
+    if (header) header.style.paddingTop = Math.max(18, barH + 10) + 'px';
     document.getElementById('drawer').classList.add('open');
     document.getElementById('drawer-overlay').classList.add('open');
   }
