@@ -393,6 +393,36 @@ tr.group-row td {
   transition: all .1s; white-space: nowrap;
 }
 .combo-add-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
+/* ── MANAGE OPTIONS MODAL ── */
+#manageModal .modal { width: min(400px, calc(100vw - 32px)); }
+.opt-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 260px; overflow-y: auto; }
+.opt-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 8px;
+  background: var(--s2); border: 1px solid var(--border2);
+  font-size: 26px;
+}
+.opt-row span { flex: 1; }
+.opt-del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--border2); font-size: 22px; padding: 2px 6px;
+  border-radius: 4px; transition: color .1s; line-height: 1;
+  font-family: inherit;
+}
+.opt-del-btn:hover { color: var(--red); }
+.opt-add-row { display: flex; gap: 6px; }
+.opt-add-row input {
+  flex: 1; padding: 7px 10px; border: 2px solid var(--border2);
+  border-radius: 8px; font-size: 26px; font-family: inherit;
+  background: var(--s2); outline: none;
+}
+.opt-add-row input:focus { border-color: var(--ink); background: white; }
+.opt-add-row button {
+  font-family: inherit; font-weight: 700; font-size: 26px;
+  background: var(--ink); color: white;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 7px 16px; cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -434,13 +464,13 @@ tr.group-row td {
     <label>類別
       <div class="combo-wrap">
         <select id="f-cat"></select>
-        <button type="button" class="combo-add-btn" onclick="addOption('cat')" title="新增類別">＋</button>
+        <button type="button" class="combo-add-btn" onclick="openManage('cat')" title="管理類別">⚙</button>
       </div>
     </label>
     <label>餐盒
       <div class="combo-wrap">
         <select id="f-box"></select>
-        <button type="button" class="combo-add-btn" onclick="addOption('box')" title="新增餐盒">＋</button>
+        <button type="button" class="combo-add-btn" onclick="openManage('box')" title="管理餐盒">⚙</button>
       </div>
     </label>
     <button class="btn" onclick="addItem()" style="align-self:flex-end;">＋ 新增</button>
@@ -519,6 +549,21 @@ tr.group-row td {
 
 <div id="saveToast" class="save-toast"></div>
 
+<!-- 管理選項 Modal -->
+<div class="modal-overlay" id="manageModal" style="display:none;" onclick="if(event.target===this)closeManage()">
+  <div class="modal">
+    <h3 id="manage-title">管理類別</h3>
+    <div class="opt-list" id="opt-list"></div>
+    <div class="opt-add-row">
+      <input id="opt-new-input" type="text" placeholder="輸入新選項…" onkeydown="if(event.key==='Enter')addOptionFromManage()">
+      <button onclick="addOptionFromManage()">＋ 新增</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-confirm" onclick="closeManage()">完成</button>
+    </div>
+  </div>
+</div>
+
 <!-- 編輯 Modal -->
 <div class="modal-overlay" id="editModal" style="display:none;" onclick="modalOverlayClick(event)">
   <div class="modal">
@@ -542,14 +587,14 @@ tr.group-row td {
       <label>類別 Category</label>
       <div class="combo-wrap" style="width:100%;">
         <select id="m-cat" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
-        <button type="button" class="combo-add-btn" onclick="addOption('cat')">＋</button>
+        <button type="button" class="combo-add-btn" onclick="openManage('cat')">⚙</button>
       </div>
     </div>
     <div class="modal-field">
       <label>餐盒 Box</label>
       <div class="combo-wrap" style="width:100%;">
         <select id="m-box" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
-        <button type="button" class="combo-add-btn" onclick="addOption('box')">＋</button>
+        <button type="button" class="combo-add-btn" onclick="openManage('box')">⚙</button>
       </div>
     </div>
     <div class="modal-actions">
@@ -592,11 +637,55 @@ tr.group-row td {
     if (list.includes(trimmed)) { alert(`「${trimmed}」已存在`); return; }
     list.push(trimmed);
     syncSelects(type);
-    // 自動選到新增的那個
     ['f-','m-'].forEach(p => {
       const sel = document.getElementById(p + type);
       if (sel) sel.value = trimmed;
     });
+  }
+
+  let _manageType = null;
+  function openManage(type) {
+    _manageType = type;
+    document.getElementById('manage-title').textContent = type === 'cat' ? '⚙ 管理類別' : '⚙ 管理餐盒';
+    renderOptList();
+    document.getElementById('opt-new-input').value = '';
+    document.getElementById('manageModal').style.display = 'flex';
+    document.getElementById('opt-new-input').focus();
+  }
+  function closeManage() {
+    document.getElementById('manageModal').style.display = 'none';
+    _manageType = null;
+  }
+  function renderOptList() {
+    const list = _manageType === 'cat' ? CATS : BOXES;
+    const div = document.getElementById('opt-list');
+    div.innerHTML = '';
+    list.forEach((val, idx) => {
+      const row = document.createElement('div');
+      row.className = 'opt-row';
+      row.innerHTML = `<span>${esc(val)}</span><button class="opt-del-btn" onclick="deleteOption(${idx})" title="刪除">✕</button>`;
+      div.appendChild(row);
+    });
+  }
+  function addOptionFromManage() {
+    const input = document.getElementById('opt-new-input');
+    const trimmed = input.value.trim();
+    if (!trimmed) return;
+    const list = _manageType === 'cat' ? CATS : BOXES;
+    if (list.includes(trimmed)) { alert(`「${trimmed}」已存在`); return; }
+    list.push(trimmed);
+    syncSelects(_manageType);
+    input.value = '';
+    renderOptList();
+    input.focus();
+  }
+  function deleteOption(idx) {
+    const list = _manageType === 'cat' ? CATS : BOXES;
+    const val = list[idx];
+    if (!confirm(`刪除「${val}」？`)) return;
+    list.splice(idx, 1);
+    syncSelects(_manageType);
+    renderOptList();
   }
 
   let items = [];
