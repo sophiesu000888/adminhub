@@ -366,10 +366,18 @@ tr.group-row td {
   position: sticky; left: 0; z-index: 1;
   border-right: 1px solid var(--border2);
 }
+#matrix-wrap tbody tr:nth-child(even) td { background: var(--s2); }
+#matrix-wrap tbody tr:nth-child(even) td.td-name { background: #eeebe1; }
 #matrix-wrap tbody tr:hover td { background: #f5f2ea; }
 #matrix-wrap tbody tr:hover td.td-name { background: #edeae0; }
 .price-cell { color: var(--blue); font-weight: 700; }
 .dash-cell  { color: var(--muted); }
+#matrix-wrap tr.mx-group-row td {
+  background: var(--s2); font-weight: 700; font-size: 24px;
+  color: var(--dim); letter-spacing: 1px;
+  border-bottom: 1px solid var(--border2);
+  padding: 7px 14px; position: sticky; left: 0;
+}
 </style>
 </head>
 <body>
@@ -474,6 +482,13 @@ tr.group-row td {
 
   <!-- 一覽表 view -->
   <div id="matrix-view" style="display:none;">
+    <!-- 一覽表篩選工具列 -->
+    <div class="toolbar" style="margin-bottom:12px;">
+      <div class="toolbar-row">
+        <span class="filter-row-label">類別</span>
+        <div id="mx-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+      </div>
+    </div>
     <div id="matrix-wrap">
       <table id="matrix-table"></table>
     </div>
@@ -872,20 +887,55 @@ tr.group-row td {
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
       btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix'));
     });
-    if (tab === 'matrix') renderMatrix();
+    if (tab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+  }
+
+  // ── MATRIX FILTERS ──
+  let mxFilterSites = new Set();
+  let mxFilterCats  = new Set();
+
+  function buildMatrixFilters() {
+    const allCats  = [...new Set(items.map(i => getCat(i)).filter(Boolean))].sort();
+
+    const cDiv = document.getElementById('mx-cat-btns');
+    cDiv.innerHTML = '';
+    allCats.forEach(cat => {
+      const b = document.createElement('button');
+      b.className = 'filter-tag' + (mxFilterCats.has(cat) ? ' active' : '');
+      b.textContent = cat;
+      b.onclick = () => {
+        if (mxFilterCats.has(cat)) { mxFilterCats.delete(cat); b.classList.remove('active'); }
+        else { mxFilterCats.add(cat); b.classList.add('active'); }
+        renderMatrix();
+      };
+      cDiv.appendChild(b);
+    });
   }
 
   function renderMatrix() {
-    // 取得所有廠區（依 SITES 順序，再補資料中有但 SITES 沒有的）
     const allSites = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])];
-    // 取得所有品項名稱（去重、依出現順序）
-    const allNames = [...new Set(items.map(i => i.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-TW'));
+    const visibleSites = mxFilterSites.size > 0
+      ? allSites.filter(s => mxFilterSites.has(s))
+      : allSites;
 
-    // 建立查找 map: name+site → 價格陣列
+    // 篩選品項
+    const filteredItems = items.filter(it => {
+      const matchCat  = mxFilterCats.size === 0 || mxFilterCats.has(getCat(it));
+      return matchCat && it.name;
+    });
+
+    // 依類別分組品項名稱（同名只出現一次）
+    const catMap = {}; // cat → Set of names
+    filteredItems.forEach(it => {
+      const cat = getCat(it) || '其他';
+      if (!catMap[cat]) catMap[cat] = new Set();
+      catMap[cat].add(it.name);
+    });
+
+    // 建立 priceMap: name+site → 價格陣列
     const priceMap = {};
-    items.forEach(it => {
-      if (!it.name) return;
-      const key = it.name + '|||' + (it.site||'');
+    filteredItems.forEach(it => {
+      const key = it.name + '|||' + (it.site || '');
       if (!priceMap[key]) priceMap[key] = [];
       if (it.price) priceMap[key].push(it.price);
     });
@@ -899,34 +949,59 @@ tr.group-row td {
     const th0 = document.createElement('th');
     th0.className = 'th-name'; th0.textContent = '品項';
     hr.appendChild(th0);
-    allSites.forEach(site => {
+    visibleSites.forEach(site => {
       const th = document.createElement('th');
       th.textContent = site;
       hr.appendChild(th);
     });
-    thead.appendChild(hr); table.appendChild(thead);
+    thead.appendChild(hr);
+    table.appendChild(thead);
 
-    // tbody
+    // tbody — 依類別分組
     const tbody = document.createElement('tbody');
-    allNames.forEach(name => {
-      const tr = document.createElement('tr');
-      const tdName = document.createElement('td');
-      tdName.className = 'td-name'; tdName.textContent = name;
-      tr.appendChild(tdName);
-      allSites.forEach(site => {
-        const td = document.createElement('td');
-        const key = name + '|||' + site;
-        const prices = priceMap[key];
-        if (prices && prices.length) {
-          td.className = 'price-cell';
-          td.textContent = prices.map(p => '$' + p).join(' / ');
-        } else {
-          td.className = 'dash-cell'; td.textContent = '—';
-        }
-        tr.appendChild(td);
+    const cats = Object.keys(catMap).sort();
+
+    cats.forEach(cat => {
+      // 類別 group header row
+      const grpTr = document.createElement('tr');
+      grpTr.className = 'mx-group-row';
+      const grpTd = document.createElement('td');
+      grpTd.colSpan = visibleSites.length + 1;
+      grpTd.textContent = cat;
+      grpTr.appendChild(grpTd);
+      tbody.appendChild(grpTr);
+
+      // 品項列
+      [...catMap[cat]].sort((a,b) => a.localeCompare(b,'zh-TW')).forEach(name => {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        tdName.className = 'td-name'; tdName.textContent = name;
+        tr.appendChild(tdName);
+        visibleSites.forEach(site => {
+          const td = document.createElement('td');
+          const key = name + '|||' + site;
+          const prices = priceMap[key];
+          if (prices && prices.length) {
+            td.className = 'price-cell';
+            td.textContent = prices.map(p => '$' + p).join(' / ');
+          } else {
+            td.className = 'dash-cell'; td.textContent = '—';
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
       });
-      tbody.appendChild(tr);
     });
+
+    if (!cats.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = visibleSites.length + 1;
+      td.style.cssText = 'text-align:center;padding:40px;color:var(--muted);font-size:28px;';
+      td.textContent = '沒有符合的品項';
+      tr.appendChild(td); tbody.appendChild(tr);
+    }
+
     table.appendChild(tbody);
   }
 
