@@ -753,7 +753,6 @@ tr.group-row td {
       btn.onclick = () => toggleFilter(filterCats, cat, btn, render);
       catDiv.appendChild(btn);
     });
-  }
 
     // 餐盒：從資料動態抽取
     const allBoxes = [...new Set(items.map(i => i.box).filter(Boolean))].sort();
