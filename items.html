@@ -519,7 +519,7 @@ tr.group-row td {
   <!-- 批次操作 bar -->
   <div id="batch-bar">
     <span id="batch-count">已選 0 筆</span>
-    <input id="batch-box-input" type="text" placeholder="輸入新的餐盒名稱…">
+    <select id="batch-box-input" style="flex:1;min-width:180px;padding:7px 12px;border-radius:8px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:white;font-size:26px;font-family:inherit;outline:none;"></select>
     <button class="batch-btn batch-confirm" onclick="batchApply()">✔ 套用</button>
     <button class="batch-btn batch-cancel"  onclick="clearSelection()">✕ 取消</button>
   </div>
@@ -613,7 +613,7 @@ tr.group-row td {
   // ── 同步所有類別/餐盒下拉選單 ──
   function syncSelects(type) {
     const list = type === 'cat' ? CATS : type === 'box' ? BOXES : SITES;
-    const ids  = type === 'cat' ? ['f-cat','m-cat'] : type === 'box' ? ['f-box','m-box'] : ['f-site','m-site'];
+    const ids  = type === 'cat' ? ['f-cat','m-cat'] : type === 'box' ? ['f-box','m-box','batch-box-input'] : ['f-site','m-site'];
     ids.forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
@@ -1007,6 +1007,7 @@ tr.group-row td {
     const bar = document.getElementById('batch-bar');
     const cnt = document.getElementById('batch-count');
     if (selectedRis.size > 0) {
+      syncSelects('box');
       bar.classList.add('show');
       cnt.textContent = `已選 ${selectedRis.size} 筆`;
     } else {
@@ -1023,11 +1024,10 @@ tr.group-row td {
   }
 
   function batchApply() {
-    const newBox = document.getElementById('batch-box-input').value.trim();
-    if (!newBox) { alert('請輸入餐盒名稱'); return; }
+    const newBox = document.getElementById('batch-box-input').value;
+    if (!newBox) { alert('請選擇餐盒'); return; }
     if (!confirm(`確定把 ${selectedRis.size} 筆品項的餐盒改為「${newBox}」？`)) return;
     selectedRis.forEach(ri => { if (items[ri]) items[ri].box = newBox; });
-    document.getElementById('batch-box-input').value = '';
     clearSelection();
     autoSave();
     render();
