@@ -44,7 +44,7 @@ body {
   display: inline-block; margin-bottom: 8px;
 }
 
-#main { padding: 8px 20px 40px; max-width: 1100px; margin: 0 auto; }
+#main { padding: 8px 20px 40px; }
 
 /* ── TOOLBAR ── */
 .toolbar {
@@ -169,7 +169,7 @@ thead th.col-site  { width: 100px; }
 thead th.col-name  { min-width: 200px; }
 thead th.col-price { width: 100px; }
 thead th.col-cat   { width: 130px; }
-thead th.col-box   { width: 180px; }
+thead th.col-box   { width: 220px; white-space: nowrap; }
 thead th.col-avail { width: 110px; text-align: center; }
 thead th.col-del   { width: 50px; text-align: center; }
 
@@ -181,7 +181,7 @@ tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: #f5f2ea; }
 
 tbody td {
-  padding: 10px 12px; vertical-align: middle;
+  padding: 10px 12px; vertical-align: middle; white-space: nowrap;
 }
 tbody td:first-child { text-align: center; }
 
@@ -423,6 +423,48 @@ tr.group-row td {
   border: 2px solid var(--ink); border-radius: 8px;
   padding: 7px 16px; cursor: pointer;
 }
+/* ── IMPORT/EXPORT DRAWER ── */
+#drawer-overlay {
+  position: fixed; inset: 0; background: rgba(45,45,45,.4);
+  z-index: 9000; display: none; animation: fadeIn .15s;
+}
+#drawer-overlay.open { display: block; }
+#drawer {
+  position: fixed; top: 0; right: -360px; width: 340px; height: 100%;
+  background: var(--s1); border-left: 2.5px solid var(--ink);
+  box-shadow: -6px 0 24px rgba(45,45,45,.15);
+  z-index: 9001; display: flex; flex-direction: column;
+  padding: 28px 24px; gap: 16px;
+  transition: right .25s cubic-bezier(.4,0,.2,1);
+}
+#drawer.open { right: 0; }
+#drawer h3 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+#drawer .drawer-btn {
+  font-family: inherit; font-weight: 700; font-size: 26px;
+  border: 2px solid var(--ink); border-radius: 10px;
+  padding: 12px 18px; cursor: pointer; text-align: left;
+  box-shadow: 3px 3px 0 var(--ink); transition: all .1s;
+  display: flex; align-items: center; gap: 10px;
+}
+#drawer .drawer-btn:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
+#drawer .drawer-btn.export { background: #f0fff4; color: #1e8449; border-color: #27ae60; box-shadow: 3px 3px 0 #27ae60; }
+#drawer .drawer-btn.export:hover { box-shadow: 2px 2px 0 #27ae60; }
+#drawer .drawer-btn.import { background: #eaf3fb; color: #1a5f8a; border-color: #2980b9; box-shadow: 3px 3px 0 #2980b9; }
+#drawer .drawer-btn.import:hover { box-shadow: 2px 2px 0 #2980b9; }
+#drawer .drawer-close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; font-size: 28px; cursor: pointer;
+  color: var(--muted); padding: 4px 8px; border-radius: 6px;
+}
+#drawer .drawer-close:hover { background: var(--s2); color: var(--ink); }
+#drawer-toggle {
+  font-family: inherit; font-weight: 700; font-size: 26px;
+  background: white; color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 10px;
+  padding: 5px 14px; cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
+}
+#drawer-toggle:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 </style>
 </head>
 <body>
@@ -492,12 +534,8 @@ tr.group-row td {
     <div class="toolbar-row">
       <input type="text" id="search" placeholder="搜尋品項、餐盒…">
       <div class="stats" id="stats"></div>
-      <div style="margin-left:auto;display:flex;gap:6px;">
-        <button class="btn" style="font-size:26px;padding:5px 14px;background:white;color:var(--act);border-color:var(--act);box-shadow:2px 2px 0 0 var(--act);" onclick="exportExcel()">⬇ 匯出 Excel</button>
-        <label class="btn" style="font-size:26px;padding:5px 14px;background:white;color:var(--blue);border-color:var(--blue);box-shadow:2px 2px 0 0 var(--blue);cursor:pointer;">
-          ⬆ 匯入 Excel
-          <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this)">
-        </label>
+      <div style="margin-left:auto;">
+        <button id="drawer-toggle" onclick="openDrawer()">☰ 匯出入</button>
       </div>
     </div>
   </div>
@@ -545,6 +583,21 @@ tr.group-row td {
     </div>
   </div>
 
+</div>
+
+<!-- 匯出入抽屜 -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h3>📂 匯出 / 匯入</h3>
+  <button class="drawer-btn export" onclick="exportExcel();closeDrawer()">
+    <span>⬇</span><span>匯出 Excel</span>
+  </button>
+  <label class="drawer-btn import" style="cursor:pointer;">
+    <span>⬆</span><span>匯入 Excel</span>
+    <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeDrawer()">
+  </label>
+  <p style="font-size:22px;color:var(--muted);margin-top:8px;">匯入時可選擇覆蓋或附加到現有資料</p>
 </div>
 
 <div id="saveToast" class="save-toast"></div>
@@ -1178,6 +1231,16 @@ tr.group-row td {
     }
 
     table.appendChild(tbody);
+  }
+
+  // ── DRAWER ──
+  function openDrawer() {
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('open');
   }
 
   function esc(s) {
