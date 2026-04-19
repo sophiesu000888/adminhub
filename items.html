@@ -1008,7 +1008,8 @@ tr.group-row td {
     empty.style.display = list.length ? 'none' : 'block';
 
     // 有篩選或搜尋時直接列出；否則依廠區分組
-    const isFiltered = filterSites.size > 0 || filterCats.size > 0 || searchQ;
+    const isFiltered = filterSites.size > 0 || filterCats.size > 0 || filterBoxes.size > 0 || searchQ;
+    if (isFiltered) window.scrollTo({ top: 0 });
     if (isFiltered) {
       list.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
     } else {
