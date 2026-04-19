@@ -351,6 +351,7 @@ tr.group-row td {
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
   overflow: auto;
+  max-height: calc(100vh - 200px);
 }
 #matrix-wrap table {
   width: auto; min-width: 100%;
@@ -657,6 +658,7 @@ tr.group-row td {
       <div class="toolbar-row">
         <span class="filter-row-label">類別</span>
         <div id="mx-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        <button id="clear-mx-cat-btn" class="clear-row-btn" onclick="clearMatrixFilter()" style="display:none;">✕</button>
       </div>
     </div>
     <div id="matrix-wrap">
@@ -1337,9 +1339,19 @@ tr.group-row td {
       };
       cDiv.appendChild(b);
     });
+    const clearBtn = document.getElementById('clear-mx-cat-btn');
+    if (clearBtn) clearBtn.style.display = mxFilterCats.size > 0 ? '' : 'none';
+  }
+
+  function clearMatrixFilter() {
+    mxFilterCats.clear();
+    buildMatrixFilters();
+    renderMatrix();
   }
 
   function renderMatrix() {
+    const clearBtn = document.getElementById('clear-mx-cat-btn');
+    if (clearBtn) clearBtn.style.display = mxFilterCats.size > 0 ? '' : 'none';
     const allSites = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])];
     const visibleSites = mxFilterSites.size > 0
       ? allSites.filter(s => mxFilterSites.has(s))
