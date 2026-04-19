@@ -672,6 +672,64 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .exp-btn.import { background: #e7f0ff; color: #1a3a7a; border-color: #2d5da1; box-shadow: 3px 3px 0 #2d5da1; }
 .exp-btn.import:hover { box-shadow: 2px 2px 0 #2d5da1; transform: translate(1px,1px); }
 .exp-btn .btn-icon { font-size: 1.4rem; }
+
+/* ── POPOVER FILTER ── */
+.popover-wrap {
+  position: relative; display: inline-block;
+}
+.popover-trigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 28px;
+  background: white; color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 4px 10px 5px 9px / 9px 5px 10px 4px;
+  padding: 5px 14px; cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink); transition: all .1s;
+  white-space: nowrap;
+}
+.popover-trigger:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
+.popover-trigger.has-filter { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); }
+.popover-trigger.open .pt-arrow { display: inline-block; transform: rotate(180deg); }
+.pt-label { pointer-events: none; }
+.pt-arrow { font-size: 20px; opacity: .6; transition: transform .15s; pointer-events: none; display: inline-block; }
+.pt-badge {
+  background: var(--red); color: white;
+  font-size: 20px; font-weight: 700;
+  border-radius: 50%; width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  line-height: 1; pointer-events: none;
+}
+.popover-trigger.has-filter .pt-badge { background: white; color: var(--ink); }
+.popover-panel {
+  display: none;
+  position: absolute; top: calc(100% + 8px); left: 0;
+  z-index: 900;
+  background: white;
+  border: 2.5px solid var(--ink);
+  border-radius: 4px 12px 10px 8px / 8px 10px 12px 4px;
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 12px 16px 14px;
+  min-width: 260px; max-width: 440px;
+  animation: popIn .15s ease;
+}
+.popover-panel.open { display: block; }
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; font-size: 24px;
+}
+.pp-clear {
+  font-family: 'Noto Sans TC', sans-serif; font-size: 22px; font-weight: 700;
+  background: none; color: var(--muted);
+  border: 1.5px solid var(--border2);
+  border-radius: 4px 8px 5px 7px / 7px 5px 8px 4px;
+  padding: 2px 10px; cursor: pointer; transition: all .1s;
+}
+.pp-clear:hover { color: var(--red); border-color: var(--red); background: #fff0f0; }
+.pp-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 </style>
 </head>
 <body>
@@ -693,31 +751,44 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   <!-- 工具列 -->
   <div class="toolbar">
-    <!-- 廠區多重篩選 -->
-    <div class="toolbar-row">
-      <span class="filter-row-label">廠區</span>
-      <div id="site-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
-      <button id="clear-site-btn" class="clear-row-btn" onclick="clearFilter('site')" style="display:none;">✕</button>
-    </div>
-    <!-- 類別多重篩選 -->
-    <div class="toolbar-row">
-      <span class="filter-row-label">類別</span>
-      <div id="cat-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
-      <button id="clear-cat-btn" class="clear-row-btn" onclick="clearFilter('cat')" style="display:none;">✕</button>
-    </div>
-    <!-- 餐盒多重篩選 -->
-    <div class="toolbar-row">
-      <span class="filter-row-label">餐盒</span>
-      <div id="box-filter-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
-      <button id="clear-box-btn" class="clear-row-btn" onclick="clearFilter('box')" style="display:none;">✕</button>
-    </div>
-    <!-- 搜尋 + 統計 -->
-    <div class="toolbar-row">
-      <input type="text" id="search" placeholder="搜尋品項、餐盒…">
+    <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;align-items:center;">
+      <!-- 廠區 popover -->
+      <div class="popover-wrap" id="pw-site">
+        <button class="popover-trigger" id="pt-site" onclick="togglePopover('site')">
+          <span class="pt-label" style="color:#e74c3c;">廠區</span><span class="pt-badge" id="pb-site" style="display:none;"></span><span class="pt-arrow">▾</span>
+        </button>
+        <div class="popover-panel" id="pp-site">
+          <div class="pp-header"><span style="color:#e74c3c;font-weight:700;">廠區</span> <button class="pp-clear" onclick="clearFilter('site')">清除</button></div>
+          <div class="pp-tags" id="site-filter-btns"></div>
+        </div>
+      </div>
+      <!-- 類別 popover -->
+      <div class="popover-wrap" id="pw-cat">
+        <button class="popover-trigger" id="pt-cat" onclick="togglePopover('cat')">
+          <span class="pt-label" style="color:#8e44ad;">類別</span><span class="pt-badge" id="pb-cat" style="display:none;"></span><span class="pt-arrow">▾</span>
+        </button>
+        <div class="popover-panel" id="pp-cat">
+          <div class="pp-header"><span style="color:#8e44ad;font-weight:700;">類別</span> <button class="pp-clear" onclick="clearFilter('cat')">清除</button></div>
+          <div class="pp-tags" id="cat-filter-btns"></div>
+        </div>
+      </div>
+      <!-- 餐盒 popover -->
+      <div class="popover-wrap" id="pw-box">
+        <button class="popover-trigger" id="pt-box" onclick="togglePopover('box')">
+          <span class="pt-label" style="color:#2980b9;">餐盒</span><span class="pt-badge" id="pb-box" style="display:none;"></span><span class="pt-arrow">▾</span>
+        </button>
+        <div class="popover-panel" id="pp-box">
+          <div class="pp-header"><span style="color:#2980b9;font-weight:700;">餐盒</span> <button class="pp-clear" onclick="clearFilter('box')">清除</button></div>
+          <div class="pp-tags" id="box-filter-btns"></div>
+        </div>
+      </div>
+      <!-- 搜尋 -->
+      <input type="text" id="search" placeholder="搜尋品項、餐盒…" style="flex:1;min-width:160px;">
       <button id="clear-filter-btn" class="avail-btn" onclick="clearAllFilters()" style="display:none;">✕ 清除篩選</button>
       <div class="stats" id="stats"></div>
     </div>
   </div>
+  <div id="popover-overlay" onclick="closeAllPopovers()" style="display:none;position:fixed;inset:0;z-index:800;"></div>
 
   <!-- 表格 -->
   <div class="tbl-wrap">
@@ -1163,6 +1234,42 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     render();
   });
 
+  function togglePopover(type) {
+    const panel = document.getElementById('pp-' + type);
+    const trigger = document.getElementById('pt-' + type);
+    const overlay = document.getElementById('popover-overlay');
+    const isOpen = panel.classList.contains('open');
+    closeAllPopovers();
+    if (!isOpen) {
+      panel.classList.add('open');
+      trigger.classList.add('open');
+      overlay.style.display = 'block';
+    }
+  }
+  function closeAllPopovers() {
+    ['site','cat','box'].forEach(t => {
+      document.getElementById('pp-' + t).classList.remove('open');
+      document.getElementById('pt-' + t).classList.remove('open');
+    });
+    document.getElementById('popover-overlay').style.display = 'none';
+  }
+
+  function updatePopoverBadges() {
+    [['site', filterSites], ['cat', filterCats], ['box', filterBoxes]].forEach(([t, set]) => {
+      const badge = document.getElementById('pb-' + t);
+      const trigger = document.getElementById('pt-' + t);
+      if (!badge || !trigger) return;
+      if (set.size > 0) {
+        badge.textContent = set.size;
+        badge.style.display = 'inline-flex';
+        trigger.classList.add('has-filter');
+      } else {
+        badge.style.display = 'none';
+        trigger.classList.remove('has-filter');
+      }
+    });
+  }
+
   // ── 廠區顏色 ──
   const _siteColorMap = {};
   let _siteColorIdx = 0;
@@ -1208,12 +1315,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const isFiltered = filterSites.size > 0 || filterCats.size > 0 || filterBoxes.size > 0 || searchQ;
     const clearBtn = document.getElementById('clear-filter-btn');
     if (clearBtn) clearBtn.style.display = isFiltered ? '' : 'none';
-    const clearSite = document.getElementById('clear-site-btn');
-    const clearCat  = document.getElementById('clear-cat-btn');
-    const clearBox  = document.getElementById('clear-box-btn');
-    if (clearSite) clearSite.style.display = filterSites.size > 0 ? '' : 'none';
-    if (clearCat)  clearCat.style.display  = filterCats.size  > 0 ? '' : 'none';
-    if (clearBox)  clearBox.style.display  = filterBoxes.size > 0 ? '' : 'none';
+    updatePopoverBadges();
     if (isFiltered) {
       const wrap = document.querySelector('.tbl-wrap');
       if (wrap) wrap.scrollTop = 0;
