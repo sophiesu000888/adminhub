@@ -1137,6 +1137,7 @@ tr.group-row td {
     closeModal();
     buildFilterBtns();
     render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
     autoSave();
   }
 
@@ -1156,6 +1157,7 @@ tr.group-row td {
     items.unshift({ site, name, price, cat, box });
     buildFilterBtns();
     render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
     autoSave();
     document.getElementById('f-name').value  = '';
     document.getElementById('f-price').value = '';
@@ -1167,6 +1169,7 @@ tr.group-row td {
     items.splice(i, 1);
     buildFilterBtns();
     render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
     autoSave();
   }
 
