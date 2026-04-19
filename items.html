@@ -256,6 +256,23 @@ tbody tr.selected { background: #f0eee8 !important; }
 .batch-confirm:hover { background: #1e8449; }
 .batch-cancel  { background: transparent; color: rgba(255,255,255,.8); }
 .batch-cancel:hover  { background: rgba(255,255,255,.1); }
+.batch-field-btn {
+  font-family: inherit; font-weight: 700; font-size: 24px;
+  border-radius: 8px; padding: 5px 14px; cursor: pointer;
+  border: 2px solid rgba(255,255,255,.3); transition: all .1s;
+  background: transparent; color: rgba(255,255,255,.7); white-space: nowrap;
+}
+.batch-field-btn:hover { background: rgba(255,255,255,.1); color: white; }
+.batch-field-btn.active { background: white; color: var(--ink); border-color: white; }
+.batch-input {
+  flex: 1; min-width: 160px;
+  padding: 7px 12px; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.12); color: white;
+  font-size: 26px; font-family: inherit; outline: none;
+}
+.batch-input::placeholder { color: rgba(255,255,255,.5); }
+.batch-input:focus { border-color: white; background: rgba(255,255,255,.2); }
 
 /* group header row */
 tr.group-row td {
@@ -644,7 +661,14 @@ tr.group-row td {
   <!-- 批次操作 bar -->
   <div id="batch-bar">
     <span id="batch-count">已選 0 筆</span>
-    <select id="batch-box-input" style="flex:1;min-width:180px;padding:7px 12px;border-radius:8px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:white;font-size:26px;font-family:inherit;outline:none;"></select>
+    <div style="display:flex;gap:6px;flex-shrink:0;">
+      <button class="batch-field-btn active" id="bft-box" onclick="switchBatchField('box')">餐盒</button>
+      <button class="batch-field-btn" id="bft-cat" onclick="switchBatchField('cat')">類別</button>
+      <button class="batch-field-btn" id="bft-price" onclick="switchBatchField('price')">價格</button>
+    </div>
+    <select id="batch-box-input" class="batch-input"></select>
+    <select id="batch-cat-input" class="batch-input" style="display:none;"></select>
+    <input  id="batch-price-input" class="batch-input" type="number" min="0" placeholder="輸入價格…" style="display:none;flex:1;min-width:120px;">
     <button class="batch-btn batch-confirm" onclick="batchApply()">✔ 套用</button>
     <button class="batch-btn batch-cancel"  onclick="clearSelection()">✕ 取消</button>
   </div>
@@ -1279,11 +1303,32 @@ tr.group-row td {
     sa.checked = all.length > 0 && chk.length === all.length;
   }
 
+  let _batchField = 'box';
+
+  function switchBatchField(field) {
+    _batchField = field;
+    ['box','cat','price'].forEach(f => {
+      document.getElementById('bft-' + f).classList.toggle('active', f === field);
+      const el = document.getElementById('batch-' + f + '-input');
+      if (el) el.style.display = f === field ? '' : 'none';
+    });
+    // box/cat need flex:1 width
+    const boxEl = document.getElementById('batch-box-input');
+    const catEl = document.getElementById('batch-cat-input');
+    if (boxEl) boxEl.style.flex = field === 'box' ? '1' : '';
+    if (catEl) catEl.style.flex = field === 'cat' ? '1' : '';
+  }
+
   function updateBatchBar() {
     const bar = document.getElementById('batch-bar');
     const cnt = document.getElementById('batch-count');
     if (selectedRis.size > 0) {
-      syncSelects('box');
+      // sync box select
+      const boxSel = document.getElementById('batch-box-input');
+      if (boxSel) { boxSel.innerHTML = BOXES.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join(''); }
+      // sync cat select
+      const catSel = document.getElementById('batch-cat-input');
+      if (catSel) { catSel.innerHTML = CATS.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join(''); }
       bar.classList.add('show');
       cnt.textContent = `已選 ${selectedRis.size} 筆`;
     } else {
@@ -1300,13 +1345,26 @@ tr.group-row td {
   }
 
   function batchApply() {
-    const newBox = document.getElementById('batch-box-input').value;
-    if (!newBox) { alert('請選擇餐盒'); return; }
-    if (!confirm(`確定把 ${selectedRis.size} 筆品項的餐盒改為「${newBox}」？`)) return;
-    selectedRis.forEach(ri => { if (items[ri]) items[ri].box = newBox; });
+    if (_batchField === 'box') {
+      const val = document.getElementById('batch-box-input').value;
+      if (!val) { alert('請選擇餐盒'); return; }
+      if (!confirm(`確定把 ${selectedRis.size} 筆品項的餐盒改為「${val}」？`)) return;
+      selectedRis.forEach(ri => { if (items[ri]) items[ri].box = val; });
+    } else if (_batchField === 'cat') {
+      const val = document.getElementById('batch-cat-input').value;
+      if (!val) { alert('請選擇類別'); return; }
+      if (!confirm(`確定把 ${selectedRis.size} 筆品項的類別改為「${val}」？`)) return;
+      selectedRis.forEach(ri => { if (items[ri]) items[ri].cat = val; });
+    } else if (_batchField === 'price') {
+      const val = document.getElementById('batch-price-input').value.trim();
+      if (!val) { alert('請輸入價格'); return; }
+      if (!confirm(`確定把 ${selectedRis.size} 筆品項的價格改為「${val}」？`)) return;
+      selectedRis.forEach(ri => { if (items[ri]) items[ri].price = val; });
+    }
     clearSelection();
     autoSave();
     render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
   }
 
   // ── TABS ──
