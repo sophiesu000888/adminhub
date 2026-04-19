@@ -907,6 +907,8 @@ tr.group-row td {
       const bar = document.querySelector('#status-bar, [id^="status-bar"]');
       const h = bar ? bar.offsetHeight : 0;
       document.body.style.paddingTop = h + 'px';
+      document.querySelectorAll('.side-drawer').forEach(d => d.style.top = h + 'px');
+      document.querySelectorAll('.side-drawer').forEach(d => d.style.height = `calc(100vh - ${h}px)`);
     }
     requestAnimationFrame(applyBarHeight);
     setTimeout(applyBarHeight, 100);
