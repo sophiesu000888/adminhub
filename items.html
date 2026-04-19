@@ -754,7 +754,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     <div class="toolbar-row" style="flex-wrap:wrap;gap:8px;align-items:center;">
       <!-- 廠區 popover -->
       <div class="popover-wrap" id="pw-site">
-        <button class="popover-trigger" id="pt-site" onclick="togglePopover('site')">
+        <button class="popover-trigger" id="pt-site" onclick="toggleFilterPopover('site')">
           <span class="pt-label" style="color:#e74c3c;">廠區</span><span class="pt-badge" id="pb-site" style="display:none;"></span><span class="pt-arrow">▾</span>
         </button>
         <div class="popover-panel" id="pp-site">
@@ -764,7 +764,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       </div>
       <!-- 類別 popover -->
       <div class="popover-wrap" id="pw-cat">
-        <button class="popover-trigger" id="pt-cat" onclick="togglePopover('cat')">
+        <button class="popover-trigger" id="pt-cat" onclick="toggleFilterPopover('cat')">
           <span class="pt-label" style="color:#8e44ad;">類別</span><span class="pt-badge" id="pb-cat" style="display:none;"></span><span class="pt-arrow">▾</span>
         </button>
         <div class="popover-panel" id="pp-cat">
@@ -774,7 +774,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       </div>
       <!-- 餐盒 popover -->
       <div class="popover-wrap" id="pw-box">
-        <button class="popover-trigger" id="pt-box" onclick="togglePopover('box')">
+        <button class="popover-trigger" id="pt-box" onclick="toggleFilterPopover('box')">
           <span class="pt-label" style="color:#2980b9;">餐盒</span><span class="pt-badge" id="pb-box" style="display:none;"></span><span class="pt-arrow">▾</span>
         </button>
         <div class="popover-panel" id="pp-box">
@@ -788,7 +788,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <div class="stats" id="stats"></div>
     </div>
   </div>
-  <div id="popover-overlay" onclick="closeAllPopovers()" style="display:none;position:fixed;inset:0;z-index:800;"></div>
+  <div id="popover-overlay" onclick="closeFilterPopovers()" style="display:none;position:fixed;inset:0;z-index:800;"></div>
 
   <!-- 表格 -->
   <div class="tbl-wrap">
@@ -1234,19 +1234,19 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     render();
   });
 
-  function togglePopover(type) {
+  function toggleFilterPopover(type) {
     const panel = document.getElementById('pp-' + type);
     const trigger = document.getElementById('pt-' + type);
     const overlay = document.getElementById('popover-overlay');
     const isOpen = panel.classList.contains('open');
-    closeAllPopovers();
+    closeFilterPopovers();
     if (!isOpen) {
       panel.classList.add('open');
       trigger.classList.add('open');
       overlay.style.display = 'block';
     }
   }
-  function closeAllPopovers() {
+  function closeFilterPopovers() {
     ['site','cat','box'].forEach(t => {
       document.getElementById('pp-' + t).classList.remove('open');
       document.getElementById('pt-' + t).classList.remove('open');
