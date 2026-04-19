@@ -151,7 +151,8 @@ body {
   border: 2.5px solid var(--ink);
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
-  overflow: hidden;
+  overflow: auto;
+  max-height: calc(100vh - 320px);
 }
 
 table {
@@ -893,7 +894,6 @@ tr.group-row td {
       const bar = document.querySelector('#status-bar, [id^="status-bar"]');
       const h = bar ? bar.offsetHeight : 0;
       document.body.style.paddingTop = h + 'px';
-      document.querySelectorAll('thead th').forEach(th => th.style.top = h + 'px');
     }
     requestAnimationFrame(applyBarHeight);
     setTimeout(applyBarHeight, 100);
@@ -1009,7 +1009,10 @@ tr.group-row td {
 
     // 有篩選或搜尋時直接列出；否則依廠區分組
     const isFiltered = filterSites.size > 0 || filterCats.size > 0 || filterBoxes.size > 0 || searchQ;
-    if (isFiltered) window.scrollTo({ top: 0 });
+    if (isFiltered) {
+      const wrap = document.querySelector('.tbl-wrap');
+      if (wrap) wrap.scrollTop = 0;
+    }
     if (isFiltered) {
       list.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
     } else {
