@@ -1429,7 +1429,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         const col = _SITE_COLORS[parseInt(sc.replace('site-c',''))] || {bg:'#2d2d2d',fg:'white'};
         const grpRow = document.createElement('tr');
         grpRow.className = 'group-row ' + sc;
-        grpRow.innerHTML = `<td colspan="7" style="background:${col.bg};color:${col.fg};">${esc(site)}　<span style="font-weight:400;font-size:22px;opacity:0.8;">${group.length} items</span></td>`;
+        grpRow.innerHTML = `<td colspan="8" style="background:${col.bg};color:${col.fg};">${esc(site)}　<span style="font-weight:400;font-size:22px;opacity:0.8;">${group.length} items</span></td>`;
         tbody.appendChild(grpRow);
         group.sort((a, b) => {
           const ai = CATS.indexOf(getCat(a.it)), bi = CATS.indexOf(getCat(b.it));
@@ -1767,7 +1767,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       ? '十貫牛皮壽司盒'
       : (items.find(it => it.name === name)?.box || '');
 
-    items.unshift({ site, name, price: trimmed, cat: cat || '', box });
+    items.unshift({ site, name, price: trimmed, cat: cat || '', box, updatedAt: Date.now() });
     buildFilterBtns();
     render();
     buildMatrixFilters();
