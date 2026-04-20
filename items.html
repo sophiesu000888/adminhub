@@ -872,10 +872,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         <span class="filter-row-label">類別</span>
         <div id="mx-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         <button id="clear-mx-cat-btn" class="clear-row-btn" onclick="clearMatrixFilter()" style="display:none;">✕</button>
-      </div>
-      <div class="toolbar-row" style="gap:8px;">
-        <span class="filter-row-label" style="color:#2980b9;">搜尋</span>
-        <input type="text" id="mx-search" placeholder="搜尋品項…" style="flex:1;min-width:160px;padding:6px 12px;border:2px solid var(--border2);border-radius:8px;font-size:28px;font-family:'Noto Sans TC',sans-serif;outline:none;background:var(--s2);" oninput="mxSearchQ=this.value.toLowerCase();renderMatrix();" onfocus="this.style.borderColor='var(--ink)';this.style.background='white'" onblur="this.style.borderColor='';this.style.background='var(--s2)'">
+        <input type="text" id="mx-search" placeholder="搜尋品項…" style="min-width:160px;padding:6px 12px;border:2px solid var(--border2);border-radius:8px;font-size:28px;font-family:'Noto Sans TC',sans-serif;outline:none;background:var(--s2);" oninput="mxSearchQ=this.value.toLowerCase();renderMatrix();" onfocus="this.style.borderColor='var(--ink)';this.style.background='white'" onblur="this.style.borderColor='';this.style.background='var(--s2)'">
         <button id="clear-mx-search-btn" class="clear-row-btn" onclick="document.getElementById('mx-search').value='';mxSearchQ='';renderMatrix();" style="display:none;">✕ 清除</button>
       </div>
     </div>
