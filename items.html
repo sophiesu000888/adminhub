@@ -942,6 +942,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <span class="btn-icon">⬆</span><span>匯入 Excel</span>
       <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none;" onchange="importExcel(this);closeAllDrawers()">
     </label>
+    <button class="exp-btn" style="background:#fff0f0;color:#c0392b;border-color:#c0392b;box-shadow:3px 3px 0 #c0392b;" onclick="deduplicateItems();closeAllDrawers()">
+      <span class="btn-icon">🧹</span><span>清除完全重複的品項</span>
+    </button>
     <p style="font-size:0.88rem;color:var(--muted);margin-top:12px;line-height:1.6;">匯入時可選擇覆蓋或附加到現有資料</p>
   </div>
 </div>
@@ -1845,6 +1848,22 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
   function openDrawer()  { toggleDrawer('export'); }
   function closeDrawer() { closeAllDrawers(); }
+
+  function deduplicateItems() {
+    const seen = new Set();
+    const before = items.length;
+    items = items.filter(it => {
+      const key = `${it.site}|||${it.name}|||${it.price}|||${it.box}`;
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    });
+    const removed = before - items.length;
+    if (removed === 0) { alert('沒有發現重複資料'); return; }
+    buildFilterBtns(); render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+    autoSave();
+    alert(`✅ 已清除 ${removed} 筆完全重複的品項`);
+  }
 
   function exportMatrixPDF() {
     buildMatrixFilters();
