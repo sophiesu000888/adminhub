@@ -1684,7 +1684,15 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   // ── 從一覽表 dash-cell 快速新增品項 ──
   function _matrixAddItem(name, site, cat) {
-    const priceStr = prompt(`為「${site}」新增「${name}」的價格：`);
+    const _SITE_DEFAULT_PRICES = {
+      '3C/P8(健)':    '90',
+      '台耀/旭興(健)': '80',
+      '揚明光學(健)':  '110',
+      '休斯微(風)':    '110',
+      '揚明光學(風)':  '110',
+    };
+    const defaultPrice = _SITE_DEFAULT_PRICES[site] || '';
+    const priceStr = prompt(`為「${site}」新增「${name}」的價格：`, defaultPrice);
     if (priceStr === null) return;           // 按取消
     const trimmed = priceStr.trim();
     if (!trimmed) return;                    // 空白不新增
