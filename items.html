@@ -444,7 +444,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
   overflow: auto;
-  max-height: calc(100vh - 200px);
 }
 #matrix-wrap table {
   width: auto; min-width: 100%;
@@ -730,6 +729,19 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 }
 .pp-clear:hover { color: var(--red); border-color: var(--red); background: #fff0f0; }
 .pp-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+@media print {
+  body { background: white !important; background-image: none !important; padding-top: 0 !important; }
+  #page-header, #tab-bar, .toolbar, .drawer-tabs-rail, .side-drawer, .drawer-overlay, #saveToast, #editModal, #manageModal { display: none !important; }
+  #list-view { display: none !important; }
+  #matrix-view { display: block !important; }
+  #matrix-wrap { overflow: visible !important; max-height: none !important; border: none !important; box-shadow: none !important; }
+  #matrix-wrap thead th { position: static !important; background: #2d2d2d !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #matrix-wrap tbody td.td-name { position: static !important; background: #f8f5ef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #matrix-wrap tr.mx-group-row td { color: #c0392b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -907,6 +919,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   <div class="drawer-body">
     <button class="exp-btn export" onclick="exportExcel();closeAllDrawers()">
       <span class="btn-icon">⬇</span><span>匯出 Excel</span>
+    </button>
+    <button class="exp-btn export" onclick="exportMatrixPDF();closeAllDrawers()">
+      <span class="btn-icon">🖨</span><span>匯出一覽表 PDF</span>
     </button>
     <label class="exp-btn import" style="cursor:pointer;">
       <span class="btn-icon">⬆</span><span>匯入 Excel</span>
@@ -1779,6 +1794,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
   function openDrawer()  { toggleDrawer('export'); }
   function closeDrawer() { closeAllDrawers(); }
+
+  function exportMatrixPDF() {
+    window.print();
+  }
 
   function esc(s) {
     return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
