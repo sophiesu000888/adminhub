@@ -1208,6 +1208,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       if (!content) return;
       _remoteUpdate = true;
       items = Array.isArray(content) ? content : [];
+      const _defaultTs = new Date(2026, 3, 26, 2, 0, 0).getTime();
+      items.forEach(it => { if (!it.updatedAt) it.updatedAt = _defaultTs; });
       buildFilterBtns();
       render();
       _remoteUpdate = false;
