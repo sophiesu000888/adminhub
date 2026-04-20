@@ -1868,12 +1868,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
 
   function exportMatrixPDF() {
+    const matrixView = document.getElementById('matrix-view');
+    const wasHidden  = matrixView.style.display === 'none';
+    if (wasHidden) matrixView.style.display = '';
+
     buildMatrixFilters();
     renderMatrix();
 
-    const table = document.getElementById('matrix-table');
-    const wrap  = document.getElementById('matrix-wrap');
-    // A4 portrait at 96dpi minus 8mm margins each side ≈ 734px
+    const table  = document.getElementById('matrix-table');
     const targetW = 734;
     const tableW  = table.scrollWidth;
 
@@ -1883,6 +1885,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
     function cleanup() {
       table.style.zoom = '';
+      if (wasHidden) matrixView.style.display = 'none';
       window.removeEventListener('afterprint', cleanup);
     }
     window.addEventListener('afterprint', cleanup);
