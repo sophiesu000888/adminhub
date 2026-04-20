@@ -449,6 +449,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
   overflow: auto;
+  max-height: calc(100vh - 220px);
 }
 #matrix-wrap table {
   width: auto; min-width: 100%;
@@ -871,6 +872,11 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         <span class="filter-row-label">類別</span>
         <div id="mx-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         <button id="clear-mx-cat-btn" class="clear-row-btn" onclick="clearMatrixFilter()" style="display:none;">✕</button>
+      </div>
+      <div class="toolbar-row" style="gap:8px;">
+        <span class="filter-row-label" style="color:#2980b9;">搜尋</span>
+        <input type="text" id="mx-search" placeholder="搜尋品項…" style="flex:1;min-width:160px;padding:6px 12px;border:2px solid var(--border2);border-radius:8px;font-size:28px;font-family:'Noto Sans TC',sans-serif;outline:none;background:var(--s2);" oninput="mxSearchQ=this.value.toLowerCase();renderMatrix();" onfocus="this.style.borderColor='var(--ink)';this.style.background='white'" onblur="this.style.borderColor='';this.style.background='var(--s2)'">
+        <button id="clear-mx-search-btn" class="clear-row-btn" onclick="document.getElementById('mx-search').value='';mxSearchQ='';renderMatrix();" style="display:none;">✕ 清除</button>
       </div>
     </div>
     <div id="matrix-wrap">
@@ -1748,6 +1754,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   // ── MATRIX FILTERS ──
   let mxFilterSites = new Set();
   let mxFilterCats  = new Set();
+  let mxSearchQ = '';
 
   function buildMatrixFilters() {
     const allCats  = [...new Set(items.map(i => getCat(i)).filter(Boolean))].sort();
@@ -1783,10 +1790,15 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       ? allSites.filter(s => mxFilterSites.has(s))
       : allSites;
 
+    // 更新搜尋清除按鈕
+    const searchClearBtn = document.getElementById('clear-mx-search-btn');
+    if (searchClearBtn) searchClearBtn.style.display = mxSearchQ ? '' : 'none';
+
     // 篩選品項
     const filteredItems = items.filter(it => {
       const matchCat  = mxFilterCats.size === 0 || mxFilterCats.has(getCat(it));
-      return matchCat && it.name;
+      const matchQ    = !mxSearchQ || (it.name||'').toLowerCase().includes(mxSearchQ);
+      return matchCat && matchQ && it.name;
     });
 
     // 依類別分組品項名稱（同名只出現一次）
