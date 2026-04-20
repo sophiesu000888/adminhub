@@ -215,17 +215,18 @@ thead th.col-price { width: 100px; }
 thead th.col-cat   { width: 130px; }
 thead th.col-box   { width: 220px; white-space: nowrap; }
 thead th.col-avail { width: 110px; text-align: center; }
-thead th.col-time  { width: 140px; white-space: nowrap; font-size: 22px; user-select: none; }
+thead th.col-time  { width: 140px; white-space: nowrap; font-size: 22px; user-select: none; padding: 0 !important; }
+thead th.col-time .time-inner { display: flex; align-items: center; gap: 4px; padding: 10px 12px; }
 thead th.col-time .time-sort { cursor: pointer; flex: 1; }
 thead th.col-time .time-sort:hover { opacity: .75; }
 thead th.col-time .time-toggle { cursor: pointer; font-size: 16px; padding: 0 4px; opacity: .6; }
 thead th.col-time .time-toggle:hover { opacity: 1; }
-thead th.col-time { display: flex; align-items: center; gap: 4px; }
 
 /* 折收狀態 */
-.time-collapsed th.col-time { width: 28px !important; padding: 0 !important; }
+.time-collapsed th.col-time { width: 28px !important; }
 .time-collapsed th.col-time .time-sort { display: none; }
-.time-collapsed th.col-time .time-toggle { font-size: 18px; opacity: .8; width: 100%; text-align: center; }
+.time-collapsed th.col-time .time-inner { padding: 10px 4px; justify-content: center; }
+.time-collapsed th.col-time .time-toggle { font-size: 18px; opacity: .9; padding: 0; }
 .time-collapsed td.col-time-cell { display: none !important; }
 thead th.col-del   { width: 50px; text-align: center; }
 
@@ -874,8 +875,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           <th class="col-cat">類別</th>
           <th class="col-box">餐盒</th>
           <th class="col-time" id="th-time">
-            <span class="time-sort" onclick="sortByTime = sortByTime==='desc' ? 'asc' : 'desc'; render();">修改時間 ↕</span>
-            <span class="time-toggle" onclick="toggleTimeCol()" title="折收">◀</span>
+            <div class="time-inner">
+              <span class="time-sort" onclick="sortByTime = sortByTime==='desc' ? 'asc' : 'desc'; render();">修改時間 ↕</span>
+              <span class="time-toggle" onclick="toggleTimeCol()" title="折收">◀</span>
+            </div>
           </th>
           <th class="col-del"></th>
         </tr>
