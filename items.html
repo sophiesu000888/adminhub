@@ -1475,6 +1475,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const cat   = document.getElementById('f-cat').value.trim();
     const box   = document.getElementById('f-box').value.trim();
     if (!name) { document.getElementById('f-name').focus(); return; }
+    const dup = items.find(it => it.site === site && it.name === name);
+    if (dup && !confirm(`「${site}／${name}」已存在（價格 ${dup.price ? '$'+dup.price : '未填'}），確定要再新增一筆？`)) return;
     items.unshift({ site, name, price, cat, box });
     buildFilterBtns();
     render();
