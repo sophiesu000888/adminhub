@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -476,6 +477,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td.td-name { background: #bedaf5 !important; }
 .price-cell { color: var(--blue); font-weight: 700; }
 .dash-cell  { color: var(--muted); }
+.mx-add-cell { cursor: pointer; transition: background .12s, color .12s; }
+.mx-add-cell:hover { background: #eaf4ff !important; color: var(--blue) !important; }
+.mx-add-cell:hover::after { content: ' ＋'; font-size: 20px; opacity: .7; }
 #matrix-wrap tr.mx-group-row td {
   background: var(--s2); font-weight: 700; font-size: 24px;
   color: var(--red); letter-spacing: 1px;
@@ -1678,6 +1682,26 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
   }
 
+  // ── 從一覽表 dash-cell 快速新增品項 ──
+  function _matrixAddItem(name, site, cat) {
+    const priceStr = prompt(`為「${site}」新增「${name}」的價格：`);
+    if (priceStr === null) return;           // 按取消
+    const trimmed = priceStr.trim();
+    if (!trimmed) return;                    // 空白不新增
+    if (isNaN(Number(trimmed))) { alert('請輸入數字價格'); return; }
+
+    // 找同品項已有的 box 當預設值
+    const existing = items.find(it => it.name === name);
+    const box = existing ? (existing.box || '') : '';
+
+    items.unshift({ site, name, price: trimmed, cat: cat || '', box });
+    buildFilterBtns();
+    render();
+    buildMatrixFilters();
+    renderMatrix();
+    autoSave();
+  }
+
   // ── TABS ──
   let currentTab = 'list';
 
@@ -1802,7 +1826,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
             td.className = 'price-cell';
             td.textContent = prices.map(p => '$' + p).join(' / ');
           } else {
-            td.className = 'dash-cell'; td.textContent = '—';
+            td.className = 'dash-cell mx-add-cell';
+            td.textContent = '—';
+            td.title = `點擊為「${site}」新增「${name}」的價格`;
+            td.onclick = () => _matrixAddItem(name, site, cat);
           }
           tr.appendChild(td);
         });
