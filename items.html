@@ -751,8 +751,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   #matrix-wrap tr.mx-group-row { page-break-after: avoid; }
   #matrix-wrap tr { page-break-inside: avoid; }
   #matrix-wrap thead th { position: static !important; background: #2d2d2d !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #matrix-wrap tbody td.td-name { position: static !important; background: #f8f5ef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #matrix-wrap tr.mx-group-row td { color: #c0392b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #matrix-wrap tbody tr:nth-child(odd)  td { background: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #matrix-wrap tbody tr:nth-child(even) td { background: #edeae0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #matrix-wrap tbody td.td-name { position: static !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #matrix-wrap tr.mx-group-row td { background: #2d2d2d !important; color: #ff9999 !important; font-weight: 700 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   tr { page-break-inside: avoid; }
 }
 </style>
