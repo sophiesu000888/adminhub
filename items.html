@@ -1904,10 +1904,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           const key = name + '|||' + site;
           const prices = priceMap[key];
           if (prices && prices.length) {
-            td.className = 'price-cell';
+            td.classList.add('price-cell');
             td.textContent = prices.map(p => '$' + p).join(' / ');
           } else {
-            td.className = 'dash-cell mx-add-cell';
+            td.classList.add('dash-cell', 'mx-add-cell');
             td.textContent = '—';
             td.title = `點擊為「${site}」新增「${name}」的價格`;
             td.onclick = () => _matrixAddItem(name, site, cat);
