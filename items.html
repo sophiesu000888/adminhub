@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -316,6 +317,8 @@ tbody tr.selected { background: #f0eee8 !important; }
 .batch-confirm:hover { background: #1e8449; transform: translate(1px,1px); box-shadow: 1px 1px 0 0 rgba(0,0,0,.3); }
 .batch-cancel  { background: transparent; color: rgba(255,255,255,.8); }
 .batch-cancel:hover  { background: rgba(255,255,255,.1); }
+.batch-delete  { background: #c0392b; color: white; border-color: #96281b; box-shadow: 2px 2px 0 0 rgba(0,0,0,.3); }
+.batch-delete:hover  { background: #96281b; transform: translate(1px,1px); box-shadow: 1px 1px 0 0 rgba(0,0,0,.3); }
 .batch-field-btn {
   font-family: inherit; font-weight: 700; font-size: 24px;
   border-radius: 4px 10px 5px 9px / 9px 5px 10px 4px;
@@ -854,6 +857,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     <input  id="batch-price-input" class="batch-input" type="number" min="0" placeholder="輸入價格…" style="display:none;flex:1;min-width:120px;">
     <input  id="batch-name-input" class="batch-input" type="text" placeholder="輸入新品項名稱…" style="display:none;flex:1;min-width:160px;">
     <button class="batch-btn batch-confirm" onclick="batchApply()">✔ 套用</button>
+    <button class="batch-btn batch-delete" onclick="batchDelete()">🗑 刪除</button>
     <button class="batch-btn batch-cancel"  onclick="clearSelection()">✕ 取消</button>
   </div>
 
@@ -1487,7 +1491,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const box   = document.getElementById('f-box').value.trim();
     if (!name) { document.getElementById('f-name').focus(); return; }
     const dup = items.find(it => it.site === site && it.name === name);
-    if (dup && !confirm(`「${site}／${name}」已存在（價格 ${dup.price ? '$'+dup.price : '未填'}），確定要再新增一筆？`)) return;
+    if (dup && !confirm(`「${site ? site+'／' : ''}${name}」已存在（價格 ${dup.price ? '$'+dup.price : '未填'}），確定要再新增一筆？`)) return;
     items.unshift({ site, name, price, cat, box });
     buildFilterBtns();
     render();
@@ -1680,6 +1684,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     autoSave();
     render();
     if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+  }
+
+  function batchDelete() {
+    if (selectedRis.size === 0) return;
+    const names = [...selectedRis].slice(0, 5).map(ri => items[ri]?.name).filter(Boolean);
+    const preview = names.join('、') + (selectedRis.size > 5 ? `… 等` : '');
+    if (!confirm(`確定刪除 ${selectedRis.size} 筆品項？\n（${preview}）\n\n此操作無法復原。`)) return;
+    const toDelete = new Set(selectedRis);
+    items = items.filter((_, ri) => !toDelete.has(ri));
+    selectedRis.clear();
+    buildFilterBtns();
+    autoSave();
+    render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+    updateBatchBar();
   }
 
   // ── 從一覽表 dash-cell 快速新增品項 ──
