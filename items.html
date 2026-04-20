@@ -198,7 +198,6 @@ body {
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
   overflow: auto;
-  max-height: 2500px;
 }
 
 table {
@@ -209,7 +208,6 @@ thead th {
   background: var(--ink); color: white;
   padding: 10px 12px; text-align: left; font-weight: 700;
   font-size: 26px; letter-spacing: 1px; white-space: nowrap;
-  position: sticky; top: 0; z-index: 2;
 }
 thead th:first-child { width: 36px; text-align: center; }
 thead th.col-site  { width: 100px; }
@@ -449,7 +447,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
   overflow: auto;
-  max-height: calc(100vh - 220px);
 }
 #matrix-wrap table {
   width: auto; min-width: 100%;
@@ -459,11 +456,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   background: var(--ink); color: white;
   padding: 10px 14px; text-align: center; font-weight: 700;
   font-size: 24px; white-space: nowrap;
-  position: sticky; top: 0; z-index: 2;
 }
 #matrix-wrap thead th.th-name {
   text-align: left; min-width: 180px;
-  position: sticky; left: 0; z-index: 3;
 }
 #matrix-wrap tbody td {
   padding: 9px 14px; border-bottom: 1px solid var(--border2);
@@ -472,7 +467,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 #matrix-wrap tbody td.td-name {
   text-align: left; font-weight: 700;
   background: var(--s2);
-  position: sticky; left: 0; z-index: 1;
   border-right: 1px solid var(--border2);
 }
 #matrix-wrap tbody tr:nth-child(even) td { background: var(--s2); }
@@ -484,6 +478,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .mx-add-cell { cursor: pointer; transition: background .12s, color .12s; }
 .mx-add-cell:hover { background: #eaf4ff !important; color: var(--blue) !important; }
 .mx-add-cell:hover::after { content: ' ＋'; font-size: 20px; opacity: .7; }
+/* 廠區欄位底色：（健）淺綠、（風）淺藍 */
+#matrix-wrap thead th.col-ken { background: #2d7a3a !important; }
+#matrix-wrap thead th.col-feng { background: #1a5f8a !important; }
+#matrix-wrap tbody td.col-ken { background: #e8f5e9 !important; }
+#matrix-wrap tbody td.col-feng { background: #e3f2fd !important; }
+#matrix-wrap tbody tr:not(.mx-group-row):hover td.col-ken { background: #c8e6c9 !important; }
+#matrix-wrap tbody tr:not(.mx-group-row):hover td.col-feng { background: #bbdefb !important; }
 #matrix-wrap tr.mx-group-row td {
   background: var(--s2); font-weight: 700; font-size: 24px;
   color: var(--red); letter-spacing: 1px;
@@ -1826,6 +1827,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     visibleSites.forEach(site => {
       const th = document.createElement('th');
       th.textContent = site;
+      if (site.includes('健')) th.classList.add('col-ken');
+      else if (site.includes('風')) th.classList.add('col-feng');
       hr.appendChild(th);
     });
     thead.appendChild(hr);
@@ -1858,6 +1861,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         tr.appendChild(tdName);
         visibleSites.forEach(site => {
           const td = document.createElement('td');
+          if (site.includes('健')) td.classList.add('col-ken');
+          else if (site.includes('風')) td.classList.add('col-feng');
           const key = name + '|||' + site;
           const prices = priceMap[key];
           if (prices && prices.length) {
