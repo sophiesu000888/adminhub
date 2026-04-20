@@ -4495,12 +4495,15 @@ function _syncMainDishFromItems(itemsList) {
         changed = true;
       }
 
-      // 確保已存在的品項有放入對應分組
+      // 確保已存在的品項有放入對應分組（用去星號的 baseName 比對）
       const currentName = mainDishArr[existingIdx]; // 可能剛更新過
       const label = CAT_LABEL_MAP[cat] || null;
       if (label) {
         const g = getOrCreateGroup(label);
-        const alreadyInGroup = groups.some(gr => gr.items.includes(currentName));
+        // 用 baseName 比對，避免星號不一致造成找不到
+        const alreadyInGroup = groups.some(gr =>
+          gr.items.some(i => i.replace(/\*$/, '') === baseName)
+        );
         if (!alreadyInGroup) {
           g.items.push(currentName);
           changed = true;
