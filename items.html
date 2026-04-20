@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -1280,7 +1281,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       }
       btn.onclick = () => {
         toggleFilter(filterSites, site, btn, render);
-        // 切換顏色
         if (btn.classList.contains('active') && sc) {
           const col = window._siteColors ? window._siteColors[sc] : null;
           if (col) { btn.style.background = col.bg; btn.style.color = col.fg; btn.style.borderColor = col.bg; }
@@ -1290,6 +1290,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       };
       siteDiv.appendChild(btn);
     });
+    if (items.some(i => !i.site)) {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag site-tag' + (filterSites.has('') ? ' active' : '');
+      btn.textContent = '（無廠區）';
+      btn.onclick = () => toggleFilter(filterSites, '', btn, render);
+      siteDiv.appendChild(btn);
+    }
 
     // 類別：從資料動態抽取
     const allCats = [...new Set(items.map(i => getCat(i)).filter(Boolean))].sort();
@@ -1307,6 +1314,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       };
       catDiv.appendChild(btn);
     });
+    if (items.some(i => !getCat(i))) {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag cat-tag' + (filterCats.has('') ? ' active' : '');
+      btn.textContent = '（無類別）';
+      btn.onclick = () => toggleFilter(filterCats, '', btn, render);
+      catDiv.appendChild(btn);
+    }
 
     // 餐盒：從資料動態抽取
     const allBoxes = [...new Set(items.map(i => i.box).filter(Boolean))].sort();
@@ -1319,6 +1333,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       btn.onclick = () => toggleFilter(filterBoxes, box, btn, render);
       boxDiv.appendChild(btn);
     });
+    if (items.some(i => !i.box)) {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag' + (filterBoxes.has('') ? ' active' : '');
+      btn.textContent = '（無餐盒）';
+      btn.onclick = () => toggleFilter(filterBoxes, '', btn, render);
+      boxDiv.appendChild(btn);
+    }
   }
 
   function clearAllFilters() {
@@ -1407,10 +1428,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   // ── RENDER ──
   function render() {
     const list = items.map((it, ri) => ({ it, ri })).filter(({ it }) => {
-      const matchSite = filterSites.size === 0 || filterSites.has(it.site);
+      const matchSite = filterSites.size === 0 || filterSites.has(it.site || '');
       const cat = getCat(it);
-      const matchCat  = filterCats.size  === 0 || filterCats.has(cat);
-      const matchBox  = filterBoxes.size === 0 || filterBoxes.has(it.box);
+      const matchCat  = filterCats.size  === 0 || filterCats.has(cat || '');
+      const matchBox  = filterBoxes.size === 0 || filterBoxes.has(it.box || '');
       const matchQ    = !searchQ ||
                         (it.name||'').toLowerCase().includes(searchQ) ||
                         (it.box||'').toLowerCase().includes(searchQ);
