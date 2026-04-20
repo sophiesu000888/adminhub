@@ -1039,7 +1039,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       const sel = document.getElementById(id);
       if (!sel) return;
       const cur = sel.value;
-      sel.innerHTML = list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      const blankOption = type === 'site' ? `<option value="">（無廠區）</option>` : '';
+      sel.innerHTML = blankOption + list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
       if (list.includes(cur)) sel.value = cur;
     });
   }
