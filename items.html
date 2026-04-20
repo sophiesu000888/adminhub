@@ -1685,6 +1685,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     currentTab = tab;
     document.getElementById('list-view').style.display   = tab === 'list'   ? '' : 'none';
     document.getElementById('matrix-view').style.display = tab === 'matrix' ? '' : 'none';
+    document.getElementById('main').style.maxWidth = tab === 'matrix' ? 'none' : '';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
       btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix'));
     });
