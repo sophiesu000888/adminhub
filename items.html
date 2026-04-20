@@ -215,8 +215,18 @@ thead th.col-price { width: 100px; }
 thead th.col-cat   { width: 130px; }
 thead th.col-box   { width: 220px; white-space: nowrap; }
 thead th.col-avail { width: 110px; text-align: center; }
-thead th.col-time  { width: 140px; white-space: nowrap; font-size: 22px; cursor: pointer; user-select: none; }
-thead th.col-time:hover { background: #444; }
+thead th.col-time  { width: 140px; white-space: nowrap; font-size: 22px; user-select: none; }
+thead th.col-time .time-sort { cursor: pointer; flex: 1; }
+thead th.col-time .time-sort:hover { opacity: .75; }
+thead th.col-time .time-toggle { cursor: pointer; font-size: 16px; padding: 0 4px; opacity: .6; }
+thead th.col-time .time-toggle:hover { opacity: 1; }
+thead th.col-time { display: flex; align-items: center; gap: 4px; }
+
+/* 折收狀態 */
+.time-collapsed th.col-time { width: 28px !important; padding: 0 !important; }
+.time-collapsed th.col-time .time-sort { display: none; }
+.time-collapsed th.col-time .time-toggle { font-size: 18px; opacity: .8; width: 100%; text-align: center; }
+.time-collapsed td.col-time-cell { display: none !important; }
 thead th.col-del   { width: 50px; text-align: center; }
 
 tbody tr {
@@ -863,7 +873,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           <th class="col-price">價格</th>
           <th class="col-cat">類別</th>
           <th class="col-box">餐盒</th>
-          <th class="col-time" onclick="sortByTime = sortByTime==='desc' ? 'asc' : 'desc'; render();" id="th-time">修改時間 ↕</th>
+          <th class="col-time" id="th-time">
+            <span class="time-sort" onclick="sortByTime = sortByTime==='desc' ? 'asc' : 'desc'; render();">修改時間 ↕</span>
+            <span class="time-toggle" onclick="toggleTimeCol()" title="折收">◀</span>
+          </th>
           <th class="col-del"></th>
         </tr>
       </thead>
@@ -1411,8 +1424,17 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     tbody.innerHTML = '';
     empty.style.display = list.length ? 'none' : 'block';
 
+    // 排序
+    if (sortByTime) {
+      list.sort((a, b) => sortByTime === 'desc'
+        ? (b.it.updatedAt || 0) - (a.it.updatedAt || 0)
+        : (a.it.updatedAt || 0) - (b.it.updatedAt || 0));
+    }
+    const timeSort = document.querySelector('.time-sort');
+    if (timeSort) timeSort.textContent = '修改時間 ' + (sortByTime === 'desc' ? '↓' : sortByTime === 'asc' ? '↑' : '↕');
+
     // 有篩選或搜尋時直接列出；否則依廠區分組
-    const isFiltered = filterSites.size > 0 || filterCats.size > 0 || filterBoxes.size > 0 || searchQ;
+    const isFiltered = filterSites.size > 0 || filterCats.size > 0 || filterBoxes.size > 0 || searchQ || sortByTime;
     const clearBtn = document.getElementById('clear-filter-btn');
     if (clearBtn) clearBtn.style.display = isFiltered ? '' : 'none';
     updatePopoverBadges();
@@ -1460,7 +1482,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <td class="price-val">${it.price ? '$' + esc(it.price) : '—'}</td>
       <td><span class="cat-badge ${cc}">${esc(cat)}</span></td>
       <td>${esc(it.box||'—')}</td>
-      <td style="font-size:22px;color:var(--muted);white-space:nowrap;">${(() => { if (!it.updatedAt) return '—'; const d = new Date(it.updatedAt); const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); })()}</td>
+      <td class="col-time-cell" style="font-size:22px;color:var(--muted);white-space:nowrap;">${(() => { if (!it.updatedAt) return '—'; const d = new Date(it.updatedAt); const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); })()}</td>
       <td style="text-align:center;white-space:nowrap;">
         <button class="edit-btn" onclick="openModal(${ri})">✏️ Edit</button>
         <button class="del-btn" onclick="delItem(${ri})">✕</button>
@@ -1524,6 +1546,12 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   });
 
   // ── CRUD ──
+  function toggleTimeCol() {
+    document.querySelector('.tbl-wrap').classList.toggle('time-collapsed');
+    const toggle = document.querySelector('.time-toggle');
+    if (toggle) toggle.textContent = document.querySelector('.tbl-wrap').classList.contains('time-collapsed') ? '▶' : '◀';
+  }
+
   function fmtTime(ts) {
     const d = new Date(ts);
     const pad = n => String(n).padStart(2,'0');
