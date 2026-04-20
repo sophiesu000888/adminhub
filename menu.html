@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -4419,44 +4420,91 @@ function _syncMainDishFromItems(itemsList) {
   if (!DB["主菜"]) DB["主菜"] = [];
   const mainDishArr = DB["主菜"];
 
-  // 建立「品項名稱 → 是否有(健)廠區」的 map（同名只出現一次）
-  const nameMap = {}; // name → hasHealth (boolean)
+  // items 類別 → MENU_GROUPS label 對應表
+  const CAT_LABEL_MAP = {
+    "雞":   "🐔 雞",
+    "豬":   "🐷 豬",
+    "牛":   "🐄 牛",
+    "鴨":   "🦆 鴨",
+    "舒肥": "🥩 舒肥",
+    "雙拼": "🍱 雙拼",
+    "魚":   "🐟 魚",
+  };
+
+  // 建立「品項名稱 → { hasHealth, cat }」的 map（同名合併）
+  const nameMap = {}; // baseName → { hasHealth, cat }
   itemsList.forEach(it => {
     if (!it.name) return;
     const baseName = it.name;
     const isHealth = (it.site || '').includes('(健)');
+    const cat = it.cat || '';
     if (!(baseName in nameMap)) {
-      nameMap[baseName] = isHealth;
+      nameMap[baseName] = { hasHealth: isHealth, cat };
     } else {
-      // 只要有任何一筆是(健)廠區，就標記 hasHealth = true
-      if (isHealth) nameMap[baseName] = true;
+      if (isHealth) nameMap[baseName].hasHealth = true;
+      if (cat && !nameMap[baseName].cat) nameMap[baseName].cat = cat;
     }
   });
 
+  if (!MENU_GROUPS["主菜"]) MENU_GROUPS["主菜"] = [];
+  const groups = MENU_GROUPS["主菜"];
+
+  // 建立「group label → group 物件」的快速查找
+  function getOrCreateGroup(label) {
+    let g = groups.find(g => g.label === label);
+    if (!g) {
+      g = { label, items: [] };
+      groups.push(g);
+    }
+    return g;
+  }
+
   let changed = false;
 
-  Object.entries(nameMap).forEach(([baseName, hasHealth]) => {
+  Object.entries(nameMap).forEach(([baseName, { hasHealth, cat }]) => {
     const displayName = hasHealth ? baseName + '*' : baseName;
-    // 檢查 DB["主菜"] 是否已有此品項（含或不含*都算有）
-    const alreadyExists = mainDishArr.some(
+
+    // 找 DB["主菜"] 是否已有此品項（含或不含*）
+    const existingIdx = mainDishArr.findIndex(
       item => item.replace(/\*$/, '') === baseName
     );
-    if (!alreadyExists) {
+
+    if (existingIdx < 0) {
+      // 完全新品項：加入 DB 並加入對應分組
       mainDishArr.push(displayName);
+      const label = CAT_LABEL_MAP[cat] || null;
+      if (label) {
+        const g = getOrCreateGroup(label);
+        if (!g.items.includes(displayName)) {
+          g.items.push(displayName);
+        }
+      }
       changed = true;
     } else {
-      // 已存在：若 hasHealth 狀態和現有名稱不符，則更新星號
-      const existingIdx = mainDishArr.findIndex(
-        item => item.replace(/\*$/, '') === baseName
-      );
-      if (existingIdx >= 0) {
-        const existingName = mainDishArr[existingIdx];
-        const existingHasStar = existingName.endsWith('*');
-        if (hasHealth && !existingHasStar) {
-          mainDishArr[existingIdx] = baseName + '*';
+      // 已存在：檢查是否需要補星號
+      const existingName = mainDishArr[existingIdx];
+      const existingHasStar = existingName.endsWith('*');
+      if (hasHealth && !existingHasStar) {
+        const newName = baseName + '*';
+        mainDishArr[existingIdx] = newName;
+        // 同步更新 MENU_GROUPS 裡的名稱
+        groups.forEach(g => {
+          const gi = g.items.indexOf(existingName);
+          if (gi >= 0) g.items[gi] = newName;
+        });
+        changed = true;
+      }
+
+      // 確保已存在的品項有放入對應分組
+      const currentName = mainDishArr[existingIdx]; // 可能剛更新過
+      const label = CAT_LABEL_MAP[cat] || null;
+      if (label) {
+        const g = getOrCreateGroup(label);
+        const alreadyInGroup = groups.some(gr => gr.items.includes(currentName));
+        if (!alreadyInGroup) {
+          g.items.push(currentName);
           changed = true;
         }
-        // 注意：若使用者手動加了*，我們不移除（只加不減）
       }
     }
   });
@@ -4464,7 +4512,7 @@ function _syncMainDishFromItems(itemsList) {
   if (changed) {
     rerenderDBPanels();
     initMgmtItems();
-    if (_dbAutoSave) _dbAutoSave(); // 持久化到 menudb，下次開啟不用重算
+    if (_dbAutoSave) _dbAutoSave();
   }
 }
 
