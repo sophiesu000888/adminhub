@@ -482,12 +482,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .mx-add-cell:hover { background: #eaf4ff !important; color: var(--blue) !important; }
 .mx-add-cell:hover::after { content: ' ＋'; font-size: 20px; opacity: .7; }
 /* 廠區欄位底色：（健）淺綠、（風）淺藍 — 需蓋過 nth-child(even) */
-#matrix-wrap thead th.col-ken { background: #2d7a3a !important; }
-#matrix-wrap thead th.col-feng { background: #1a5f8a !important; }
 #matrix-wrap tbody td.col-ken,
-#matrix-wrap tbody tr:nth-child(even) td.col-ken { background: #e0f2e1 !important; }
+#matrix-wrap tbody tr:nth-child(even) td.col-ken { background: #e8f5e9 !important; }
 #matrix-wrap tbody td.col-feng,
-#matrix-wrap tbody tr:nth-child(even) td.col-feng { background: #daeeff !important; }
+#matrix-wrap tbody tr:nth-child(even) td.col-feng { background: #e3f2fd !important; }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td.col-ken { background: #c8e6c9 !important; }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td.col-feng { background: #bbdefb !important; }
 #matrix-wrap tr.mx-group-row td {
@@ -1458,7 +1456,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <td class="price-val">${it.price ? '$' + esc(it.price) : '—'}</td>
       <td><span class="cat-badge ${cc}">${esc(cat)}</span></td>
       <td>${esc(it.box||'—')}</td>
-      <td style="font-size:22px;color:var(--muted);white-space:nowrap;">${it.updatedAt ? fmtTime(it.updatedAt) : '—'}</td>
+      <td style="font-size:22px;color:var(--muted);white-space:nowrap;">${(() => { if (!it.updatedAt) return '—'; const d = new Date(it.updatedAt); const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); })()}</td>
       <td style="text-align:center;white-space:nowrap;">
         <button class="edit-btn" onclick="openModal(${ri})">✏️ Edit</button>
         <button class="del-btn" onclick="delItem(${ri})">✕</button>
