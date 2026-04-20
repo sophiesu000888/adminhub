@@ -1690,9 +1690,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (!trimmed) return;                    // 空白不新增
     if (isNaN(Number(trimmed))) { alert('請輸入數字價格'); return; }
 
-    // 找同品項已有的 box 當預設值
-    const existing = items.find(it => it.name === name);
-    const box = existing ? (existing.box || '') : '';
+    // 廠區含「(健)」→ 固定用十貫牛皮壽司盒，否則找同品項已有的 box
+    const box = site.includes('(健)')
+      ? '十貫牛皮壽司盒'
+      : (items.find(it => it.name === name)?.box || '');
 
     items.unshift({ site, name, price: trimmed, cat: cat || '', box });
     buildFilterBtns();
