@@ -747,7 +747,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   #main { padding: 0 !important; }
   #matrix-view { display: block !important; }
   #matrix-wrap { overflow: visible !important; max-height: none !important; border: none !important; box-shadow: none !important; width: 100% !important; }
-  #matrix-table { transform-origin: top left; }
+  #matrix-table { transform-origin: top left; page-break-inside: auto; }
+  #matrix-wrap tr.mx-group-row { page-break-after: avoid; }
+  #matrix-wrap tr { page-break-inside: avoid; }
   #matrix-wrap thead th { position: static !important; background: #2d2d2d !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   #matrix-wrap tbody td.td-name { position: static !important; background: #f8f5ef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   #matrix-wrap tr.mx-group-row td { color: #c0392b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1855,16 +1857,11 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const tableW  = table.scrollWidth;
 
     if (tableW > targetW) {
-      const scale = targetW / tableW;
-      table.style.transform       = `scale(${scale.toFixed(4)})`;
-      table.style.transformOrigin = 'top left';
-      wrap.style.height = Math.ceil(table.offsetHeight * scale) + 'px';
+      table.style.zoom = (targetW / tableW).toFixed(4);
     }
 
     function cleanup() {
-      table.style.transform       = '';
-      table.style.transformOrigin = '';
-      wrap.style.height           = '';
+      table.style.zoom = '';
       window.removeEventListener('afterprint', cleanup);
     }
     window.addEventListener('afterprint', cleanup);
