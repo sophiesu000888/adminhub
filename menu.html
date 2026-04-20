@@ -4385,6 +4385,8 @@ async function initApp() {
           _applyMenuSync(_pendingMenuContent);
           _pendingMenuContent = undefined;
         }
+        // menudb 到齊後，補跑 items sync
+        _origDbReadyCheck();
       }
     });
 
@@ -4414,10 +4416,23 @@ async function initApp() {
     });
 
     // ── 監聽 items（品項列表）資料，自動同步主菜選項 ──
+    let _pendingItemsContent;
     startSync('items', user, (itemsContent) => {
       if (!Array.isArray(itemsContent)) return;
+      if (!_dbReady) {
+        _pendingItemsContent = itemsContent;
+        return;
+      }
       _syncMainDishFromItems(itemsContent);
     });
+
+    // menudb ready 後，補跑 items sync（若 items snapshot 比 menudb 先到）
+    const _origDbReadyCheck = () => {
+      if (_pendingItemsContent !== undefined) {
+        _syncMainDishFromItems(_pendingItemsContent);
+        _pendingItemsContent = undefined;
+      }
+    };
   });
 }
 
