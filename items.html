@@ -273,7 +273,22 @@ tbody td:first-child { text-align: center; }
 .cat-badge.cat-舒肥 { background: #e8f0fb; color: #1a3a7a; border: 1.5px solid #2980b9; }
 
 /* price cell */
-.price-val { color: var(--blue); font-weight: 700; }
+.price-val { color: var(--blue); font-weight: 700; cursor: pointer; transition: background .12s; border-radius: 4px; padding: 2px 6px; }
+.price-val:hover { background: #eaf4ff; }
+.price-val.no-price { color: var(--muted); }
+
+/* price edit mini-modal */
+#priceEditModal .modal { width: min(340px, calc(100vw - 32px)); }
+#priceEditModal .modal h3 { font-size: 24px; margin-bottom: 14px; }
+.price-item-info { font-size: 22px; color: var(--dim); margin-bottom: 14px; line-height: 1.5; }
+.price-item-info strong { color: var(--ink); }
+.btn-del-price {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 24px;
+  background: #fff0f0; color: #c0392b; border: 2px solid #e74c3c;
+  border-radius: 6px; padding: 8px 16px; cursor: pointer;
+  box-shadow: 2px 2px 0 0 #e74c3c; transition: all .1s;
+}
+.btn-del-price:hover { background: #ffdede; transform: translate(1px,1px); box-shadow: 1px 1px 0 0 #e74c3c; }
 
 /* edit / del btns */
 .edit-btn {
@@ -788,7 +803,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 @media print {
   @page { size: A4 portrait; margin: 8mm; }
   body { background: white !important; background-image: none !important; padding-top: 0 !important; margin: 0 !important; }
-  #page-header, #tab-bar, .toolbar, .drawer-tabs-rail, .side-drawer, .drawer-overlay, #saveToast, #editModal, #manageModal { display: none !important; }
+  #page-header, #tab-bar, .toolbar, .drawer-tabs-rail, .side-drawer, .drawer-overlay, #saveToast, #editModal, #manageModal, #priceEditModal { display: none !important; }
   #status-bar, [id^="status-bar"], [class*="status-bar"] { display: none !important; }
   #list-view { display: none !important; }
   #main { padding: 0 !important; }
@@ -1020,6 +1035,25 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     <div class="opt-add-row">
       <input id="opt-new-input" type="text" placeholder="輸入新選項…" onkeydown="if(event.key==='Enter')addOptionFromManage()">
       <button onclick="addOptionFromManage()">＋ 新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- 價格快速編輯 Mini-Modal -->
+<div class="modal-overlay" id="priceEditModal" style="display:none;" onclick="if(event.target===this)closePriceEdit()">
+  <div class="modal">
+    <h3>💰 價格設定</h3>
+    <div class="price-item-info" id="price-edit-info"></div>
+    <div class="modal-field">
+      <label>價格 Price</label>
+      <input id="pe-price" type="number" min="0" placeholder="輸入價格…" onkeydown="if(event.key==='Enter')savePriceEdit();if(event.key==='Escape')closePriceEdit()">
+    </div>
+    <div class="modal-actions" style="justify-content:space-between;align-items:center;">
+      <button class="btn-del-price" id="pe-del-btn" onclick="deletePriceItem()" style="display:none;">🗑 刪除廠區品項</button>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button class="btn-cancel" onclick="closePriceEdit()">取消</button>
+        <button class="btn-confirm" onclick="savePriceEdit()">儲存</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1503,7 +1537,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       </td>
       <td><span class="site-badge ${sc}">${esc(it.site||'—')}</span></td>
       <td>${esc(it.name)}</td>
-      <td class="price-val">${it.price ? '$' + esc(it.price) : '—'}</td>
+      <td class="price-val${it.price ? '' : ' no-price'}" onclick="openPriceEdit(${ri})" title="${it.price ? '點擊修改/刪除價格' : '點擊新增價格'}">${it.price ? '$' + esc(it.price) : '—'}</td>
       <td><span class="cat-badge ${cc}">${esc(cat)}</span></td>
       <td>${esc(it.box||'—')}</td>
       <td class="col-time-cell" style="font-size:22px;color:var(--muted);white-space:nowrap;">${(() => { if (!it.updatedAt) return '—'; const d = new Date(it.updatedAt); const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); })()}</td>
@@ -1604,6 +1638,58 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function delItem(i) {
     if (!confirm(`刪除「${items[i].name}」？`)) return;
     items.splice(i, 1);
+    buildFilterBtns();
+    render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+    autoSave();
+  }
+
+  // ── 價格快速編輯 ──
+  let _priceEditRi = null;
+
+  function openPriceEdit(ri) {
+    _priceEditRi = ri;
+    const it = items[ri];
+    const siteLabel = it.site ? `【${it.site}】` : '（無廠區）';
+    document.getElementById('price-edit-info').innerHTML =
+      `<strong>${esc(it.name)}</strong><br>${siteLabel}`;
+    document.getElementById('pe-price').value = it.price || '';
+    document.getElementById('pe-del-btn').style.display = it.price ? '' : 'none';
+    document.getElementById('priceEditModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('pe-price').focus(), 50);
+  }
+
+  function closePriceEdit() {
+    document.getElementById('priceEditModal').style.display = 'none';
+    _priceEditRi = null;
+  }
+
+  function savePriceEdit() {
+    if (_priceEditRi === null) return;
+    const newPrice = document.getElementById('pe-price').value.trim();
+    if (newPrice && isNaN(Number(newPrice))) { alert('請輸入數字價格'); return; }
+    if (!newPrice && items[_priceEditRi].price) {
+      // 清空價格 → 走刪除流程
+      deletePriceItem();
+      return;
+    }
+    items[_priceEditRi].price = newPrice;
+    items[_priceEditRi].updatedAt = Date.now();
+    closePriceEdit();
+    render();
+    if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+    autoSave();
+  }
+
+  function deletePriceItem() {
+    if (_priceEditRi === null) return;
+    const it = items[_priceEditRi];
+    const label = `${it.site ? it.site + '／' : ''}${it.name}`;
+    if (!confirm(`確定要刪除廠區品項「${label}」？\n（將移除整筆紀錄）`)) return;
+    if (!confirm(`再次確認：永久刪除「${label}」，此操作無法復原。`)) return;
+    const ri = _priceEditRi;
+    closePriceEdit();
+    items.splice(ri, 1);
     buildFilterBtns();
     render();
     if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
