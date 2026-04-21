@@ -1580,7 +1580,6 @@ let _locClipboard = null;
 // ===== 品項複製貼上 clipboard =====
 // { v1, v2 }  —— 單一格子
 let _itemClipboard = null;
-let _latestItemsSet = new Set(); // items.html 品項名稱集合，用於標示主菜未收錄品項
 
 const STORAGE_KEY = "yupin_menu_v2";
 const HISTORY_KEY = "yupin_menu_history_v1";
@@ -4289,18 +4288,7 @@ function renderCatDB() {
         chip.style.background = style.itemBg;
         chip.style.color = style.itemFg;
       }
-      // 主菜：若品項不在 items.html 列表中，加紅色外框
-      if (cat === "主菜" && _latestItemsSet.size > 0) {
-        const baseName = itemName.replace(/\*$/, '');
-        if (!_latestItemsSet.has(baseName)) {
-          chip.style.outline = "2px solid red";
-          chip.title = "⚠️ 此品項不在 ITEMS 列表中";
-        } else {
-          chip.title = "點擊編輯";
-        }
-      } else {
-        chip.title = "點擊編輯";
-      }
+      chip.title = "點擊編輯";
       const span = document.createElement("span");
       span.textContent = itemName;
       chip.appendChild(span);
@@ -4469,7 +4457,7 @@ function _syncMainDishFromItems(itemsList) {
   itemsList.forEach(it => {
     if (!it.name) return;
     const baseName = it.name;
-    const isHealth = (it.site || '').includes('(健)');
+    const isHealth = !!it.isHealthy;
     const cat = it.cat || '';
     if (!(baseName in nameMap)) {
       nameMap[baseName] = { hasHealth: isHealth, cat };
@@ -4545,15 +4533,10 @@ function _syncMainDishFromItems(itemsList) {
     }
   });
 
-  // 更新 items 品項集合（去星號後的 baseName）
-  _latestItemsSet = new Set(Object.keys(nameMap));
-
   if (changed) {
     rerenderDBPanels();
     initMgmtItems();
     if (_dbAutoSave) _dbAutoSave();
-  } else {
-    rerenderDBPanels();
   }
 }
 
