@@ -960,6 +960,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <label>品項名稱</label>
       <input id="f-name" placeholder="e.g. 烤鴨飯" onkeydown="if(event.key==='Enter')addItem()">
     </div>
+    <div class="add-field" style="flex-direction:row;align-items:center;gap:12px;margin-bottom:10px;">
+      <input type="checkbox" id="f-healthy" style="width:22px;height:22px;cursor:pointer;accent-color:#27ae60;flex-shrink:0;">
+      <label for="f-healthy" style="cursor:pointer;font-weight:700;color:var(--dim);">健康餐</label>
+    </div>
     <div class="add-field">
       <label>價格</label>
       <input id="f-price" placeholder="120" type="number" min="0" onkeydown="if(event.key==='Enter')addItem()">
@@ -1591,13 +1595,15 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (!name) { document.getElementById('f-name').focus(); return; }
     const dup = items.find(it => it.site === site && it.name === name);
     if (dup && !confirm(`「${site ? site+'／' : ''}${name}」已存在（價格 ${dup.price ? '$'+dup.price : '未填'}），確定要再新增一筆？`)) return;
-    items.unshift({ site, name, price, cat, box, updatedAt: Date.now() });
+    const isHealthy = document.getElementById('f-healthy')?.checked || false;
+    items.unshift({ site, name, price, cat, box, isHealthy, updatedAt: Date.now() });
     buildFilterBtns();
     render();
     if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
     autoSave();
     document.getElementById('f-name').value  = '';
     document.getElementById('f-price').value = '';
+    const fh = document.getElementById('f-healthy'); if (fh) fh.checked = false;
     document.getElementById('f-name').focus();
   }
 
