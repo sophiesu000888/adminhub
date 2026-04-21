@@ -509,6 +509,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .mx-add-cell { cursor: pointer; transition: background .12s, color .12s; }
 .mx-add-cell:hover { background: #eaf4ff !important; color: var(--blue) !important; }
 .mx-add-cell:hover::after { content: ' ＋'; font-size: 20px; opacity: .7; }
+.mx-del-cell { cursor: pointer; transition: background .12s; }
+.mx-del-cell:hover { background: #fde8e8 !important; }
+.mx-del-cell:hover::after { content: ' ✕'; font-size: 18px; opacity: .6; color: #c0392b; }
 /* 廠區欄位底色：（健）淺綠、（風）淺藍 — 需蓋過 nth-child(even) */
 #matrix-wrap tbody td.col-ken,
 #matrix-wrap tbody tr:nth-child(even) td.col-ken { background: #e8f5e9 !important; }
@@ -1915,6 +1918,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     autoSave();
   }
 
+  // ── 從一覽表刪除廠區品項 ──
+  function _matrixDeleteItem(name, site) {
+    const targets = items.filter(it => it.name === name && it.site === site);
+    if (!targets.length) return;
+    const priceLabel = targets.map(it => '$' + it.price).join(' / ');
+    if (!confirm(`刪除「${site}」的「${name}」（${priceLabel}）？\n此廠區品項將從列表移除。`)) return;
+    if (!confirm(`再次確認：永久刪除「${site}／${name}」，此操作無法復原。`)) return;
+    items = items.filter(it => !(it.name === name && it.site === site));
+    buildFilterBtns();
+    render();
+    buildMatrixFilters();
+    renderMatrix();
+    autoSave();
+  }
+
   // ── TABS ──
   let currentTab = 'list';
 
@@ -2046,8 +2064,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           const key = name + '|||' + site;
           const prices = priceMap[key];
           if (prices && prices.length) {
-            td.classList.add('price-cell');
+            td.classList.add('price-cell', 'mx-del-cell');
             td.textContent = prices.map(p => '$' + p).join(' / ');
+            td.title = `點擊刪除「${site}」的「${name}」`;
+            td.onclick = () => _matrixDeleteItem(name, site);
           } else {
             td.classList.add('dash-cell', 'mx-add-cell');
             td.textContent = '—';
