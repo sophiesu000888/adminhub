@@ -1652,34 +1652,57 @@ async function exportPhoto() {
 
   // Build one week-chunk table (multi-site rows)
   function buildChunkTable(chunkDays, type, siteIds) {
+    // Pre-compute which sites have at least one shift in this chunk
+    const activeSites = siteIds.filter(sid => {
+      if (type === 'hol' && expSites[sid]?.noHol) return false;
+      if (type === 'night' && expSites[sid]?.noNight) return false;
+      const sd = mo.sitesData[sid];
+      if (!sd) return false;
+      return chunkDays.some(d => {
+        if (type === 'night') return sd.night.has(d) || (sd.night2||new Set()).has(d);
+        if (type === 'hol')   return sd.hol.has(d);
+        return false;
+      });
+    });
+
+    // If no site has any shift in this chunk, skip the entire table
+    if (activeSites.length === 0) return '';
+
+    // Filter days: keep only days where at least one active site has a shift
+    const activeDays = chunkDays.filter(d =>
+      activeSites.some(sid => {
+        const sd = mo.sitesData[sid];
+        if (!sd) return false;
+        if (type === 'night') return sd.night.has(d) || (sd.night2||new Set()).has(d);
+        if (type === 'hol')   return sd.hol.has(d);
+        return false;
+      })
+    );
+
+    if (activeDays.length === 0) return '';
+
     const colW = type === 'night' ? 140 : 108;
     let t = `<table style="border-collapse:collapse;margin-bottom:10px;table-layout:fixed;">`;
-    // Header row
+    // Header row (only active days)
     t += `<thead><tr>`;
     t += `<th style="border:2px solid #2d2d2d;padding:4px 6px;background:#f8f8f8;font-size:15px;font-weight:900;width:80px;min-width:80px;text-align:center;">廠區</th>`;
-    chunkDays.forEach(d => {
+    activeDays.forEach(d => {
       const w = new Date(mo.y, mo.m, d).getDay();
       t += `<th style="border:1.5px solid #2d2d2d;padding:4px 6px;background:#f8f8f8;font-size:14px;font-weight:900;width:${colW}px;min-width:${colW}px;text-align:center;white-space:nowrap;">${mo.m+1}/${d}<br><span style="font-size:12px;color:#555;">(${DOW[w]})</span></th>`;
     });
     t += `</tr></thead><tbody>`;
 
-    siteIds.forEach(sid => {
-      if (type === 'hol' && expSites[sid]?.noHol) return;
-      if (type === 'night' && expSites[sid]?.noNight) return;
+    activeSites.forEach(sid => {
       const sd = mo.sitesData[sid];
-      if (!sd) return;
 
-      // Gather assigned names per day in chunk
-      const dayNames = chunkDays.map(d => {
+      // Gather assigned names per active day
+      const dayNames = activeDays.map(d => {
         const inNight = type==='night' && (sd.night.has(d) || (sd.night2||new Set()).has(d));
         const inHol   = type==='hol' && sd.hol.has(d);
-        if (!inNight && !inHol) return null; // null = no shift scheduled
+        if (!inNight && !inHol) return null; // null = no shift for this site on this day
         const key = `${sid}_${d}`;
         return (mo.roster[key]||[]).map(pid => { const p=state.people.find(x=>x.id==pid); return p?p.name:''; }).filter(Boolean);
       });
-
-      // Skip this site entirely if no day in this chunk has a scheduled shift
-      if (dayNames.every(n => n === null)) return;
 
       const maxNames = Math.max(1, ...dayNames.map(n => n === null ? 0 : n.length).map(n => n || 1));
       for (let i = 0; i < maxNames; i++) {
