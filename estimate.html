@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -118,19 +119,19 @@ body {
 }
 .side-tab {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 5px; width: 96px; padding: 15px 0;
-  border-radius: 12px 0 0 12px; cursor: pointer; user-select: none;
+  gap: 3px; width: 52px; padding: 12px 0;
+  border-radius: 10px 0 0 10px; cursor: pointer; user-select: none;
   box-shadow: -3px 0 8px rgba(0,0,0,.12); transition: width .15s, box-shadow .15s;
   border-top: 1.5px solid rgba(45,45,45,.18);
   border-bottom: 1.5px solid rgba(45,45,45,.18);
   border-left: 3px solid rgba(45,45,45,.18);
 }
-.side-tab:hover { width: 108px; box-shadow: -4px 0 12px rgba(0,0,0,.2); }
-.side-tab.open  { width: 108px; box-shadow: -4px 0 12px rgba(0,0,0,.25); }
-.side-tab .st-icon  { font-size: 2.6rem; line-height: 1; }
+.side-tab:hover { width: 62px; box-shadow: -4px 0 12px rgba(0,0,0,.2); }
+.side-tab.open  { width: 62px; box-shadow: -4px 0 12px rgba(0,0,0,.25); }
+.side-tab .st-icon  { font-size: 1.6rem; line-height: 1; }
 .side-tab .st-label {
   writing-mode: vertical-rl; text-orientation: mixed;
-  font-size: 1.64rem; font-weight: 700; letter-spacing: 2px;
+  font-size: 1.0rem; font-weight: 700; letter-spacing: 1px;
   opacity: .9; line-height: 1; font-family: 'Kalam', 'Noto Sans TC', sans-serif;
 }
 #stab-config { background: #f3e5f5; color: #7b1fa2; border-left-color: #7b1fa2; }
@@ -791,7 +792,7 @@ function renderWeekNav() {
   html += '<button class="wk-arrow" onclick="stepWeek(1)"'+(S.week<WEEK_MONS.length-1?'':' disabled')+'>▶</button>';
   html += '<button class="wk-btn" style="background:var(--s2);border-style:dashed;color:var(--dim);padding:4px 10px;" onclick="addNextWeek()" title="新增下一週">＋</button>';
   if(WEEK_MONS.length > 1){
-    html += '<button class="wk-btn" style="background:#fff0f0;border-style:dashed;color:var(--red);padding:4px 10px;" onclick="removeLastWeek()" title="刪除最後一週">－</button>';
+    html += '<button class="wk-btn" style="background:#fff0f0;border-style:dashed;color:var(--red);padding:4px 10px;font-size:22px;" onclick="deleteCurrentWeek()" title="刪除此週">🗑 刪除此週</button>';
   }
   document.getElementById('week-nav').innerHTML = html;
 }
@@ -833,6 +834,50 @@ function removeLastWeek(){
   if(S.week >= WEEK_MONS.length){
     S.week = WEEK_MONS.length - 1;
   }
+  saveState();
+  renderWeekNav(); renderOverview(); renderTopStats();
+}
+
+function deleteCurrentWeek(){
+  if(WEEK_MONS.length <= 1) return;
+  var wi = S.week;
+  var hasData = false;
+  if(S.weekData[wi]){
+    SITES.forEach(function(site){
+      DK.forEach(function(dk){
+        var cell = S.weekData[wi][site][dk];
+        if(cell && (cell.act !== null || cell.locked)) hasData = true;
+      });
+    });
+  }
+  var monLabel = fmt(WEEK_MONS[wi]) + '～' + fmt(addDays(WEEK_MONS[wi],6));
+  var msg = '確定要刪除「'+monLabel+'」這週的資料嗎？\n此操作無法復原。'+(hasData?'\n\n⚠ 此週已有確認數值！':'');
+  if(!confirm(msg)) return;
+
+  // Shift all weekData keys after wi down by 1, and adjust extraWeeks
+  var newWeekData = {};
+  var newArchivedWeeks = {};
+  Object.keys(S.weekData).forEach(function(k){
+    var n = +k;
+    if(n < wi) { newWeekData[n] = S.weekData[n]; }
+    else if(n > wi) { newWeekData[n-1] = S.weekData[n]; }
+    // n===wi: deleted
+  });
+  Object.keys(S.archivedWeeks||{}).forEach(function(k){
+    var n = +k;
+    if(n < wi) { newArchivedWeeks[n] = true; }
+    else if(n > wi) { newArchivedWeeks[n-1] = true; }
+  });
+  S.weekData = newWeekData;
+  S.archivedWeeks = newArchivedWeeks;
+  if((S.extraWeeks||0) > 0) S.extraWeeks = S.extraWeeks - 1;
+  // Shift WEEK_START forward if deleting first week
+  if(wi === 0) {
+    WEEK_START = addDays(WEEK_START, 7);
+  }
+  rebuildWeeks();
+  if(S.week >= WEEK_MONS.length) S.week = WEEK_MONS.length - 1;
+  if(S.week < 0) S.week = 0;
   saveState();
   renderWeekNav(); renderOverview(); renderTopStats();
 }
@@ -979,9 +1024,9 @@ function renderOverview() {
 
     b+='<td style="text-align:center;font-family:&apos;Kalam&apos;,cursive;font-size:32px;padding:8px;font-weight:700;color:var(--ink);">'+wTotal+'</td>';
     if(rowConfirmed){
-      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 #2e7d32&apos;">✏ 修改</button></td>';
+      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 #2e7d32&apos;">✓ 已確認</button></td>';
     } else {
-      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 var(--red);transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 var(--red)&apos;">✓ 確認</button></td>';
+      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 var(--red);transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 var(--red)&apos;">待確認</button></td>';
     }
     b+='</tr>';
   });
