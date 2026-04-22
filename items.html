@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -475,6 +476,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 #matrix-wrap thead th.th-name {
   text-align: left; width: 240px; min-width: 240px;
 }
+#matrix-wrap thead th.col-healthy {
+  background: #2e7d32; color: #fff;
+}
 #matrix-wrap tbody td {
   padding: 7px 6px; border-bottom: 1px solid var(--border2);
   vertical-align: middle; text-align: center; white-space: nowrap;
@@ -482,11 +486,16 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 }
 #matrix-wrap tbody td.td-name {
   text-align: left; font-weight: 700;
-  background: var(--s2);
+  background: #f0ece0;
   border-right: 1px solid var(--border2);
 }
+#matrix-wrap tbody td.col-healthy {
+  background: #edf7ed;
+  border-right: 2px solid #2e7d32;
+}
 #matrix-wrap tbody tr:nth-child(even) td { background: var(--s2); }
-#matrix-wrap tbody tr:nth-child(even) td.td-name { background: #eeebe1; }
+#matrix-wrap tbody tr:nth-child(even) td.td-name { background: #e8e4d8; }
+#matrix-wrap tbody tr:nth-child(even) td.col-healthy { background: #d6efd6; }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td { background: #d6eaf8 !important; }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td.td-name { background: #bedaf5 !important; }
 .price-cell { color: var(--blue); font-weight: 700; }
@@ -1935,6 +1944,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     hr.appendChild(th0);
     const thH = document.createElement('th');
     thH.textContent = '健康餐'; thH.title = '勾選代表可同時當作健康餐';
+    thH.className = 'col-healthy';
     thH.style.cssText = 'width:96px;min-width:96px;text-align:center;white-space:nowrap;';
     hr.appendChild(thH);
     visibleSites.forEach(site => {
@@ -1973,6 +1983,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         tdName.className = 'td-name'; tdName.textContent = name;
         tr.appendChild(tdName);
         const tdH = document.createElement('td');
+        tdH.className = 'col-healthy';
         tdH.style.cssText = 'text-align:center;';
         const cbH = document.createElement('input');
         cbH.type = 'checkbox'; cbH.checked = healthyNames.has(name);
