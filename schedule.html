@@ -1162,7 +1162,7 @@ function buildTable(containerId, days, mo, type) {
           </div>`;
         }).join('');
         const addBtn = state.isLockedRoster ? '' : `<div class="add-slot" onclick="openMenu('${sid}',${d},'${key}',event)">＋</div>`;
-        return `<td class="${warn?'warn-cell':''} ${wc}" style="${baseStyle}">
+        return `<td data-key="${key}" class="${warn?'warn-cell':''} ${wc}" style="${baseStyle}">
           ${timeBadge||''}${warnHtml}
           <div style="display:flex;flex-direction:column;align-items:stretch;gap:1px;">${chipsHtml}</div>
           ${addBtn}
@@ -1174,6 +1174,51 @@ function buildTable(containerId, days, mo, type) {
     const nightClass = type === 'night' ? ' night-table' : '';
     return `<div class="table-wrapper${nightClass}" style="margin-bottom:12px;"><table><thead>${headHtml}</thead><tbody>${bodyHtml}</tbody></table></div>`;
   }).join('');
+}
+
+function refreshCell(key) {
+  // key = "sid_d", e.g. "lian_5"
+  const parts = key.split('_');
+  const d = parseInt(parts[parts.length - 1]);
+  const sid = parts.slice(0, -1).join('_');
+  const mo = state.months[state.curMoIdx];
+  const assigned = mo.roster[key] || [];
+  const warn = cellWarning(assigned);
+
+  // Find the td that owns this key by its onclick on add-slot or chip del
+  // We tag cells with data-key attribute during buildTable
+  const td = document.querySelector(`td[data-key="${key}"]`);
+  if (!td) { renderRoster(); return; } // fallback
+
+  const type = td.closest('#nTables') ? 'night' : 'hol';
+  const isGreen = type==='night' && (mo.sitesData[sid].night2||new Set()).has(d);
+  const timeBadge = (type==='night' && sid==='f20')
+    ? `<div style="font-size:10px;font-weight:900;color:${isGreen?'#2e7d32':'#1565c0'};margin-bottom:2px;">${isGreen?'20:30':'20:00'}</div>` : '';
+  const warnHtml = warn ? `<div class="warn-badge">${warn}</div>` : '';
+  const sites = getSites();
+  const chipsHtml = assigned.map(pid => {
+    const p = state.people.find(x => x.id == pid);
+    if (!p) return '';
+    const filterPid = getRosterFilterPid();
+    const isHighlighted = filterPid && p.id == filterPid;
+    const isDimmed = filterPid && p.id != filterPid;
+    const extraClass = isHighlighted ? ' highlighted' : isDimmed ? ' dimmed' : ` ${p.role}`;
+    return `<div class="p-chip${extraClass}">
+      <span style="flex:1;text-align:center;"><span class="p-chip-role">${p.role==='chef'?'廚':'助'}</span>${p.name}</span>
+      <span style="display:flex;align-items:center;gap:2px;">
+        ${state.isLockedRoster?'':
+          `<span class="p-chip-del" style="font-size:10px;opacity:0.45;display:inline-flex;align-items:center;" onclick="event.stopPropagation();copyPerson(${pid})" title="複製"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="15" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg></span>
+           <span class="p-chip-del" onclick="removeAssign('${key}',${pid})">✖</span>`}
+      </span>
+    </div>`;
+  }).join('');
+  const addBtn = state.isLockedRoster ? '' : `<div class="add-slot" onclick="openMenu('${sid}',${d},'${key}',event)">＋</div>`;
+
+  if (warn) td.classList.add('warn-cell'); else td.classList.remove('warn-cell');
+  td.innerHTML = `${timeBadge}${warnHtml}<div style="display:flex;flex-direction:column;align-items:stretch;gap:1px;">${chipsHtml}</div>${addBtn}`;
+
+  // Update warn banner
+  checkAndWarnRoster();
 }
 
 function openMenu(sid, d, key, e) {
@@ -1205,7 +1250,7 @@ function openMenu(sid, d, key, e) {
       if (!isBusy && !isAlready) item.onclick=()=>{
         if(!mo.roster[key]) mo.roster[key]=[];
         mo.roster[key].push(p.id);
-        saveData(); closeMenu(); renderRoster(); checkAndWarnRoster();
+        saveData(); closeMenu(); refreshCell(key);
         const warn = cellWarning(mo.roster[key]);
         if (warn) showToast(`⚠️ ${getSites()[sid]?.name||sid} ${mo.m+1}/${d} ${warn}`, true);
       };
@@ -1261,13 +1306,13 @@ function doPaste(sid, d, key) {
   if ((mo.roster[key]||[]).includes(_copiedPid)) return;
   if (!mo.roster[key]) mo.roster[key] = [];
   mo.roster[key].push(_copiedPid);
-  saveData(); closeMenu(); renderRoster(); checkAndWarnRoster();
+  saveData(); closeMenu(); refreshCell(key);
   const warn = cellWarning(mo.roster[key]);
   if (warn) showToast(`⚠️ ${getSites()[sid]?.name||sid} ${mo.m+1}/${d} ${warn}`, true);
 }
 function removeAssign(key, pid) {
   state.months[state.curMoIdx].roster[key]=state.months[state.curMoIdx].roster[key].filter(id=>id!==pid);
-  saveData(); renderRoster(); checkAndWarnRoster();
+  saveData(); refreshCell(key);
   const assigned = state.months[state.curMoIdx].roster[key] || [];
   const warn = cellWarning(assigned);
   if (warn) showToast(`⚠️ 移除後 ${warn}`, true);
