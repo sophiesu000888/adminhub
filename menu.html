@@ -1506,9 +1506,10 @@ button {
     <input type="checkbox" id="addToItemsIsHealthy" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer;">
     🌿 健康餐
   </label>
-  <div style="display:flex;gap:8px;">
-    <button onclick="confirmAddToItems()" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ 新增至 ITEMS</button>
-    <button onclick="document.getElementById('addToItemsPopup').style.display='none'" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button onclick="confirmAddToItems()" style="flex:1;min-width:90px;background:#2e7d32;color:#fff;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ 新增至 ITEMS</button>
+    <button onclick="deleteFromMenuOnly()" style="flex:1;min-width:90px;background:#c62828;color:#fff;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ 從 MENU 刪除</button>
+    <button onclick="document.getElementById('addToItemsPopup').style.display='none'" style="width:100%;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:7px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
   </div>
 </div>
 
@@ -4319,7 +4320,7 @@ function renderCatDB() {
           chip.title = "⚠ 此品項不在 items 品項列表中，點擊可新增";
           chip.addEventListener("click", (e) => {
             e.stopPropagation();
-            openAddToItemsPopup(itemName, chip);
+            openAddToItemsPopup(itemName, chip, cat);
           });
         } else {
           chip.title = "點擊編輯";
@@ -5415,9 +5416,11 @@ function deleteCurrentColorGroupFromPanel() {
 // ===== 新增至 ITEMS（跨檔案寫入 Firebase）=====
 let _addToItemsName = '';
 let _addToItemsHasStar = false;
+let _addToItemsCat = '';
 
-function openAddToItemsPopup(itemName, anchorEl) {
+function openAddToItemsPopup(itemName, anchorEl, cat) {
   closeAllPopups();
+  _addToItemsCat = cat || '';
   _addToItemsName = itemName.replace(/\*$/, ''); // 去掉星號存純品名
   _addToItemsHasStar = itemName.endsWith('*');   // 記錄原本有無星號
 
@@ -5458,6 +5461,50 @@ function openAddToItemsPopup(itemName, anchorEl) {
   popup.style.left = left + 'px';
   popup.style.top  = top  + 'px';
 }
+
+function deleteFromMenuOnly() {
+  const itemName = _addToItemsName + (_addToItemsHasStar ? '*' : '');
+  const baseName = _addToItemsName;
+  const cat = _addToItemsCat;
+  document.getElementById('addToItemsPopup').style.display = 'none';
+  if (!cat || !DB[cat]) { showSaveToast('⚠️ 找不到類別，無法刪除'); return; }
+
+  // 同 catPopupDelete 的純 DOM 視窗
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(45,45,45,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border:3px solid #c62828;border-radius:12px;box-shadow:6px 6px 0 0 #c62828;padding:24px 28px;max-width:340px;width:90%;font-family:inherit;';
+  const icon = document.createElement('div'); icon.style.cssText='font-size:1.5rem;margin-bottom:8px;'; icon.textContent='🗑️';
+  const title = document.createElement('div'); title.style.cssText='font-weight:800;font-size:1rem;color:#c62828;margin-bottom:6px;'; title.textContent='從 MENU 刪除品項？';
+  const nameDiv = document.createElement('div'); nameDiv.style.cssText='font-weight:700;font-size:1.1rem;color:#1a1a1a;margin-bottom:20px;'; nameDiv.textContent='「'+itemName+'」';
+  const btnRow = document.createElement('div'); btnRow.style.cssText='display:flex;gap:8px;';
+  const confirmBtn = document.createElement('button');
+  confirmBtn.style.cssText='flex:1;background:#c62828;color:#fff;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;';
+  confirmBtn.textContent='確定刪除';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.style.cssText='flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;';
+  cancelBtn.textContent='取消';
+  btnRow.appendChild(confirmBtn); btnRow.appendChild(cancelBtn);
+  box.appendChild(icon); box.appendChild(title); box.appendChild(nameDiv); box.appendChild(btnRow);
+  overlay.appendChild(box); document.body.appendChild(overlay);
+  cancelBtn.onclick = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  confirmBtn.onclick = () => {
+    overlay.remove();
+    // 從 DB 刪除（同時比對有無星號）
+    if (DB[cat]) DB[cat] = DB[cat].filter(i => i.replace(/[*]$/, '') !== baseName);
+    const colorKey = FOOD_COLOR[itemName];
+    if (colorKey && COLOR_GROUPS[colorKey]) {
+      COLOR_GROUPS[colorKey].items = COLOR_GROUPS[colorKey].items.filter(i => i !== itemName);
+    }
+    delete FOOD_COLOR[itemName];
+    scheduleAutoSave();
+    rerenderDBPanels();
+    initMgmtItems();
+    showSaveToast('🗑️ 已從 MENU 刪除「' + itemName + '」');
+  };
+}
+
 
 async function confirmAddToItems() {
   const cat = document.getElementById('addToItemsCat').value;
