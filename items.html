@@ -1,4 +1,5 @@
-﻿
+
+
 
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -1866,7 +1867,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       ? '十貫牛皮壽司盒'
       : (items.find(it => it.name === name)?.box || '');
 
-    items.unshift({ site, name, price: trimmed, cat: cat || '', box, updatedAt: Date.now() });
+    // 若有同名「無廠區」品項 → 直接取代（而非新增一筆）
+    const noSiteIdx = items.findIndex(it => it.name === name && (it.site || '') === '');
+    if (noSiteIdx >= 0) {
+      items[noSiteIdx] = { ...items[noSiteIdx], site, price: trimmed, box, updatedAt: Date.now() };
+    } else {
+      items.unshift({ site, name, price: trimmed, cat: cat || '', box, updatedAt: Date.now() });
+    }
     buildFilterBtns();
     render();
     buildMatrixFilters();
