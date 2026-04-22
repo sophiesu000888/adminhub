@@ -720,6 +720,8 @@ var S = {
   pastExpanded: false
 };
 var f20HoliMonths = [];
+// 廠區設定週次確認狀態：key = "site|mon", value = true
+var cfgWeekConfirmed = {};
 
 function ensureWeek(wi) {
   if(S.weekData[wi]) return;
@@ -1319,6 +1321,7 @@ function buildF20Block(tmw) {
       '<button class="'+btn1500cls+'" style="font-size:24px;padding:4px 10px;" onclick="toggle1500(&apos;'+mon+'&apos;)">'+(has1500?'✓ 15:00':'+ 15:00')+'</button>'+
       '<button class="'+btnDincls+'" style="font-size:24px;padding:4px 10px;" onclick="toggleF20Dinner(&apos;'+mon+'&apos;)">'+(hasDinner?'✓ 晚餐':'+ 晚餐')+'</button>'+
       '<div class="wk-qty">'+dayQty+'隻/天</div>'+
+      cfgConfirmBtn('F20',mon)+
       '</div>';
   }).join('');
 
@@ -1457,6 +1460,25 @@ function toggle1500(mon){
   recompSite('F20');S.openBlock='F20';renderConfig();renderOverview();renderTopStats();saveState();
 }
 
+function cfgConfirmKey(site, mon){ return site+'|'+mon; }
+function toggleCfgConfirm(site, mon){
+  var k=cfgConfirmKey(site,mon);
+  if(cfgWeekConfirmed[k]) delete cfgWeekConfirmed[k];
+  else cfgWeekConfirmed[k]=true;
+  saveState(); renderConfig();
+}
+function cfgConfirmBtn(site, mon){
+  var k=cfgConfirmKey(site,mon);
+  var confirmed=!!cfgWeekConfirmed[k];
+  if(confirmed){
+    return '<button onclick="toggleCfgConfirm(&apos;'+site+'&apos;,&apos;'+mon+'&apos;)" '+
+      'style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;margin-left:6px;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 #2e7d32&apos;">✓ 已確認</button>';
+  } else {
+    return '<button onclick="toggleCfgConfirm(&apos;'+site+'&apos;,&apos;'+mon+'&apos;)" '+
+      'style="font-size:22px;background:#fff0f0;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;margin-left:6px;box-shadow:1.5px 1.5px 0 0 var(--red);transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 var(--red)&apos;">待確認</button>';
+  }
+}
+
 function cfgQtyField(label, id, val, unit, color){
   return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:24px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--dim);">'+
     label+' '+
@@ -1494,6 +1516,7 @@ function buildAP6BBlock(tmw) {
       '<span class="tag tag-l">☀️ 午 '+ap6bCfg.lunchQty+'隻</span>'+
       (hasDinner?'<span class="tag tag-d" style="margin-left:4px;">🌙 晚 '+ap6bCfg.dinnerQty+'隻</span>':'<span style="font-size:24px;color:var(--muted);font-family:&apos;Patrick Hand&apos;,sans-serif;margin-left:4px;">無晚餐</span>')+
       '<div class="wk-qty">'+total+'隻</div>'+
+      cfgConfirmBtn('AP6B',mon)+
       '</div>';
   }).join('');
 
@@ -1520,7 +1543,9 @@ function buildP8Block(tmw) {
   var rows=tmw.map(function(mon){
     var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
     var st=p8Weeks[mon]||'';
-    return wkRow3(mon,wn,wd,st,'on-check','toggleP8Week',p8Cfg.wkQty+'隻/週','');
+    var row=wkRow3(mon,wn,wd,st,'on-check','toggleP8Week',p8Cfg.wkQty+'隻/週','');
+    // inject confirm btn before closing div
+    return row.slice(0,-6)+cfgConfirmBtn('P8',mon)+'</div>';
   }).join('');
   var cnt=tmw.filter(function(m){return p8Weeks[m]==='on';}).length;
 
@@ -1563,6 +1588,7 @@ function buildQunlianBlock(tmw) {
       mkToggleBtn(w.main,'on-amber','toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)','主餐')+
       mkToggleBtn(w.double,'on-purple','toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)','雙拼')+
       '<div class="wk-qty" style="min-width:240px;text-align:right;font-size:28px;line-height:1.4;">'+qtyLabel+'</div>'+
+      cfgConfirmBtn('群聯',mon)+
       '</div>';
   }).join('');
 
@@ -1645,8 +1671,11 @@ function buildYangchuBlock(tmw) {
 
     var weekHeader='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
       '<div style="font-size:32px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--est);">第 '+wn+' 週</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
       (anyUnlocked?'<button class="btn btn-sm" style="font-size:24px;padding:4px 10px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);" onclick="ycLockWeekEmpty(&apos;'+mon+'&apos;)">🔒 鎖定本週空白</button>':
-       '<span style="font-size:26px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已確認</span>')+
+       '<span style="font-size:26px;font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;color:var(--green);">✅ 全週已鎖定</span>')+
+      cfgConfirmBtn('央廚',mon)+
+      '</div>'+
       '</div>';
 
     return '<div style="background:white;border:1.5px solid var(--border2);border-radius:8px;padding:12px 16px;margin-bottom:10px;">'+
@@ -1718,6 +1747,7 @@ function buildLianDianBlock(tmw) {
       mkToggleBtn(w.double,'on-purple','toggleLd(&apos;'+mon+'&apos;,&apos;double&apos;)','雙拼')+
       mkToggleBtn(w.dinner,'on-check','toggleLd(&apos;'+mon+'&apos;,&apos;dinner&apos;)','晚餐')+
       '<div class="wk-qty">'+(wkTotal?wkTotal+'隻/週':'—')+'</div>'+
+      cfgConfirmBtn('聯電',mon)+
       '</div>';
   }).join('');
 
@@ -1858,6 +1888,7 @@ function saveState(){
     localStorage.setItem('duck_archivedWeeks', JSON.stringify(S.archivedWeeks||{}));
     localStorage.setItem('duck_f20HoliMonths', JSON.stringify(f20HoliMonths||[]));
     localStorage.setItem('duck_threshold', JSON.stringify(S.threshold||50));
+    localStorage.setItem('duck_cfgWeekConfirmed', JSON.stringify(cfgWeekConfirmed||{}));
   }catch(e){}
   if(_triggerSave) _triggerSave();
 }
@@ -1887,6 +1918,7 @@ function loadState(){
     var awk=localStorage.getItem('duck_archivedWeeks'); if(awk) S.archivedWeeks=JSON.parse(awk);
     var f20hm=localStorage.getItem('duck_f20HoliMonths'); if(f20hm) f20HoliMonths=JSON.parse(f20hm);
     var thr=localStorage.getItem('duck_threshold'); if(thr) S.threshold=JSON.parse(thr);
+    var cwc=localStorage.getItem('duck_cfgWeekConfirmed'); if(cwc) cfgWeekConfirmed=JSON.parse(cwc);
   }catch(e){}
 }
 
@@ -1918,6 +1950,7 @@ function getEstimateData() {
     archivedWeeks: S.archivedWeeks||{},
     f20HoliMonths: f20HoliMonths||[],
     threshold: S.threshold||50,
+    cfgWeekConfirmed: cfgWeekConfirmed||{},
   };
 }
 
@@ -1944,6 +1977,7 @@ function applyRemoteData(data) {
   if(data.archivedWeeks)  S.archivedWeeks   = data.archivedWeeks;
   if(data.f20HoliMonths)  f20HoliMonths     = data.f20HoliMonths;
   if(data.threshold !== undefined) S.threshold = data.threshold;
+  if(data.cfgWeekConfirmed) cfgWeekConfirmed = data.cfgWeekConfirmed;
 }
 
 // ═══════════════════════════════════════
