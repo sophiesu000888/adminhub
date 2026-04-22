@@ -5267,7 +5267,15 @@ function removeCatFromRow(row, cat) {
 let _colorPopupKey = null;
 let _colorPopupItem = null;
 
+function closeAllPopups() {
+  ['catItemPopup','colorItemPopup','addToItemsPopup'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
 function openColorItemPopup(key, itemName, anchorEl) {
+  closeAllPopups();
   _colorPopupKey = key;
   _colorPopupItem = itemName;
   const popup = document.getElementById("colorItemPopup");
