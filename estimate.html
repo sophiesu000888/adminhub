@@ -760,18 +760,50 @@ function recompAll() {
   SITES.forEach(function(site) { recompSite(site); });
 }
 
+// 取得有效的庫存起始基準：
+// 若有 monthInit 紀錄，以最新一筆的 date 為基準（realQty 為當日庫存，qty 為 diff）
+// 回傳 { baseQty, baseDate }：baseDate 之後（含）的 stockLog 才計入，週次消耗也只算 baseDate 之後
+function calcStockBase() {
+  var lastInit = null;
+  S.stockLog.forEach(function(e) {
+    if(e.type === 'monthInit') {
+      if(!lastInit || e.date >= lastInit.date) lastInit = e;
+    }
+  });
+  if(lastInit) {
+    return { baseQty: lastInit.realQty !== undefined ? lastInit.realQty : lastInit.qty, baseDate: lastInit.date };
+  }
+  return { baseQty: 0, baseDate: null };
+}
+
 function calcStock() {
-  var t=0; S.stockLog.forEach(function(e){t+=e.qty;});
-  var u=0;
-  Object.keys(S.weekData).forEach(function(wi){
-    SITES.forEach(function(site){
-      DK.forEach(function(dk){
-        var d=S.weekData[wi][site][dk];
+  var base = calcStockBase();
+  var t = base.baseQty;
+  // 加上 baseDate 之後的非 monthInit 進貨（含 baseDate 當天之後的 monthInit diff 也不再計，因為已用 realQty）
+  S.stockLog.forEach(function(e) {
+    if(e.type === 'monthInit') {
+      // 只有比 baseDate 更新的 monthInit 才計入（理論上不會有，因為 base 已是最新）
+      if(base.baseDate && e.date > base.baseDate) t += e.qty;
+      return;
+    }
+    if(!base.baseDate || e.date >= base.baseDate) t += e.qty;
+  });
+  // 扣掉 baseDate 之後所有週次的消耗
+  var u = 0;
+  Object.keys(S.weekData).forEach(function(wi) {
+    var monDs = WEEK_MONS[+wi];
+    if(!monDs) return;
+    SITES.forEach(function(site) {
+      DK.forEach(function(dk, di) {
+        var ds = wkDs(+wi, di);
+        if(!ds) return;
+        if(base.baseDate && ds < base.baseDate) return; // 基準日之前不計
+        var d = S.weekData[wi][site][dk];
         u += (d.act !== null ? d.act : d.est);
       });
     });
   });
-  return t-u;
+  return t - u;
 }
 
 function weekTotals(wi) {
@@ -929,7 +961,16 @@ function unarchiveWeek(wi){
 }
 
 function renderTopStats() {
-  var totalIn = 0; S.stockLog.forEach(function(e){totalIn+=e.qty;});
+  var base = calcStockBase();
+  // 計算基準日當天的庫存起始值（含基準日之後、非 monthInit 的進出）
+  var totalIn = base.baseQty;
+  S.stockLog.forEach(function(e) {
+    if(e.type === 'monthInit') {
+      if(base.baseDate && e.date > base.baseDate) totalIn += e.qty;
+      return;
+    }
+    if(!base.baseDate || e.date >= base.baseDate) totalIn += e.qty;
+  });
   var running = totalIn;
   var shortDate = null, shortQty = 0;
   for(var wi=0; wi<WEEK_MONS.length; wi++){
@@ -938,6 +979,7 @@ function renderTopStats() {
       var ds = wkDs(wi, di);
       if(!ds) continue;
       var dayTotal = 0;
+      if(base.baseDate && ds < base.baseDate) { continue; } // 基準日之前跳過
       SITES.forEach(function(site){
         var cell = S.weekData[wi][site][DK[di]];
         dayTotal += (cell.act !== null ? cell.act : cell.est);
@@ -1062,12 +1104,23 @@ function renderOverview() {
   });
   b+='<td>'+gTotal+'</td><td></td></tr>';
 
-  var stockIn=0; S.stockLog.forEach(function(e){stockIn+=e.qty;});
+  var base = calcStockBase();
+  var stockIn = base.baseQty;
+  S.stockLog.forEach(function(e) {
+    if(e.type === 'monthInit') {
+      if(base.baseDate && e.date > base.baseDate) stockIn += e.qty;
+      return;
+    }
+    if(!base.baseDate || e.date >= base.baseDate) stockIn += e.qty;
+  });
   var usedBefore=0;
   Object.keys(S.weekData).forEach(function(wi2){
     if(+wi2 >= wi) return;
     SITES.forEach(function(site){
-      DK.forEach(function(dk){
+      DK.forEach(function(dk, di2){
+        var ds2 = wkDs(+wi2, di2);
+        if(!ds2) return;
+        if(base.baseDate && ds2 < base.baseDate) return;
         var d=S.weekData[wi2][site][dk];
         usedBefore+=(d.act!==null?d.act:d.est);
       });
@@ -1159,12 +1212,23 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
   b += '<td>'+gTotal+'</td></tr>';
 
   // 剩餘庫存 row
-  var stockIn = 0; S.stockLog.forEach(function(e){ stockIn += e.qty; });
+  var base2 = calcStockBase();
+  var stockIn = base2.baseQty;
+  S.stockLog.forEach(function(e) {
+    if(e.type === 'monthInit') {
+      if(base2.baseDate && e.date > base2.baseDate) stockIn += e.qty;
+      return;
+    }
+    if(!base2.baseDate || e.date >= base2.baseDate) stockIn += e.qty;
+  });
   var usedBefore = 0;
   Object.keys(S.weekData).forEach(function(wi2){
     if(+wi2 >= wi) return;
     SITES.forEach(function(site){
-      DK.forEach(function(dk){
+      DK.forEach(function(dk, di2){
+        var ds2 = wkDs(+wi2, di2);
+        if(!ds2) return;
+        if(base2.baseDate && ds2 < base2.baseDate) return;
         var d = S.weekData[wi2][site][dk];
         usedBefore += (d.act!==null ? d.act : d.est);
       });
@@ -1835,9 +1899,8 @@ function addMonthInit(){
   var date=document.getElementById('month-init-date').value;
   var qty=+document.getElementById('month-init-qty').value;
   if(!date||isNaN(qty)||qty===''){alert('請填入日期及實際庫存隻數');return;}
-  var cur=calcStock();
-  var diff=qty-cur;
-  S.stockLog.push({date:date,qty:diff,note:'📅 月初庫存 '+qty+'隻',type:'monthInit',realQty:qty});
+  // qty 直接作為月初實際庫存基準（realQty），不再需要算 diff
+  S.stockLog.push({date:date,qty:0,note:'📅 月初庫存 '+qty+'隻',type:'monthInit',realQty:qty});
   document.getElementById('month-init-qty').value='';
   renderStockLog();updStockCalc();renderTopStats();saveState();
 }
@@ -2018,17 +2081,32 @@ function applyRemoteData(data) {
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
+var _initialized = false;
+
 function _bootApp(user) {
   injectStatusBar('estimate');
   _triggerSave = makeAutoSave('estimate', getEstimateData, 2000);
 
   startSync('estimate', user, function(remoteData) {
-    if(remoteData) {
-      applyRemoteData(remoteData);
+    if(!_initialized) {
+      // 首次載入：套用資料並完整初始化
+      if(remoteData) {
+        applyRemoteData(remoteData);
+      } else {
+        loadState();
+      }
+      _initialized = true;
+      _finishInit();
     } else {
-      loadState();
+      // 已初始化後收到遠端更新：只在不是自己剛觸發的存檔時才套用
+      // 用時間戳判斷：若 lastSaved 是自己，跳過（makeAutoSave 已處理）
+      if(remoteData) {
+        applyRemoteData(remoteData);
+        renderWeekNav();
+        renderOverview();
+        renderTopStats();
+      }
     }
-    _finishInit();
   });
 }
 
@@ -2066,6 +2144,14 @@ function _finishInit() {
   renderTopStats();
 }
 
+// 本機 file:// 開啟時自動進入測試模式，不跳轉 index.html
+if(window.location.protocol === 'file:') {
+  try {
+    if(!localStorage.getItem('adminhub_test_user')) {
+      localStorage.setItem('adminhub_test_user', JSON.stringify({displayName:'本機預覽',email:'local@preview'}));
+    }
+  } catch(e) {}
+}
 requireAuth(_bootApp);
 </script>
 </body>
