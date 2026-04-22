@@ -1979,9 +1979,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       const grpTr = document.createElement('tr');
       grpTr.className = 'mx-group-row';
       const grpTd = document.createElement('td');
-      grpTd.colSpan = visibleSites.length + 1;
+      grpTd.colSpan = 1;
       grpTd.textContent = cat;
       grpTr.appendChild(grpTd);
+      // 補齊其餘欄位，讓分類列不留空白底色
+      const grpRest = document.createElement('td');
+      grpRest.colSpan = visibleSites.length + 1;
+      grpRest.style.cssText = 'background:var(--s2);border-bottom:1px solid var(--border2);';
+      grpTr.appendChild(grpRest);
       tbody.appendChild(grpTr);
 
       // 品項列
