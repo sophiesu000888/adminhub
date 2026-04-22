@@ -878,6 +878,8 @@ function deleteCurrentWeek(){
     WEEK_START = addDays(WEEK_START, 7);
   }
   rebuildWeeks();
+  // 重新計算所有未鎖定格子的 est（因為 index 移位後對應日期改變）
+  recompAll();
   if(S.week >= WEEK_MONS.length) S.week = WEEK_MONS.length - 1;
   if(S.week < 0) S.week = 0;
   saveState();
@@ -1822,7 +1824,13 @@ function addMonthInit(){
   document.getElementById('month-init-qty').value='';
   renderStockLog();updStockCalc();renderTopStats();saveState();
 }
-function removeStock(i){S.stockLog.splice(i,1);renderStockLog();updStockCalc();renderTopStats();renderOverview();saveState();}
+function removeStock(i){
+  S.stockLog.splice(i,1);
+  renderStockLog();
+  renderOverview();
+  renderTopStats();
+  saveState();
+}
 function renderStockLog(){
   document.getElementById('stock-log').innerHTML=S.stockLog.map(function(e,i){
     return '<div class="sle"><span class="sd">'+e.date+'</span><span class="sn2">'+(e.note||'—')+'</span><span class="sq" style="color:'+(e.qty<0?'var(--red)':'var(--act)')+';">'+(e.qty>0?'+':'')+e.qty+' 隻</span>'+
