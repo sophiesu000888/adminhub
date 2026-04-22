@@ -1045,22 +1045,17 @@ function renderRoster() {
   _doCenter();
 }
 function _doCenter() {
-  // Read the widest table-wrapper rendered inside nTables / hTables
   const sc = document.getElementById('scheduleCenter');
   const sa = document.getElementById('scrollArea');
   if (!sc || !sa) return;
-  // Reset first so offsetWidth is natural
-  sc.style.marginLeft = '0';
-  // Use rAF x2 to wait for browser layout
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    const wrappers = sc.querySelectorAll('.table-wrapper');
-    let tableW = 0;
-    wrappers.forEach(w => { tableW = Math.max(tableW, w.getBoundingClientRect().width); });
-    if (!tableW) return;
-    const saW = sa.getBoundingClientRect().width;
-    const gap = saW - tableW;
-    sc.style.marginLeft = (gap > 0 ? Math.floor(gap / 2) : 0) + 'px';
-  }));
+  // 量最寬 table-wrapper 的 scrollWidth（不需歸零，不造成閃爍）
+  const wrappers = sc.querySelectorAll('.table-wrapper');
+  let tableW = 0;
+  wrappers.forEach(w => { tableW = Math.max(tableW, w.scrollWidth); });
+  if (!tableW) return;
+  const saW = sa.clientWidth;
+  const ml = saW > tableW ? Math.floor((saW - tableW) / 2) : 0;
+  sc.style.marginLeft = ml + 'px';
 }
 window.addEventListener('resize', _doCenter);
 function buildTable(containerId, days, mo, type) {
