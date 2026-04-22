@@ -3067,13 +3067,13 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
       inp2.style.fontWeight = ""; inp2.style.borderColor = ""; inp2.style.outline = "";
       td2.className = `td-l2 ${defaultStyleL2}`;
     } else {
-      // 先判斷是否在 DB（星號不影響比對）
+      // 只有主菜列才做 items 列表驗證
       const baseName = item.replace(/\*$/, '');
-      const allDBItems = Object.values(DB).flat();
-      const isInDB = allDBItems.some(i => (typeof i === 'string') && i.replace(/\*$/, '') === baseName);
+      const shouldValidate = (rowKey === '主菜') && window._itemsNameSet;
+      const isInItems = !shouldValidate || window._itemsNameSet.has(baseName);
 
-      if (!isInDB) {
-        // 不在 DB → 紅框，不套顏色
+      if (!isInItems) {
+        // 不在 items 列表 → 紅框警示
         td2.style.background = "#fff0f0"; td2.style.color = "var(--red)";
         inp2.style.background = "#fff0f0"; inp2.style.color = "var(--red)";
         inp2.style.fontWeight = "700";
@@ -3081,7 +3081,7 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
         inp2.style.outline = "2px solid var(--red)";
         td2.className = `td-l2 ${defaultStyleL2}`;
       } else {
-        // 在 DB → 套顏色
+        // 在列表裡 → 套顏色
         inp2.style.outline = "";
         const colors = getFoodColors(item);
         if (colors) {
@@ -4437,11 +4437,17 @@ async function initApp() {
     let _pendingItemsContent;
     startSync('items', user, (itemsContent) => {
       if (!Array.isArray(itemsContent)) return;
+      // 更新全域 items 名稱集合（去星號後比對用）
+      window._itemsNameSet = new Set(itemsContent.map(it => (it.name || '').replace(/\*$/, '')).filter(Boolean));
       if (!_dbReady) {
         _pendingItemsContent = itemsContent;
         return;
       }
       _syncMainDishFromItems(itemsContent);
+      // items 資料到位後，重新觸發所有主菜欄的顏色驗證
+      document.querySelectorAll('tr[data-row="主菜"] td.td-l2 input.sel-l2-inp').forEach(inp => {
+        if (inp._applyColor && inp.value) inp._applyColor(inp.value);
+      });
     });
 
     // menudb ready 後，補跑 items sync（若 items snapshot 比 menudb 先到）
