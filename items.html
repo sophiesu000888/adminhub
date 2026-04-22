@@ -1848,12 +1848,20 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   // ── TABS ──
   let currentTab = 'matrix';
+  // 頁面載入時立即套用 matrix 佈局
+  (function () {
+    const m = document.getElementById('main');
+    if (m) { m.style.maxWidth = 'none'; m.style.paddingLeft = '8px'; m.style.paddingRight = '65px'; }
+  })();
 
   function switchTab(tab) {
     currentTab = tab;
     document.getElementById('list-view').style.display   = tab === 'list'   ? '' : 'none';
     document.getElementById('matrix-view').style.display = tab === 'matrix' ? '' : 'none';
-    document.getElementById('main').style.maxWidth = tab === 'matrix' ? 'none' : '';
+    const _main = document.getElementById('main');
+    _main.style.maxWidth = tab === 'matrix' ? 'none' : '';
+    _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '';
+    _main.style.paddingRight = tab === 'matrix' ? '65px' : '';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
       btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix'));
     });
