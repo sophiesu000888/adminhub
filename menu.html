@@ -3067,24 +3067,33 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
       inp2.style.fontWeight = ""; inp2.style.borderColor = ""; inp2.style.outline = "";
       td2.className = `td-l2 ${defaultStyleL2}`;
     } else {
-      // 檢查品項是否在 DB 的任何類別中（含星號/不含星號都算）
+      // 先判斷是否在 DB（星號不影響比對）
       const baseName = item.replace(/\*$/, '');
       const allDBItems = Object.values(DB).flat();
-      const isInDB = allDBItems.some(i => i.replace(/\*$/, '') === baseName);
+      const isInDB = allDBItems.some(i => (typeof i === 'string') && i.replace(/\*$/, '') === baseName);
 
-      const colors = getFoodColors(item);
-      if (colors) {
-        td2.style.background = colors.bg; td2.style.color = colors.fg;
-        inp2.style.background = colors.bg; inp2.style.color = colors.fg;
-        inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent"; inp2.style.outline = "";
-      } else {
-        td2.style.background = ""; td2.style.color = "";
-        inp2.style.background = ""; inp2.style.color = "";
-        inp2.style.fontWeight = "600";
-        // 不在 DB 裡 → 紅框警示
-        inp2.style.borderColor = isInDB ? "transparent" : "var(--red)";
-        inp2.style.outline = isInDB ? "" : "2px solid var(--red)";
+      if (!isInDB) {
+        // 不在 DB → 紅框，不套顏色
+        td2.style.background = "#fff0f0"; td2.style.color = "var(--red)";
+        inp2.style.background = "#fff0f0"; inp2.style.color = "var(--red)";
+        inp2.style.fontWeight = "700";
+        inp2.style.borderColor = "var(--red)";
+        inp2.style.outline = "2px solid var(--red)";
         td2.className = `td-l2 ${defaultStyleL2}`;
+      } else {
+        // 在 DB → 套顏色
+        inp2.style.outline = "";
+        const colors = getFoodColors(item);
+        if (colors) {
+          td2.style.background = colors.bg; td2.style.color = colors.fg;
+          inp2.style.background = colors.bg; inp2.style.color = colors.fg;
+          inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
+        } else {
+          td2.style.background = ""; td2.style.color = "";
+          inp2.style.background = ""; inp2.style.color = "";
+          inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
+          td2.className = `td-l2 ${defaultStyleL2}`;
+        }
       }
     }
   }
@@ -3093,7 +3102,7 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     const cat = sel1.value;
     td2.className = `td-l2 ${defaultStyleL2}`;
     td2.style.background = ""; td2.style.color = "";
-    inp2.style.color = ""; inp2.style.fontWeight = ""; inp2.style.borderColor = "";
+    inp2.style.color = ""; inp2.style.fontWeight = ""; inp2.style.borderColor = ""; inp2.style.outline = "";
     hideDropdown();
     if (!cat || cat === "-") { applyClosedState(); scheduleAutoSave(); return; }
     populateDatalistFromCat(cat);
