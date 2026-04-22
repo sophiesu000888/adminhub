@@ -1021,6 +1021,18 @@ function renderTopStats() {
 // OVERVIEW
 // ═══════════════════════════════════════
 function renderOverview() {
+  // 記住目前正在編輯的 input，重建後還原 focus 和值
+  var _focusedInput = document.activeElement;
+  var _focusedSite = null, _focusedWi = null, _focusedDk = null, _focusedVal = null, _focusedIsAct = false;
+  if(_focusedInput && (_focusedInput.closest && _focusedInput.closest('.ev, .av'))) {
+    _focusedVal = _focusedInput.value;
+    var _wrap = _focusedInput.closest('td');
+    // 從 onchange 屬性抓出 site/wi/dk
+    var _inp = _focusedInput;
+    var _oc = _inp.getAttribute('onchange') || '';
+    var _m = _oc.match(/upd(?:Est|Act)\('([^']+)',(\d+),'([^']+)'/);
+    if(_m) { _focusedSite=_m[1]; _focusedWi=+_m[2]; _focusedDk=_m[3]; _focusedIsAct=_oc.indexOf('updAct')>=0; }
+  }
   var wi=S.week;
   var vd=[]; DK.forEach(function(dk,i){vd.push({dk:dk,i:i});});
   var vs=SITES.slice();
@@ -1147,6 +1159,13 @@ function renderOverview() {
   b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td><td></td></tr>';
 
   document.getElementById('ov-body').innerHTML=b;
+
+  // 還原正在編輯的 input focus 和值
+  if(_focusedSite !== null && _focusedVal !== null) {
+    var _sel = 'input[onchange*="'+(_focusedIsAct?'updAct':'updEst')+'(\'' + _focusedSite + '\',' + _focusedWi + ',\'' + _focusedDk + '\'"]';
+    var _el = document.querySelector(_sel);
+    if(_el) { _el.value = _focusedVal; _el.focus(); }
+  }
 
   renderPreviewWeek(S.week-1, 'prev-ov-head', 'prev-ov-body', 'prev-week-label', true);
   renderPreviewWeek(S.week+1, 'next-ov-head', 'next-ov-body', 'next-week-label', false);
@@ -2103,16 +2122,17 @@ function _bootApp(user) {
       // 首次載入：套用資料並完整初始化
       if(remoteData) {
         applyRemoteData(remoteData);
+        recompAll(); // 確保廠區設定套用到 est
       } else {
         loadState();
+        recompAll();
       }
       _initialized = true;
       _finishInit();
     } else {
-      // 已初始化後收到遠端更新：只在不是自己剛觸發的存檔時才套用
-      // 用時間戳判斷：若 lastSaved 是自己，跳過（makeAutoSave 已處理）
       if(remoteData) {
         applyRemoteData(remoteData);
+        recompAll(); // 遠端設定變更時同步重算 est
         renderWeekNav();
         renderOverview();
         renderTopStats();
