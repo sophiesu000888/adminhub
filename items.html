@@ -497,7 +497,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 #matrix-wrap tbody tr:nth-child(even) td.col-healthy { background: #d6efd6; }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td { background: #d6eaf8 !important; }
 #matrix-wrap tbody tr:not(.mx-group-row):hover td.td-name { background: #bedaf5 !important; }
-.price-cell { color: var(--blue); font-weight: 700; }
+.price-cell { color: var(--blue); font-weight: 700; cursor: pointer; }
+.price-cell:hover { background: #fff3e0 !important; color: #c65d00 !important; }
 .dash-cell  { color: var(--muted); }
 .mx-add-cell { cursor: pointer; transition: background .12s, color .12s; }
 .mx-add-cell:hover { background: #eaf4ff !important; color: var(--blue) !important; }
@@ -1817,6 +1818,34 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
 
   // ── 從一覽表 dash-cell 快速新增品項 ──
+  function _matrixEditItem(name, site, cat) {
+    const matches = items.filter(it => it.name === name && (it.site || '') === site);
+    if (!matches.length) return;
+    const curPrices = matches.map(it => '$' + it.price).join(' / ');
+    const val = prompt(
+      `「${site}」×「${name}」\n目前價格：${curPrices}\n\n輸入新價格（留空確定 = 刪除）：`,
+      matches[0].price
+    );
+    if (val === null) return;
+    const trimmed = val.trim();
+    if (trimmed === '') {
+      items = items.filter(it => !(it.name === name && (it.site || '') === site));
+    } else {
+      if (isNaN(Number(trimmed))) { alert('請輸入數字價格'); return; }
+      matches[0].price = trimmed;
+      matches[0].updatedAt = Date.now();
+      if (matches.length > 1) {
+        const keep = matches[0];
+        items = items.filter(it => it === keep || !(it.name === name && (it.site || '') === site));
+      }
+    }
+    buildFilterBtns();
+    render();
+    buildMatrixFilters();
+    renderMatrix();
+    autoSave();
+  }
+
   function _matrixAddItem(name, site, cat) {
     const _SITE_DEFAULT_PRICES = {
       '3C/P8(健)':    '90',
@@ -2013,6 +2042,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           if (prices && prices.length) {
             td.classList.add('price-cell');
             td.textContent = prices.map(p => '$' + p).join(' / ');
+            td.title = `點擊編輯「${site}」×「${name}」的價格`;
+            td.onclick = () => _matrixEditItem(name, site, cat);
           } else {
             td.classList.add('dash-cell', 'mx-add-cell');
             td.textContent = '—';
