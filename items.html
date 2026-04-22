@@ -66,7 +66,7 @@ body {
   display: inline-block; margin-bottom: 8px;
 }
 
-#main { padding: 8px 20px 40px; max-width: 1380px; margin: 0 auto; }
+#main { padding: 8px 65px 40px 20px; max-width: 1380px; margin: 0 auto; }
 
 /* ── TOOLBAR ── */
 .toolbar {
@@ -474,7 +474,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 #matrix-wrap thead th.th-name {
-  text-align: left; width: 240px; min-width: 240px;
+  text-align: center; width: 240px;
   background: #2e7d32; color: #fff;
 }
 #matrix-wrap thead th.col-healthy {
@@ -486,9 +486,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   overflow: hidden; text-overflow: ellipsis;
 }
 #matrix-wrap tbody td.td-name {
-  text-align: left; font-weight: 700;
+  text-align: center; font-weight: 700;
   background: #edf7ed;
-  border-right: 1px solid #2e7d32;
 }
 #matrix-wrap tbody td.col-healthy {
   background: #edf7ed;
@@ -2024,6 +2023,17 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     }
 
     table.appendChild(tbody);
+
+    // 自動縮放：讓所有欄位完整顯示，不需左右滑動
+    table.style.zoom = '';
+    requestAnimationFrame(function () {
+      const wrap = document.getElementById('matrix-wrap');
+      const avail = wrap.clientWidth;
+      const need  = table.scrollWidth;
+      if (need > avail && avail > 0) {
+        table.style.zoom = String((avail / need).toFixed(4));
+      }
+    });
   }
 
   // ── DRAWERS ──
