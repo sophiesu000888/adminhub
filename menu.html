@@ -1527,6 +1527,10 @@ Object.entries(COLOR_GROUPS).forEach(([key, g]) => {
 });
 
 // ===== 食材資料庫 =====
+// items.html 同步過來的品項名稱集合（去掉 * 後的 baseName）
+// size > 0 時才啟用主菜紅框驗證，避免初始載入前誤標
+let _latestItemsSet = new Set();
+
 const DB = {
   "主菜": ["雙拼舒肥雞胸*","紐澳良腿排*","義式雞胸*","照燒腿排*","黑胡椒胸丁*","義式腿排*","蔗香腿排*","鳳梨糖醋雞","鳳城玫瑰油雞","北菇滑雞","川椒雞","韓式炸雞","蜜汁雞腿","香酥雞排","蔥燒豬五花*","滑蛋豬肉*","醬烤梅花豬*","洋蔥肉片*","蒜泥白肉*","韓式肉片*","蒜香烤五花*","沙茶肉片","古早味滷排骨","古早紅糟肉","炸排骨","鹹豬肉","深井脆皮掛爐烤鴨","叉燒/油雞","烤鴨/叉燒"],
   "副主菜":  ["士林香腸","雞捲"],
@@ -3064,36 +3068,19 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     if (!item || item === "-" || item === "-- 品項 --") {
       td2.style.background = ""; td2.style.color = "";
       inp2.style.background = ""; inp2.style.color = "";
-      inp2.style.fontWeight = ""; inp2.style.borderColor = ""; inp2.style.outline = "";
+      inp2.style.fontWeight = ""; inp2.style.borderColor = "";
       td2.className = `td-l2 ${defaultStyleL2}`;
     } else {
-      // 只有主菜列才做 items 列表驗證
-      const baseName = item.replace(/\*$/, '');
-      const shouldValidate = (rowKey === '主菜') && window._itemsNameSet;
-      const isInItems = !shouldValidate || window._itemsNameSet.has(baseName);
-
-      if (!isInItems) {
-        // 不在 items 列表 → 紅框警示
-        td2.style.background = "#fff0f0"; td2.style.color = "var(--red)";
-        inp2.style.background = "#fff0f0"; inp2.style.color = "var(--red)";
-        inp2.style.fontWeight = "700";
-        inp2.style.borderColor = "var(--red)";
-        inp2.style.outline = "2px solid var(--red)";
-        td2.className = `td-l2 ${defaultStyleL2}`;
+      const colors = getFoodColors(item);
+      if (colors) {
+        td2.style.background = colors.bg; td2.style.color = colors.fg;
+        inp2.style.background = colors.bg; inp2.style.color = colors.fg;
+        inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
       } else {
-        // 在列表裡 → 套顏色
-        inp2.style.outline = "";
-        const colors = getFoodColors(item);
-        if (colors) {
-          td2.style.background = colors.bg; td2.style.color = colors.fg;
-          inp2.style.background = colors.bg; inp2.style.color = colors.fg;
-          inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
-        } else {
-          td2.style.background = ""; td2.style.color = "";
-          inp2.style.background = ""; inp2.style.color = "";
-          inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
-          td2.className = `td-l2 ${defaultStyleL2}`;
-        }
+        td2.style.background = ""; td2.style.color = "";
+        inp2.style.background = ""; inp2.style.color = "";
+        inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
+        td2.className = `td-l2 ${defaultStyleL2}`;
       }
     }
   }
@@ -3102,7 +3089,7 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     const cat = sel1.value;
     td2.className = `td-l2 ${defaultStyleL2}`;
     td2.style.background = ""; td2.style.color = "";
-    inp2.style.color = ""; inp2.style.fontWeight = ""; inp2.style.borderColor = ""; inp2.style.outline = "";
+    inp2.style.color = ""; inp2.style.fontWeight = ""; inp2.style.borderColor = "";
     hideDropdown();
     if (!cat || cat === "-") { applyClosedState(); scheduleAutoSave(); return; }
     populateDatalistFromCat(cat);
@@ -4302,11 +4289,21 @@ function renderCatDB() {
         const hasStar = itemName.endsWith("*");
         chip.style.background = hasStar ? "#c8e6c9" : "#bbdefb";
         chip.style.color       = hasStar ? "#1b5e20" : "#0d47a1";
+
+        // 若 items 集合已載入，且品項不在其中 → 紅框警示
+        const baseName = itemName.replace(/\*$/, '');
+        if (_latestItemsSet.size > 0 && !_latestItemsSet.has(baseName)) {
+          chip.style.outline = "2px solid red";
+          chip.style.outlineOffset = "1px";
+          chip.title = "⚠ 此品項不在 items 品項列表中";
+        } else {
+          chip.title = "點擊編輯";
+        }
       } else {
         chip.style.background = style.itemBg;
         chip.style.color = style.itemFg;
+        chip.title = "點擊編輯";
       }
-      chip.title = "點擊編輯";
       const span = document.createElement("span");
       span.textContent = itemName;
       chip.appendChild(span);
@@ -4437,17 +4434,11 @@ async function initApp() {
     let _pendingItemsContent;
     startSync('items', user, (itemsContent) => {
       if (!Array.isArray(itemsContent)) return;
-      // 更新全域 items 名稱集合（去星號後比對用）
-      window._itemsNameSet = new Set(itemsContent.map(it => (it.name || '').replace(/\*$/, '')).filter(Boolean));
       if (!_dbReady) {
         _pendingItemsContent = itemsContent;
         return;
       }
       _syncMainDishFromItems(itemsContent);
-      // items 資料到位後，重新觸發所有主菜欄的顏色驗證
-      document.querySelectorAll('tr[data-row="主菜"] td.td-l2 input.sel-l2-inp').forEach(inp => {
-        if (inp._applyColor && inp.value) inp._applyColor(inp.value);
-      });
     });
 
     // menudb ready 後，補跑 items sync（若 items snapshot 比 menudb 先到）
@@ -4464,6 +4455,11 @@ async function initApp() {
 function _syncMainDishFromItems(itemsList) {
   if (!DB["主菜"]) DB["主菜"] = [];
   const mainDishArr = DB["主菜"];
+
+  // ── 更新全域品項名稱集合（每次 items 同步都重建）──
+  _latestItemsSet = new Set(
+    itemsList.map(it => (it.name || '').replace(/\*$/, '')).filter(Boolean)
+  );
 
   // items 類別 → MENU_GROUPS label 對應表
   const CAT_LABEL_MAP = {
@@ -4561,7 +4557,15 @@ function _syncMainDishFromItems(itemsList) {
     rerenderDBPanels();
     initMgmtItems();
     if (_dbAutoSave) _dbAutoSave();
+  } else {
+    // 即使 DB 沒有變化，items 集合已更新 → 強制重繪 chip 紅框狀態
+    rerenderDBPanels();
   }
+
+  // 重新觸發所有主菜欄 input 的顏色驗證（items 比 menu 晚到時補跑）
+  document.querySelectorAll('tr[data-row="主菜"] td.td-l2 input.sel-l2-inp').forEach(inp => {
+    if (inp._applyColor && inp.value) inp._applyColor(inp.value);
+  });
 }
 
 
