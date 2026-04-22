@@ -5417,16 +5417,20 @@ function openAddToItemsPopup(itemName, anchorEl) {
     catSel.innerHTML = ['豬','雞','牛','鴨','雙拼','舒肥'].map(c => `<option value="${c}">${c}</option>`).join('');
   });
 
-  // 定位浮層
+  // 定位浮層（position:fixed，不需加 scroll offset）
   const rect = anchorEl.getBoundingClientRect();
   popup.style.display = 'block';
   const pw = popup.offsetWidth || 280;
+  const ph = popup.offsetHeight || 180;
+  const margin = 8;
   let left = rect.left;
   let top = rect.bottom + 6;
-  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
-  if (top + 180 > window.innerHeight) top = rect.top - 180;
-  popup.style.left = left + window.scrollX + 'px';
-  popup.style.top  = top  + window.scrollY + 'px';
+  if (top + ph > window.innerHeight - margin) top = rect.top - ph - 6;
+  if (top < margin) top = margin;
+  if (left + pw > window.innerWidth - margin) left = window.innerWidth - pw - margin;
+  if (left < margin) left = margin;
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
 }
 
 async function confirmAddToItems() {
