@@ -1542,7 +1542,8 @@ async function exportText() {
   sections.forEach(sec => {
     lines.push(sec.label);
     sec.rows.forEach(r => {
-      const dateStr = `${sec.mo.m+1}/${r.d}`;
+      const dow = DOW[new Date(sec.mo.y, sec.mo.m, r.d).getDay()];
+      const dateStr = `${sec.mo.m+1}/${r.d}(${dow})`;
       if (r.names.length === 0) {
         lines.push(`${dateStr} （無人員）`);
       } else {
