@@ -1131,9 +1131,14 @@ function renderOverview() {
   b+='<tr style="background:var(--s2);border-top:1.5px dashed var(--border2);">';
   b+='<td class="sc" style="text-align:center;"><span style="font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
   vd.forEach(function(x){
-    runningStock-=colTotal[x.dk];
     var _dsR=wkDs(wi,x.i); if(!_dsR) return; var dowR=new Date(_dsR).getDay();
     var clsR='dc '+(dowR===6?'cs': dowR===0?'cu': '');
+    // 基準日之前的天：不扣庫存，顯示 —
+    if(base.baseDate && _dsR < base.baseDate){
+      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      return;
+    }
+    runningStock-=colTotal[x.dk];
     var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
     b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
@@ -1238,9 +1243,13 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
   b += '<tr style="background:var(--s2);border-top:1.5px dashed var(--border2);">';
   b += '<td class="sc" style="text-align:center;"><span style="font-size:24px;font-family:\'Patrick Hand\',sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
   vd.forEach(function(x){
-    runningStock -= colTotal[x.dk];
     var _dsR = wkDs(wi,x.i); if(!_dsR) return; var dowR = new Date(_dsR).getDay();
     var clsR = 'dc '+(dowR===6?'cs': dowR===0?'cu': '');
+    if(base2.baseDate && _dsR < base2.baseDate){
+      b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      return;
+    }
+    runningStock -= colTotal[x.dk];
     var color = runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
     b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
