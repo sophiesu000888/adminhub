@@ -135,7 +135,7 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 .p-chip-del:hover { opacity: 1; color: #d32f2f; }
 
 /* ── Table centering ── */
-#scheduleCenter { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 10px; }
+#scheduleCenter { display: flex; flex-direction: column; padding-bottom: 10px; width: 100%; }
 
 /* ── Night table wider columns ── */
 .night-table th { width: 140px; min-width: 140px; }
@@ -457,11 +457,13 @@ th.week-b { background: #e8eeff; }
     </div>
     <div id="scrollArea" style="flex:1;overflow:auto;">
       <div id="scheduleCenter">
-        <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:18px;">📌 晚班</div>
-        <div id="nTables"></div>
-        <div id="holSection">
-          <div style="font-weight:900;margin:12px 0 8px;font-size:18px;">📌 假日值班</div>
-          <div id="hTables"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
+          <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:18px;align-self:flex-start;">📌 晚班</div>
+          <div id="nTables" style="display:flex;flex-direction:column;align-items:center;width:100%;"></div>
+        </div>
+        <div id="holSection" style="display:flex;flex-direction:column;align-items:center;width:100%;">
+          <div style="font-weight:900;margin:12px 0 8px;font-size:18px;align-self:flex-start;">📌 假日值班</div>
+          <div id="hTables" style="display:flex;flex-direction:column;align-items:center;width:100%;"></div>
         </div>
       </div>
     </div>
@@ -1075,17 +1077,27 @@ function renderRoster() {
   _doCenter();
 }
 function _doCenter() {
-  const sc = document.getElementById('scheduleCenter');
   const sa = document.getElementById('scrollArea');
-  if (!sc || !sa) return;
-  // 量最寬 table-wrapper 的 scrollWidth（不需歸零，不造成閃爍）
-  const wrappers = sc.querySelectorAll('.table-wrapper');
-  let tableW = 0;
-  wrappers.forEach(w => { tableW = Math.max(tableW, w.scrollWidth); });
-  if (!tableW) return;
+  if (!sa) return;
   const saW = sa.clientWidth;
-  const ml = saW > tableW ? Math.floor((saW - tableW) / 2) : 0;
-  sc.style.marginLeft = ml + 'px';
+
+  // Center night section
+  const nSection = document.querySelector('#scheduleCenter > div:first-child');
+  const nWrappers = document.getElementById('nTables')?.querySelectorAll('.table-wrapper');
+  if (nSection && nWrappers && nWrappers.length) {
+    let nW = 0;
+    nWrappers.forEach(w => { nW = Math.max(nW, w.scrollWidth); });
+    nSection.style.marginLeft = saW > nW ? Math.floor((saW - nW) / 2) + 'px' : '0px';
+  }
+
+  // Center holiday section
+  const hSection = document.getElementById('holSection');
+  const hWrappers = document.getElementById('hTables')?.querySelectorAll('.table-wrapper');
+  if (hSection && hWrappers && hWrappers.length) {
+    let hW = 0;
+    hWrappers.forEach(w => { hW = Math.max(hW, w.scrollWidth); });
+    hSection.style.marginLeft = saW > hW ? Math.floor((saW - hW) / 2) + 'px' : '0px';
+  }
 }
 window.addEventListener('resize', _doCenter);
 function buildTable(containerId, days, mo, type) {
