@@ -5393,12 +5393,16 @@ function deleteCurrentColorGroupFromPanel() {
 
 // ===== 新增至 ITEMS（跨檔案寫入 Firebase）=====
 let _addToItemsName = '';
+let _addToItemsHasStar = false;
 
 function openAddToItemsPopup(itemName, anchorEl) {
   _addToItemsName = itemName.replace(/\*$/, ''); // 去掉星號存純品名
+  _addToItemsHasStar = itemName.endsWith('*');   // 記錄原本有無星號
+
   const popup = document.getElementById('addToItemsPopup');
   const nameEl = document.getElementById('addToItemsName');
   const catSel = document.getElementById('addToItemsCat');
+  if (!popup || !nameEl || !catSel) { console.error('addToItemsPopup elements not found'); return; }
 
   nameEl.textContent = itemName;
 
@@ -5443,7 +5447,7 @@ async function confirmAddToItems() {
     const dup = existing.find(it => (it.name || '').replace(/\*$/, '') === _addToItemsName);
     if (dup) { alert(`「${_addToItemsName}」已在 ITEMS 列表中`); popup.style.display = 'none'; return; }
 
-    const newItem = { site: '', name: _addToItemsName, price: '', cat, box: '', isHealthy: false, updatedAt: Date.now() };
+    const newItem = { site: '', name: _addToItemsName, price: '', cat, box: '', isHealthy: _addToItemsHasStar, updatedAt: Date.now() };
     const newList = [newItem, ...existing];
 
     const user = auth.currentUser;
