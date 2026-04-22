@@ -100,15 +100,15 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
   overflow-y: auto; flex: 1; align-content: start;
 }
 .p-card {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 10px 4px; border-radius: 6px; gap: 5px;
+  display: flex; flex-direction: row; align-items: center; justify-content: flex-start;
+  padding: 8px 10px; border-radius: 6px; gap: 8px;
   cursor: pointer; transition: 0.15s; border: 2px solid;
 }
 .p-card.chef { background: var(--chef-bg); border-color: var(--chef-bd); }
 .p-card.assist { background: var(--assist-bg); border-color: var(--assist-bd); }
 .p-card:hover { filter: brightness(0.94); }
 .p-card .p-badge {
-  font-size: 9px; font-weight: 900; padding: 1px 5px; border-radius: 3px; color: #fff;
+  font-size: 18px; font-weight: 900; padding: 1px 6px; border-radius: 4px; color: #fff;
 }
 .p-card.chef .p-badge { background: var(--chef-bd); }
 .p-card.assist .p-badge { background: var(--assist-bd); }
@@ -117,7 +117,7 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 .p-card.assist .p-name { color: var(--assist-tx); }
 .p-card .p-del {
   border: 1.5px solid rgba(0,0,0,0.18); color: rgba(0,0,0,0.45); background: rgba(255,255,255,0.6);
-  padding: 1px 5px; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 800; width: 100%; text-align: center;
+  padding: 1px 5px; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 800; margin-left: auto; text-align: center;
 }
 
 /* ── Table chip — role-colored ── */
@@ -548,7 +548,7 @@ th.week-b { background: #e8eeff; }
     <span class="drawer-hdr-title">📊 統計</span>
     <button class="drawer-close-btn" onclick="closeDrawer()">✕</button>
   </div>
-  <div id="sumGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px;overflow-y:auto;flex:1;align-content:start;"></div>
+  <div id="sumGrid" style="display:grid;grid-template-columns:1fr;gap:6px;padding:10px;overflow-y:auto;flex:1;align-content:start;"></div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
