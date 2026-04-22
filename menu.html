@@ -1626,7 +1626,13 @@ async function saveHistory() {
 }
 
 function showSaveToast(msg, duration) {
-  const t = document.getElementById("saveToast");
+  let t = document.getElementById("saveToast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "saveToast";
+    t.className = "save-toast";
+    document.body.appendChild(t);
+  }
   t.textContent = msg || "✅ 已自動儲存";
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), duration || 2500);
