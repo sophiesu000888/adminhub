@@ -727,8 +727,8 @@ function updateLockBtn() {
   const btn = document.getElementById('lockBtn');
   const isLocked = currentLockState();
   btn.classList.remove('hidden');
-  if (isLocked) { btn.innerHTML = '✅ 排班完成'; btn.classList.add('locked'); }
-  else { btn.innerHTML = '✏️ 排班中'; btn.classList.remove('locked'); }
+  if (isLocked) { btn.innerHTML = '✏️ 編輯班表'; btn.classList.add('locked'); }
+  else { btn.innerHTML = '✅ 排班完成'; btn.classList.remove('locked'); }
 }
 function toggleLock() {
   // 從解鎖 → 鎖定時，檢查有設值班日但沒排人員的格子
