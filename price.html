@@ -1,230 +1,879 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>查價 — Admin Hub</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, 'PingFang TC', sans-serif;
-      background: #f9f9f7; color: #1a1a1a;
-      padding-top: 60px; min-height: 100vh;
-    }
-    .page { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
-    h1 { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>價格查詢系統</title>
 
-    .toolbar {
-      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
-      align-items: center;
-    }
-    .search-wrap { position: relative; flex: 1; min-width: 160px; }
-    .search-wrap input {
-      width: 100%; padding: 7px 12px 7px 34px;
-      border: 1.5px solid #ddd; border-radius: 6px; font-size: 14px;
-      outline: none;
-    }
-    .search-wrap input:focus { border-color: #3b6fd4; }
-    .search-wrap .icon {
-      position: absolute; left: 10px; top: 50%;
-      transform: translateY(-50%); color: #aaa; font-size: 14px;
-    }
-    .btn {
-      padding: 7px 16px; border-radius: 6px; border: 1.5px solid #1a1a1a;
-      background: #1a1a1a; color: #fff; font-size: 14px;
-      cursor: pointer; white-space: nowrap;
-    }
-    .btn:hover { background: #333; }
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    table {
-      width: 100%; border-collapse: collapse;
-      background: #fff; border-radius: 8px;
-      overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06);
-    }
-    thead th {
-      background: #1a1a1a; color: #fff;
-      padding: 10px 12px; text-align: left; font-size: 13px;
-      cursor: pointer; user-select: none;
-    }
-    thead th:hover { background: #333; }
-    thead th .sort { opacity: .4; margin-left: 4px; }
-    thead th.sorted .sort { opacity: 1; }
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    tbody tr { border-bottom: 1px solid #f0f0f0; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #fafafa; }
-    td { padding: 0; }
-    td.idx { padding: 10px 12px; font-size: 12px; color: #ccc; width: 32px; }
+<script src="firebase-config.js"></script>
+<script src="shared.js"></script>
 
-    td [contenteditable] {
-      display: block; width: 100%; padding: 10px 12px;
-      font-size: 14px; outline: none; min-height: 38px;
-    }
-    td [contenteditable]:focus { background: #ebf0ff; }
-    td [contenteditable][data-ph]:empty::before {
-      content: attr(data-ph); color: #bbb; pointer-events: none;
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    .col-item     { min-width: 120px; }
-    .col-unit     { width: 70px; }
-    .col-price    { width: 90px; }
-    .col-supplier { width: 130px; }
-    .col-date     { width: 110px; }
-    .col-note     { min-width: 150px; }
-    .col-del      { width: 44px; text-align: center; }
+<style>
+/* 使用者自訂調整 */
+body { padding-top: 60px !important; }
 
-    .del-btn {
-      background: none; border: none; cursor: pointer;
-      color: #ccc; font-size: 16px; padding: 6px;
-    }
-    .del-btn:hover { color: #e53935; }
+:root {
+  --paper: #f5f3ee;
+  --ink: #2d2d2d;
+  --red: #ff4d4d;
+  --blue: #2d5da1;
+  --shadow: #2d2d2d;
+  --gold: #b8942a;
+  --green-dark: #2e7d32;
+  --border: #2d2d2d;
+  --surface-card: #fffef9;
+  --surface-card2: #f8f5ef;
+}
 
-    .no-result {
-      text-align: center; padding: 40px; color: #bbb; font-size: 14px;
-    }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .add-form {
-      display: grid;
-      grid-template-columns: 1fr 70px 90px 130px 110px 1fr auto;
-      gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
-    }
-    .add-form input {
-      padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 6px;
-      font-size: 13px; outline: none;
-    }
-    .add-form input:focus { border-color: #3b6fd4; }
-  </style>
+body {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  background-color: var(--paper);
+  background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+.header h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 2px;
+  -webkit-text-stroke: 1px rgba(45,45,45,0.2);
+  transform: rotate(-1deg);
+  margin-bottom: 5px;
+}
+.header-sub { font-size: 1rem; color: #666; font-weight: 500; }
+.header-badge {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff8e7;
+  border: 2px solid var(--ink);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 2px 2px 0 0 var(--shadow);
+}
+.header-badge span { color: var(--gold); }
+
+/* Main layout */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  min-height: 0;
+}
+
+/* Sketchy Box Style */
+.sketchy-box {
+  background: white;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
+  box-shadow: 4px 4px 0px 0px var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar */
+.sidebar {
+  height: calc(100vh - 120px);
+  position: sticky;
+  top: 20px;
+}
+.sidebar-section {
+  padding: 16px;
+  border-bottom: 2px solid var(--ink);
+}
+.sidebar-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+/* Search */
+.search-wrap { position: relative; }
+.search-icon {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%); font-size: 1rem;
+}
+#searchInput {
+  width: 100%;
+  background: var(--surface-card2);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 8px 10px 8px 30px;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: all .2s;
+}
+#searchInput:focus { background: white; box-shadow: 2px 2px 0 0 rgba(0,0,0,0.1); }
+
+/* Vendor filter */
+.vendor-list {
+  flex: 1; overflow-y: auto; padding: 10px;
+  background: var(--surface-card2);
+}
+.vendor-list::-webkit-scrollbar { width: 6px; }
+.vendor-list::-webkit-scrollbar-thumb { background: rgba(45,45,45,0.3); border-radius: 3px; }
+
+.vendor-btn {
+  width: 100%; text-align: left;
+  background: white;
+  border: 1.5px solid rgba(45,45,45,0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--ink);
+  font-size: 0.9rem; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.vendor-btn:hover { border-color: var(--ink); transform: translate(1px, 1px); }
+.vendor-btn.active { background: var(--ink); color: white; border-color: var(--ink); box-shadow: 2px 2px 0 0 var(--shadow); }
+.vendor-count {
+  font-size: 0.8rem; background: rgba(0,0,0,0.05); border-radius: 10px; padding: 2px 8px;
+}
+.vendor-btn.active .vendor-count { background: rgba(255,255,255,0.2); color: white; }
+
+/* Import section */
+.import-section { padding: 16px; background: white; }
+.btn-sketchy {
+  width: 100%; padding: 10px;
+  background: #e7eeff; color: var(--blue);
+  border: 2.5px solid var(--blue);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  font-family: inherit; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 3px 3px 0 0 var(--blue);
+}
+.btn-sketchy:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0 0 var(--blue); }
+.btn-sketchy:active { transform: translate(3px, 3px); box-shadow: none; }
+
+/* Content */
+.content { display: flex; flex-direction: column; gap: 16px; }
+
+/* Stats bar */
+.stats-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat-chip {
+  background: white; border: 2px solid var(--ink); border-radius: 8px;
+  padding: 6px 12px; font-size: 0.9rem; font-weight: 600; color: var(--ink);
+  box-shadow: 2px 2px 0 0 var(--shadow);
+}
+.stat-chip strong { color: var(--red); font-family: 'DM Mono', monospace; font-size: 1.05rem; }
+
+/* Table */
+.table-wrap { flex: 1; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+thead th {
+  background: #c5d9f5; color: #0d47a1; font-weight: 800;
+  padding: 10px 12px; text-align: left;
+  border-bottom: 2.5px solid var(--ink);
+  border-right: 1px solid rgba(45,45,45,0.2);
+  white-space: nowrap; position: sticky; top: 0; z-index: 10;
+}
+thead th:last-child { border-right: none; }
+thead th.th-price { text-align: right; background: #cce8cd; color: #1b5e20; }
+
+tbody tr { border-bottom: 1px solid rgba(45,45,45,0.15); transition: background .15s; cursor: pointer; }
+tbody tr:nth-child(even) { background: #fafafa; }
+tbody tr:hover { background: #fff9e6; }
+tbody tr.selected { background: #fff3cd; border-left: 3px solid var(--gold); }
+
+td { padding: 10px 12px; vertical-align: middle; border-right: 1px solid rgba(45,45,45,0.1); }
+td:last-child { border-right: none; }
+.td-vendor { color: #666; font-size: 0.85rem; font-weight: 600; }
+.td-item { color: var(--ink); font-weight: 700; }
+.td-item mark { background: #fff59d; color: var(--red); border-radius: 3px; padding: 0 2px; }
+.td-code { color: #888; font-family: 'DM Mono', monospace; font-size: 0.85rem; }
+.td-spec { color: #666; font-size: 0.85rem; }
+.td-unit {
+  display: inline-block; background: #e0e0e0; border-radius: 4px;
+  padding: 2px 6px; font-size: 0.8rem; font-weight: 600;
+}
+.td-price {
+  text-align: right; font-family: 'DM Mono', monospace;
+  font-size: 1.1rem; font-weight: 700; color: #2e7d32;
+}
+.td-price.zero { color: #aaa; }
+
+/* Empty state */
+.empty { text-align: center; padding: 60px 20px; color: #888; }
+.empty-icon { font-size: 3rem; margin-bottom: 10px; }
+.empty-title { font-size: 1.2rem; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+
+/* Pagination */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; }
+.page-btn {
+  background: white; border: 2px solid var(--ink); border-radius: 6px;
+  padding: 4px 10px; color: var(--ink); font-size: 0.9rem; font-weight: 700;
+  font-family: inherit; cursor: pointer; transition: all .1s;
+  box-shadow: 2px 2px 0 0 var(--shadow); min-width: 32px;
+}
+.page-btn:hover:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 var(--shadow); }
+.page-btn.active { background: var(--ink); color: white; }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* Drawer */
+.side-drawer {
+  position: fixed; top: 0; right: -420px; width: 400px; max-width: 90vw; height: 100vh;
+  background-color: var(--paper);
+  background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
+  background-size: 22px 22px;
+  z-index: 1200; box-shadow: -6px 0 28px rgba(0,0,0,0.18);
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  border-left: 3px solid var(--ink);
+}
+.side-drawer.open { right: 0; }
+.drawer-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(45,45,45,0.4);
+  z-index: 1150; backdrop-filter: blur(2px);
+}
+.drawer-overlay.show { display: block; }
+.drawer-header {
+  padding: 16px 20px; background: white; border-bottom: 2.5px solid var(--ink);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.drawer-header h2 { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.drawer-close {
+  background: white; border: 2px solid var(--ink); border-radius: 6px;
+  padding: 4px 10px; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0 0 var(--shadow);
+}
+.drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--shadow); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* Detail Panel Specifics */
+.detail-price-block {
+  background: #f0fdf4; border: 2.5px solid #2e7d32; border-radius: 10px;
+  padding: 20px; text-align: center; margin-bottom: 20px;
+  box-shadow: 4px 4px 0 0 #2e7d32;
+}
+.detail-price-label { font-size: 0.9rem; font-weight: 700; color: #1b5e20; margin-bottom: 5px; }
+.detail-price-value { font-size: 2.5rem; font-weight: 700; color: #2e7d32; font-family: 'DM Mono', monospace; }
+.detail-row {
+  display: flex; justify-content: space-between; padding: 8px 0;
+  border-bottom: 1.5px dashed rgba(45,45,45,0.2); font-size: 0.95rem; font-weight: 600;
+}
+.history-section { margin-top: 24px; }
+.history-item {
+  background: white; border: 2px solid var(--ink); border-radius: 8px;
+  padding: 10px; margin-bottom: 8px; display: flex; align-items: center;
+  box-shadow: 2px 2px 0 0 var(--shadow); font-size: 0.9rem; font-weight: 600;
+}
+.history-date { color: #666; flex: 1; }
+.history-price { color: #2e7d32; font-family: 'DM Mono', monospace; font-size: 1.1rem; }
+
+/* Import Drawer Specifics */
+.drop-zone {
+  border: 2.5px dashed var(--blue); border-radius: 10px; padding: 40px 20px;
+  text-align: center; color: var(--blue); cursor: pointer; transition: all .2s;
+  background: rgba(45,93,161,0.05); font-weight: 700; margin-bottom: 16px;
+}
+.drop-zone:hover { background: rgba(45,93,161,0.1); }
+.drop-zone-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.import-log {
+  margin-top: 16px; background: white; border: 2px solid var(--ink);
+  border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;
+  max-height: 200px; overflow-y: auto; display: none; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+}
+.log-ok { color: #2e7d32; } .log-warn { color: #e65100; } .log-err { color: #c62828; }
+
+.toast {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--ink); color: #fff; padding: 10px 20px;
+  border: 2px solid var(--ink);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  font-size: 0.95rem; font-weight: 700; box-shadow: 4px 4px 0 0 var(--shadow);
+  opacity: 0; transition: opacity 0.3s; z-index: 9999;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: #f0fdf4; color: #1b5e20; border-color: #2e7d32; box-shadow: 4px 4px 0 0 #2e7d32; }
+.toast.error { background: #fff0f0; color: #b71c1c; border-color: #d32f2f; box-shadow: 4px 4px 0 0 #d32f2f; }
+
+.loading-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(245,243,238,0.8);
+  z-index: 2000; align-items: center; justify-content: center; flex-direction: column;
+  font-weight: 700; color: var(--ink); font-size: 1.2rem;
+}
+.loading-overlay.show { display: flex; }
+
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { height: auto; position: static; }
+  .header h1 { font-size: 2rem; }
+  .header-badge { position: static; display: inline-block; transform: none; margin-top: 10px; }
+}
+</style>
 </head>
 <body>
 
-  <div class="page">
-    <h1>🔍 價格查詢</h1>
+<div class="header">
+  <h1>價格查詢系統</h1>
+  <div class="header-sub">含稅進貨價格 · 雲端同步版</div>
+  <div class="header-badge" id="headerBadge">載入中...</div>
+</div>
 
-    <div class="add-form" id="add-form">
-      <input id="f-item"     placeholder="品項名稱">
-      <input id="f-unit"     placeholder="單位">
-      <input id="f-price"    placeholder="單價" type="number">
-      <input id="f-supplier" placeholder="供應商">
-      <input id="f-date"     placeholder="更新日期" type="date">
-      <input id="f-note"     placeholder="備註">
-      <button class="btn" onclick="addRow()">＋ 新增</button>
-    </div>
-
-    <div class="toolbar">
+<div class="main">
+  <aside class="sidebar sketchy-box">
+    <div class="sidebar-section">
+      <div class="sidebar-label">🔍 搜尋品項</div>
       <div class="search-wrap">
-        <span class="icon">🔍</span>
-        <input type="text" id="search" placeholder="搜尋品項、供應商…">
+        <input type="text" id="searchInput" placeholder="輸入品項名稱或廠商..." autocomplete="off">
       </div>
     </div>
+    <div class="sidebar-section" style="padding-bottom:8px; border-bottom: none;">
+      <div class="sidebar-label">🏪 篩選廠商</div>
+      <button class="vendor-btn active" data-vendor="all" onclick="filterVendor('all',this)">
+        全部廠商 <span class="vendor-count" id="allCount">0</span>
+      </button>
+    </div>
+    <div class="vendor-list" id="vendorList"></div>
+    <div class="import-section">
+      <button class="btn-sketchy" onclick="openDrawer('import')">
+        📥 匯入 Excel 更新價格
+      </button>
+    </div>
+  </aside>
 
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th class="col-item"     onclick="sortBy('item')">品項<span class="sort">↕</span></th>
-          <th class="col-unit">單位</th>
-          <th class="col-price"    onclick="sortBy('price')">單價<span class="sort">↕</span></th>
-          <th class="col-supplier" onclick="sortBy('supplier')">供應商<span class="sort">↕</span></th>
-          <th class="col-date"     onclick="sortBy('date')">更新日期<span class="sort">↕</span></th>
-          <th class="col-note">備註</th>
-          <th class="col-del"></th>
-        </tr>
-      </thead>
-      <tbody id="price-body"></tbody>
-    </table>
-    <div id="no-result" class="no-result" style="display:none">找不到符合結果</div>
+  <main class="content">
+    <div class="stats-bar">
+      <div class="stat-chip">🏷️ 顯示：<strong id="statShown">0</strong> 筆</div>
+      <div class="stat-chip">📦 總品項：<strong id="statTotal">0</strong> 筆</div>
+      <div class="stat-chip">🏪 廠商：<strong id="statVendors">0</strong> 家</div>
+      <div class="stat-chip" id="statUpdate" style="display:none;">🕒 雲端同步：<strong id="statUpdateDate">-</strong></div>
+    </div>
+
+    <div class="table-wrap sketchy-box">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th>廠商</th>
+            <th>貨號</th>
+            <th>品項</th>
+            <th>規格</th>
+            <th>單位</th>
+            <th class="th-price">含稅單價</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
+
+<div class="side-drawer" id="drawerDetail">
+  <div class="drawer-header">
+    <h2 id="detailItemName">品項名稱</h2>
+    <button class="drawer-close" onclick="closeDrawers()">✕</button>
   </div>
+  <div class="drawer-body">
+    <div style="font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 15px;" id="detailVendorName">廠商名稱</div>
+    <div class="detail-price-block">
+      <div class="detail-price-label">最新含稅單價</div>
+      <div class="detail-price-value" id="detailPrice">-</div>
+      <div class="detail-price-unit" id="detailPriceUnit" style="font-weight: 600; margin-top: 5px;"></div>
+    </div>
+    <div id="detailMeta" style="background: white; border: 2px solid var(--ink); border-radius: 8px; padding: 15px; box-shadow: 2px 2px 0 0 var(--shadow);"></div>
+    <div class="history-section">
+      <div style="font-weight: 700; margin-bottom: 10px; font-size: 1.1rem;">🕒 近期進貨紀錄</div>
+      <div id="detailHistory"></div>
+    </div>
+  </div>
+</div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="shared.js"></script>
-  <script>
-    const FIELDS = ['item','unit','price','supplier','date','note'];
-    let rows = [];
-    let autoSave;
-    let sortField = '', sortAsc = true;
-    let _remoteUpdate = false;
+<div class="side-drawer" id="drawerImport">
+  <div class="drawer-header" style="background: #e7f8ff; border-bottom-color: #4a90a8;">
+    <h2 style="color: #0d47a1;">📥 匯入進貨紀錄</h2>
+    <button class="drawer-close" onclick="closeDrawers()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-zone-icon">📊</div>
+      <div>點擊或拖曳 Excel 檔案至此</div>
+      <div style="font-size: 0.85rem; margin-top: 5px; color: #666;">支援 .xlsx 格式（進貨紀錄 sheet）</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleFile(this.files[0])">
+    
+    <div style="background: white; border: 2px solid #ccc; border-radius: 8px; padding: 15px; font-size: 0.9rem; font-weight: 600; line-height: 1.6; margin-bottom: 15px;">
+      <span style="color: var(--blue);">📌 匯入格式說明：</span><br>
+      必要欄位：<strong>廠商、品項、進貨單價(含稅)</strong><br>
+      選用欄位：貨號、單位、規格、年、月、日<br>
+      系統會自動以「品項 + 廠商」比對，<strong>更新最新價格並同步至雲端</strong>。
+    </div>
 
-    requireAuth((user) => {
-      injectStatusBar('price');
-      autoSave = makeAutoSave('price', () => rows);
-      startSync('price', user, (content) => {
-        if (!content) return;
-        _remoteUpdate = true;
-        rows = content;
-        renderTable();
-        _remoteUpdate = false;
-      });
-    });
+    <div class="import-log" id="importLog"></div>
+    
+    <button class="btn-sketchy" id="importConfirmBtn" onclick="confirmImport()" disabled style="margin-top: 20px; background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; box-shadow: 3px 3px 0 0 #2e7d32;">
+      確認並同步至雲端
+    </button>
+  </div>
+</div>
 
-    document.getElementById('search').addEventListener('input', renderTable);
+<div class="loading-overlay" id="loading">
+  <div style="font-size: 3rem; margin-bottom: 10px; animation: spin 1s linear infinite;">⏳</div>
+  <div>資料處理中...</div>
+</div>
+<style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 
-    function sortBy(field) {
-      if (sortField === field) sortAsc = !sortAsc; else { sortField = field; sortAsc = true; }
-      renderTable();
+<div class="toast" id="toast"></div>
+
+<script>
+// ==========================================
+// 1. Firebase Firestore 連線設定
+// 這裡假設 firebase.initializeApp() 已在外部 firebase-config.js 執行完畢
+// ==========================================
+const db = typeof firebase !== 'undefined' && firebase.apps.length > 0 ? firebase.firestore() : null;
+const docRef = db ? db.collection('yupin').doc('price_system_v2') : null;
+
+// ==========================================
+// 2. 資料狀態與預設資料
+// ==========================================
+let catalog = [
+  {"id": "1", "vendor": "裕城果菜行", "itemCode": "1.1", "item": "紅蔥片", "searchKey": "紅蔥片-裕城果菜行", "unit": "斤", "spec": "600", "price": 85.0},
+  {"id": "2", "vendor": "尚品果菜行", "itemCode": "SP155", "item": "白蘿蔔", "searchKey": "白蘿蔔-尚品果菜行", "unit": "斤", "spec": "600", "price": 15.0},
+  {"id": "3", "vendor": "竹琦食品", "itemCode": "2248", "item": "OK醬", "searchKey": "OK醬-竹琦食品", "unit": "瓶", "spec": "335", "price": 105.0},
+  {"id": "4", "vendor": "玉釩食品", "itemCode": "104020-1", "item": "16太空鴨", "searchKey": "16太空鴨-玉釩食品", "unit": "kg", "spec": "1000", "price": 120.0},
+  {"id": "5", "vendor": "美食家", "itemCode": "1010101", "item": "美食家大豆沙拉油3L/6入", "searchKey": "美食家大豆沙拉油3L/6入-美食家", "unit": "罐", "spec": "", "price": 178.0}
+];
+let historyList = [];
+
+let state = {
+  search: '',
+  vendor: 'all',
+  page: 1,
+  pageSize: 50,
+  filtered: [],
+  selected: null,
+  pendingImport: null
+};
+
+// ==========================================
+// 3. 雲端同步邏輯
+// ==========================================
+function initSync() {
+  if (!docRef) {
+      console.warn("無法取得 Firestore 連線，請確認外部 Firebase 設定檔是否正確載入。");
+      initUI();
+      return;
+  }
+
+  // 監聽雲端資料變更
+  docRef.onSnapshot((doc) => {
+    if (doc.exists) {
+      const data = doc.data();
+      catalog = data.catalog || [];
+      historyList = data.history || [];
+      const updateTime = data.lastUpdate?.toDate().toLocaleString('zh-TW') || '未知';
+      
+      document.getElementById('statUpdate').style.display = '';
+      document.getElementById('statUpdateDate').textContent = updateTime;
+      
+      initUI(); // 重新渲染畫面
+      showToast('☁️ 已同步最新雲端資料', 'success');
+    } else {
+      // 初次建立文件
+      saveToFirebase();
+      initUI();
+    }
+  }, (error) => {
+    console.error("同步失敗:", error);
+    showToast('雲端連線失敗', 'error');
+  });
+}
+
+function saveToFirebase() {
+  if (!docRef) return;
+  document.getElementById('loading').classList.add('show');
+  
+  if (historyList.length > 500) historyList = historyList.slice(-500);
+
+  docRef.set({
+    catalog: catalog,
+    history: historyList,
+    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    document.getElementById('loading').classList.remove('show');
+    showToast('☁️ 資料已安全儲存至雲端', 'success');
+  }).catch((error) => {
+    document.getElementById('loading').classList.remove('show');
+    showToast('儲存失敗：' + error.message, 'error');
+  });
+}
+
+// ==========================================
+// 4. UI 渲染與互動邏輯
+// ==========================================
+function initUI() {
+  buildVendorList();
+  applyFilter();
+  
+  const searchInput = document.getElementById('searchInput');
+  const newSearchInput = searchInput.cloneNode(true);
+  searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+  
+  newSearchInput.addEventListener('input', e => {
+    state.search = e.target.value.toLowerCase();
+    state.page = 1;
+    applyFilter();
+  });
+}
+
+function buildVendorList() {
+  const counts = {};
+  catalog.forEach(r => { counts[r.vendor] = (counts[r.vendor] || 0) + 1; });
+  const vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  
+  const list = document.getElementById('vendorList');
+  list.innerHTML = '';
+  vendors.forEach(([v, c]) => {
+    const btn = document.createElement('button');
+    btn.className = 'vendor-btn' + (state.vendor === v ? ' active' : '');
+    btn.dataset.vendor = v;
+    btn.innerHTML = `<span>${v}</span> <span class="vendor-count">${c}</span>`;
+    btn.onclick = () => filterVendor(v, btn);
+    list.appendChild(btn);
+  });
+  
+  document.getElementById('allCount').textContent = catalog.length;
+  document.getElementById('statVendors').textContent = vendors.length;
+  document.getElementById('headerBadge').innerHTML = `共 <span>${catalog.length}</span> 筆品項`;
+}
+
+function filterVendor(vendor, btn) {
+  state.vendor = vendor;
+  state.page = 1;
+  document.querySelectorAll('.vendor-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  const q = state.search;
+  state.filtered = catalog.filter(r => {
+    const matchVendor = state.vendor === 'all' || r.vendor === state.vendor;
+    if (!matchVendor) return false;
+    if (!q) return true;
+    return r.item.toLowerCase().includes(q) ||
+           r.vendor.toLowerCase().includes(q) ||
+           (r.searchKey && r.searchKey.toLowerCase().includes(q)) ||
+           (r.itemCode && r.itemCode.includes(q));
+  });
+  renderTable();
+  renderPagination();
+  document.getElementById('statShown').textContent = state.filtered.length;
+  document.getElementById('statTotal').textContent = catalog.length;
+}
+
+function highlight(text, q) {
+  if (!q) return escHtml(text);
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\]/g,'\$&')})`, 'gi');
+  return escHtml(text).replace(re, '<mark>$1</mark>');
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderTable() {
+  const start = (state.page - 1) * state.pageSize;
+  const rows = state.filtered.slice(start, start + state.pageSize);
+  const tbody = document.getElementById('tableBody');
+  const q = state.search;
+
+  if (state.filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="empty">
+        <div class="empty-icon">🤷</div>
+        <div class="empty-title">找不到符合的品項</div>
+        <div style="font-size:0.9rem;">請嘗試其他關鍵字</div>
+      </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr onclick="selectRow(${start + i})" class="${state.selected === r ? 'selected' : ''}">
+      <td class="td-vendor">${highlight(r.vendor, q)}</td>
+      <td class="td-code">${escHtml(r.itemCode)}</td>
+      <td class="td-item">${highlight(r.item, q)}</td>
+      <td class="td-spec">${escHtml(r.spec)}</td>
+      <td><span class="td-unit">${escHtml(r.unit)}</span></td>
+      <td class="td-price ${r.price === 0 ? 'zero' : ''}">${r.price > 0 ? '$' + r.price.toLocaleString() : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+function renderPagination() {
+  const total = Math.ceil(state.filtered.length / state.pageSize);
+  const pag = document.getElementById('pagination');
+  if (total <= 1) { pag.innerHTML = ''; return; }
+
+  let html = `<button class="page-btn" onclick="goPage(${state.page-1})" ${state.page===1?'disabled':''}>‹</button>`;
+  
+  const pages = [];
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || Math.abs(i - state.page) <= 2) pages.push(i);
+    else if (pages[pages.length-1] !== '...') pages.push('...');
+  }
+  
+  pages.forEach(p => {
+    if (p === '...') html += `<span class="page-btn" style="cursor:default; border:none; box-shadow:none;">…</span>`;
+    else html += `<button class="page-btn ${p===state.page?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+  
+  html += `<button class="page-btn" onclick="goPage(${state.page+1})" ${state.page===total?'disabled':''}>›</button>`;
+  pag.innerHTML = html;
+}
+
+function goPage(p) {
+  const total = Math.ceil(state.filtered.length / state.pageSize);
+  if (p < 1 || p > total) return;
+  state.page = p;
+  renderTable();
+}
+
+// ==========================================
+// 5. 側邊抽屜 (Drawers)
+// ==========================================
+function openDrawer(id) {
+  document.querySelectorAll('.side-drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawerOverlay').classList.add('show');
+  
+  if (id === 'detail') document.getElementById('drawerDetail').classList.add('open');
+  if (id === 'import') {
+    document.getElementById('drawerImport').classList.add('open');
+    document.getElementById('importLog').style.display = 'none';
+    document.getElementById('importLog').innerHTML = '';
+    document.getElementById('importConfirmBtn').disabled = true;
+    pendingUpdate = null;
+  }
+}
+
+function closeDrawers() {
+  document.querySelectorAll('.side-drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawerOverlay').classList.remove('show');
+  state.selected = null;
+  renderTable();
+}
+
+function selectRow(idx) {
+  const r = state.filtered[idx];
+  if (!r) return;
+  state.selected = r;
+  renderTable();
+  openDrawer('detail');
+  
+  document.getElementById('detailItemName').textContent = r.item;
+  document.getElementById('detailVendorName').textContent = `🏪 ${r.vendor}`;
+  document.getElementById('detailPrice').textContent = r.price > 0 ? '$' + r.price.toLocaleString() : '—';
+  document.getElementById('detailPriceUnit').textContent = `每 ${r.unit}（含稅）`;
+  
+  document.getElementById('detailMeta').innerHTML = `
+    <div class="detail-row"><span>貨號</span><span>${r.itemCode || '—'}</span></div>
+    <div class="detail-row"><span>規格</span><span>${r.spec || '—'}</span></div>
+    <div class="detail-row"><span>單位</span><span>${r.unit || '—'}</span></div>
+    <div class="detail-row" style="border-bottom:none;"><span>系統識別碼</span><span style="font-size:0.8rem;color:#888;">${r.searchKey}</span></div>
+  `;
+  
+  const itemHistory = historyList.filter(h => h.searchKey === r.searchKey).slice(-8).reverse();
+  const histDiv = document.getElementById('detailHistory');
+  if (itemHistory.length === 0) {
+    histDiv.innerHTML = '<div style="color:#888; text-align:center; padding: 20px;">尚無匯入的進貨紀錄</div>';
+  } else {
+    histDiv.innerHTML = itemHistory.map(h => `
+      <div class="history-item">
+        <span class="history-date">📅 ${h.date}</span>
+        <span class="history-price">$${Number(h.price).toLocaleString()}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// ==========================================
+// 6. Excel 匯入邏輯
+// ==========================================
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.background = 'rgba(45,93,161,0.2)'; });
+dropZone.addEventListener('dragleave', () => dropZone.style.background = 'rgba(45,93,161,0.05)');
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.style.background = 'rgba(45,93,161,0.05)';
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  if (!file) return;
+  if (!file.name.match(/\.xlsx?$/i)) {
+    showToast('請選擇 Excel (.xlsx) 檔案', 'error');
+    return;
+  }
+  
+  document.getElementById('loading').classList.add('show');
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheetName = wb.SheetNames.find(n => n.includes('進貨紀錄') || n.includes('進貨')) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      processImport(data, sheetName, file.name);
+    } catch(err) {
+      document.getElementById('loading').classList.remove('show');
+      showToast('讀取失敗：' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processImport(data, sheetName, fileName) {
+  const log = document.getElementById('importLog');
+  log.style.display = 'block';
+  log.innerHTML = `<div class="log-ok">📄 讀取檔案：${fileName}</div><div>共 ${data.length} 筆資料解析中...</div>`;
+
+  const lookupBySearchKey = {};
+  const lookupByItemVendor = {};
+  catalog.forEach((r, i) => {
+    if (r.searchKey) lookupBySearchKey[r.searchKey] = i;
+    lookupByItemVendor[r.item + '|||' + r.vendor] = i;
+  });
+
+  const colMap = {
+    vendor: ['廠商'], item: ['品項'], price: ['進貨單價(含稅)', '進貨單價'], searchKey: ['查詢欄'],
+    date: ['日期', '日'], year: ['年'], month: ['月'], day: ['日'],
+    unit: ['單位', '進貨單位'], spec: ['規格(g/pcs)', '規格'], itemCode: ['貨號']
+  };
+
+  function getCol(row, keys) {
+    for (const k of keys) if (row[k] !== undefined && row[k] !== '') return row[k];
+    return '';
+  }
+
+  const updates = [];
+  const newItems = [];
+  const seen = new Set();
+
+  data.forEach((row) => {
+    const vendor = String(getCol(row, colMap.vendor)).trim();
+    const item = String(getCol(row, colMap.item)).trim();
+    const price = parseFloat(getCol(row, colMap.price));
+
+    if (!vendor || !item || isNaN(price) || price <= 0) return;
+
+    const searchKey = String(getCol(row, colMap.searchKey)).trim() || (item + '-' + vendor);
+    const key = item + '|||' + vendor;
+    if (seen.has(key)) return;
+    seen.add(key);
+
+    let dateStr = '';
+    const rawDate = getCol(row, colMap.date);
+    if (rawDate) {
+      if (typeof rawDate === 'number') {
+        const d = new Date(Math.round((rawDate - 25569) * 86400 * 1000));
+        dateStr = d.toLocaleDateString('zh-TW');
+      } else { dateStr = String(rawDate); }
+    } else {
+      dateStr = `${getCol(row, colMap.year)||new Date().getFullYear()}/${getCol(row, colMap.month)||new Date().getMonth()+1}/${getCol(row, colMap.day)||new Date().getDate()}`;
     }
 
-    function renderTable() {
-      const q = document.getElementById('search').value.toLowerCase();
-      let filtered = rows.filter(r =>
-        FIELDS.some(f => (r[f]||'').toLowerCase().includes(q))
-      );
-      if (sortField) {
-        filtered.sort((a,b) => {
-          const va = a[sortField]||'', vb = b[sortField]||'';
-          if (sortField === 'price') return sortAsc ? (+va)-(+vb) : (+vb)-(+va);
-          return sortAsc ? va.localeCompare(vb,'zh') : vb.localeCompare(va,'zh');
-        });
+    const idx = lookupBySearchKey[searchKey] ?? lookupByItemVendor[key];
+
+    if (idx !== undefined) {
+      if (catalog[idx].price !== price) {
+        updates.push({ idx, item, vendor, oldPrice: catalog[idx].price, newPrice: price, searchKey, dateStr,
+          unit: getCol(row, colMap.unit) || catalog[idx].unit,
+          spec: String(getCol(row, colMap.spec) || catalog[idx].spec),
+          itemCode: String(getCol(row, colMap.itemCode) || catalog[idx].itemCode) });
       }
-      document.getElementById('no-result').style.display = filtered.length ? 'none' : 'block';
-
-      const tbody = document.getElementById('price-body');
-      tbody.innerHTML = '';
-      filtered.forEach((r, vi) => {
-        const ri = rows.indexOf(r);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="idx">${vi+1}</td>
-          ${FIELDS.map(f => `<td class="col-${f}"><div contenteditable data-field="${f}" data-idx="${ri}"
-            data-ph="${phMap[f]}">${esc(r[f])}</div></td>`).join('')}
-          <td class="col-del"><button class="del-btn" onclick="delRow(${ri})">✕</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      tbody.querySelectorAll('[contenteditable]').forEach(el => {
-        el.addEventListener('input', () => {
-          if (_remoteUpdate) return;
-          rows[+el.dataset.idx][el.dataset.field] = el.textContent.trim();
-          autoSave();
-        });
-      });
+    } else {
+      newItems.push({ vendor, item, searchKey, price, dateStr, unit: String(getCol(row, colMap.unit)), spec: String(getCol(row, colMap.spec)), itemCode: String(getCol(row, colMap.itemCode)) });
     }
+  });
 
-    const phMap = { item:'品項', unit:'單位', price:'單價', supplier:'供應商', date:'日期', note:'備註' };
+  log.innerHTML += `<div class="log-ok" style="margin-top:10px;">✅ 發現 ${updates.length} 筆價格變更</div>`;
+  if (newItems.length > 0) log.innerHTML += `<div class="log-warn">🆕 發現 ${newItems.length} 筆新品項</div>`;
+  
+  updates.slice(0, 5).forEach(u => {
+    const arrow = u.newPrice > u.oldPrice ? '⬆' : '⬇';
+    log.innerHTML += `<div class="${u.newPrice > u.oldPrice ? 'log-err' : 'log-ok'}">${arrow} ${u.item}: $${u.oldPrice} → $${u.newPrice}</div>`;
+  });
+  if (updates.length > 5) log.innerHTML += `<div style="color:#666;">...等共 ${updates.length} 筆變更</div>`;
+  
+  if (updates.length === 0 && newItems.length === 0) {
+    log.innerHTML += `<div class="log-warn" style="margin-top:10px;">⚠️ 沒有需要更新的資料</div>`;
+    document.getElementById('loading').classList.remove('show');
+    return;
+  }
 
-    function addRow() {
-      const r = {};
-      FIELDS.forEach(f => {
-        r[f] = (document.getElementById('f-'+f)||{}).value || '';
-      });
-      rows.unshift(r);
-      renderTable();
-      autoSave();
-      FIELDS.forEach(f => { const el = document.getElementById('f-'+f); if(el) el.value=''; });
-    }
+  pendingUpdate = { updates, newItems };
+  document.getElementById('importConfirmBtn').disabled = false;
+  document.getElementById('loading').classList.remove('show');
+}
 
-    function delRow(i) {
-      rows.splice(i, 1);
-      renderTable();
-      autoSave();
-    }
+function confirmImport() {
+  if (!pendingUpdate) return;
+  const { updates, newItems } = pendingUpdate;
+  const today = new Date().toLocaleDateString('zh-TW');
 
-    function esc(s) {
-      return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-  </script>
+  updates.forEach(u => {
+    catalog[u.idx].price = u.newPrice;
+    historyList.push({ searchKey: u.searchKey, item: u.item, vendor: u.vendor, price: u.newPrice, date: u.dateStr || today });
+  });
+
+  newItems.forEach(n => {
+    catalog.push({ id: '', vendor: n.vendor, itemCode: n.itemCode, item: n.item, searchKey: n.searchKey, unit: n.unit, spec: n.spec, price: n.price });
+    historyList.push({ searchKey: n.searchKey, item: n.item, vendor: n.vendor, price: n.price, date: n.dateStr || today });
+  });
+
+  saveToFirebase(); 
+  closeDrawers();
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// 啟動程式 (等待外部腳本載入完成)
+document.addEventListener('DOMContentLoaded', () => {
+    // 確保 firebase 資源載入後再初始化同步
+    setTimeout(initSync, 500); 
+});
+</script>
 </body>
 </html>
+```
