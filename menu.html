@@ -5707,39 +5707,71 @@ function catPopupMove() {
 function catPopupDelete() {
   if (!_catPopupCat || !_catPopupItem) return;
   const itemName = _catPopupItem;
-  const baseName = itemName.replace(/\*$/, '');
+  const itemCat  = _catPopupCat;
+  const baseName = itemName.replace(/[*]$/, '');
 
-  // 自訂確認視窗
+  document.getElementById("catItemPopup").style.display = "none";
+
+  // ── 用純 DOM 建立確認視窗（避免 innerHTML template literal 解析問題）──
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(45,45,45,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;';
 
-  overlay.innerHTML = `
-    <div style="background:#fff;border:3px solid #c62828;border-radius:12px;box-shadow:6px 6px 0 0 #c62828;padding:24px 28px;max-width:340px;width:calc(100%-32px);font-family:inherit;">
-      <div style="font-size:1.5rem;margin-bottom:8px;">🗑️</div>
-      <div style="font-weight:800;font-size:1rem;color:#c62828;margin-bottom:6px;">確定刪除品項？</div>
-      <div style="font-weight:700;font-size:1.1rem;color:#1a1a1a;margin-bottom:16px;">「${itemName}」</div>
-      <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;cursor:pointer;font-size:0.95rem;font-weight:600;color:#c62828;background:#fff3f3;border:1.5px solid #ffcdd2;border-radius:6px;padding:8px 10px;">
-        <input type="checkbox" id="_delSyncItemsCb" checked style="width:16px;height:16px;accent-color:#c62828;cursor:pointer;">
-        同步刪除 ITEMS 一覽表中的品項
-      </label>
-      <div style="display:flex;gap:8px;">
-        <button id="_delConfirmBtn" style="flex:1;background:#c62828;color:#fff;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">確定刪除</button>
-        <button id="_delCancelBtn" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
-      </div>
-    </div>`;
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border:3px solid #c62828;border-radius:12px;box-shadow:6px 6px 0 0 #c62828;padding:24px 28px;max-width:340px;width:90%;font-family:inherit;';
 
+  const icon = document.createElement('div');
+  icon.style.cssText = 'font-size:1.5rem;margin-bottom:8px;';
+  icon.textContent = '🗑️';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight:800;font-size:1rem;color:#c62828;margin-bottom:6px;';
+  title.textContent = '確定刪除品項？';
+
+  const nameDiv = document.createElement('div');
+  nameDiv.style.cssText = 'font-weight:700;font-size:1.1rem;color:#1a1a1a;margin-bottom:16px;';
+  nameDiv.textContent = '「' + itemName + '」';
+
+  const syncLabel = document.createElement('label');
+  syncLabel.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:20px;cursor:pointer;font-size:0.95rem;font-weight:600;color:#c62828;background:#fff3f3;border:1.5px solid #ffcdd2;border-radius:6px;padding:8px 10px;';
+
+  const syncCb = document.createElement('input');
+  syncCb.type = 'checkbox';
+  syncCb.checked = true;
+  syncCb.style.cssText = 'width:16px;height:16px;accent-color:#c62828;cursor:pointer;flex-shrink:0;';
+
+  syncLabel.appendChild(syncCb);
+  syncLabel.appendChild(document.createTextNode(' 同步刪除 ITEMS 一覽表中的品項'));
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.style.cssText = 'flex:1;background:#c62828;color:#fff;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;';
+  confirmBtn.textContent = '確定刪除';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.style.cssText = 'flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;';
+  cancelBtn.textContent = '取消';
+
+  btnRow.appendChild(confirmBtn);
+  btnRow.appendChild(cancelBtn);
+  box.appendChild(icon);
+  box.appendChild(title);
+  box.appendChild(nameDiv);
+  box.appendChild(syncLabel);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
   document.body.appendChild(overlay);
-  document.getElementById("catItemPopup").style.display = "none";
 
-  document.getElementById('_delCancelBtn').onclick = () => overlay.remove();
+  cancelBtn.onclick = () => overlay.remove();
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
-  document.getElementById('_delConfirmBtn').onclick = async () => {
-    const syncItems = document.getElementById('_delSyncItemsCb').checked;
+  confirmBtn.onclick = async () => {
+    const syncItems = syncCb.checked;
     overlay.remove();
 
     // 刪除本地
-    DB[_catPopupCat] = DB[_catPopupCat].filter(i => i !== itemName);
+    if (DB[itemCat]) DB[itemCat] = DB[itemCat].filter(i => i !== itemName);
     const colorKey = FOOD_COLOR[itemName];
     if (colorKey && COLOR_GROUPS[colorKey]) {
       COLOR_GROUPS[colorKey].items = COLOR_GROUPS[colorKey].items.filter(i => i !== itemName);
@@ -5756,7 +5788,7 @@ function catPopupDelete() {
         const existing = (snap.exists && snap.data().content)
           ? restoreFromFirestore(snap.data().content) : [];
         if (!Array.isArray(existing)) { showSaveToast('🗑️ 已刪除（ITEMS 同步失敗）'); return; }
-        const filtered = existing.filter(it => (it.name || '').replace(/\*$/, '') !== baseName);
+        const filtered = existing.filter(it => (it.name || '').replace(/[*]$/, '') !== baseName);
         const user = auth.currentUser;
         await db.collection('modules').doc('items').set({
           content: sanitizeForFirestore(filtered),
