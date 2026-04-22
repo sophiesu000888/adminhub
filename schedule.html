@@ -1561,38 +1561,121 @@ async function exportPhoto() {
   closeExportModal();
   const mo = state.months[state.curMoIdx];
 
-  // Build render HTML
+  // Build render HTML - 週分組，跟畫面一致
   const container = document.getElementById('exportContainer');
-  let html = `<div style="font-family:'Kalam','Noto Sans TC',sans-serif;padding:24px;min-width:600px;background:#fff;">`;
+  const expSites = getSites();
+  const daysInMonth = new Date(mo.y, mo.m+1, 0).getDate();
+  const { doHol, doNight, sites: expSiteIds } = getExportOptions();
+
+  // Helper: split days into Mon-based week chunks (same logic as buildTable)
+  function toWeekChunks(days) {
+    const chunks = [];
+    let cur = [];
+    days.forEach(d => {
+      const dow = new Date(mo.y, mo.m, d).getDay();
+      if (dow === 1 && cur.length > 0) { chunks.push(cur); cur = []; }
+      cur.push(d);
+    });
+    if (cur.length > 0) chunks.push(cur);
+    return chunks;
+  }
+
+  // Cell background colors
+  function nameBg(name) {
+    const p = state.people.find(x => x.name === name);
+    if (!p) return '#fff';
+    return p.role === 'chef' ? '#fff3e0' : '#e3f2fd';
+  }
+  function nameColor(name) {
+    const p = state.people.find(x => x.name === name);
+    if (!p) return '#bbb';
+    return p.role === 'chef' ? '#7f2a00' : '#0d47a1';
+  }
+
+  // Build one week-chunk table (multi-site rows)
+  function buildChunkTable(chunkDays, type, siteIds) {
+    const colW = type === 'night' ? 140 : 108;
+    let t = `<table style="border-collapse:collapse;margin-bottom:10px;table-layout:fixed;">`;
+    // Header row
+    t += `<thead><tr>`;
+    t += `<th style="border:2px solid #2d2d2d;padding:4px 6px;background:#f8f8f8;font-size:15px;font-weight:900;width:80px;min-width:80px;text-align:center;">廠區</th>`;
+    chunkDays.forEach(d => {
+      const w = new Date(mo.y, mo.m, d).getDay();
+      t += `<th style="border:1.5px solid #2d2d2d;padding:4px 6px;background:#f8f8f8;font-size:14px;font-weight:900;width:${colW}px;min-width:${colW}px;text-align:center;white-space:nowrap;">${mo.m+1}/${d}<br><span style="font-size:12px;color:#555;">(${DOW[w]})</span></th>`;
+    });
+    t += `</tr></thead><tbody>`;
+
+    siteIds.forEach(sid => {
+      if (type === 'hol' && expSites[sid]?.noHol) return;
+      if (type === 'night' && expSites[sid]?.noNight) return;
+      const sd = mo.sitesData[sid];
+      if (!sd) return;
+
+      // Gather assigned names per day in chunk
+      const dayNames = chunkDays.map(d => {
+        const inNight = type==='night' && (sd.night.has(d) || (sd.night2||new Set()).has(d));
+        const inHol   = type==='hol' && sd.hol.has(d);
+        if (!inNight && !inHol) return [];
+        const key = `${sid}_${d}`;
+        return (mo.roster[key]||[]).map(pid => { const p=state.people.find(x=>x.id==pid); return p?p.name:''; }).filter(Boolean);
+      });
+
+      const maxNames = Math.max(1, ...dayNames.map(n => n.length));
+      for (let i = 0; i < maxNames; i++) {
+        t += `<tr>`;
+        if (i === 0) {
+          t += `<td rowspan="${maxNames}" style="border:2px solid #2d2d2d;border-right:2px solid #2d2d2d;padding:4px 6px;font-size:15px;font-weight:900;text-align:center;background:#f8f8f8;vertical-align:middle;">${expSites[sid]?.name||sid}</td>`;
+        }
+        dayNames.forEach(names => {
+          const name = names[i] || '';
+          const hasAny = names.length > 0;
+          const bg = name ? nameBg(name) : (hasAny ? '#fff' : '#f5f5f5');
+          const color = name ? nameColor(name) : '#bbb';
+          t += `<td style="border:1px solid #ddd;padding:5px 8px;font-size:14px;font-weight:800;text-align:center;background:${bg};color:${color};vertical-align:middle;">${name||'—'}</td>`;
+        });
+        t += `</tr>`;
+      }
+    });
+
+    t += `</tbody></table>`;
+    return t;
+  }
+
+  let html = `<div style="font-family:'Noto Sans TC',sans-serif;padding:24px;background:#fff;display:inline-block;">`;
   html += `<div style="font-size:22px;font-weight:900;margin-bottom:18px;color:#222;">${mo.y}年${mo.m+1}月 排班表</div>`;
 
-  sections.forEach(sec => {
-    html += `<div style="font-size:17px;font-weight:900;margin:14px 0 6px;color:#222;">${sec.label}</div>`;
-    html += `<table style="border-collapse:collapse;width:100%;margin-bottom:10px;">`;
-    html += `<thead><tr>`;
-    sec.rows.forEach(r => {
-      const wLabel = DOW[new Date(sec.mo.y, sec.mo.m, r.d).getDay()];
-      html += `<th style="border:1.5px solid #2d2d2d;padding:6px 10px;background:#f8f8f8;font-size:14px;white-space:nowrap;">${sec.mo.m+1}/${r.d}<br><span style="font-size:12px;color:#555;">(${wLabel})</span></th>`;
-    });
-    html += `</tr></thead><tbody>`;
-
-    // Find max rows
-    const maxNames = Math.max(1, ...sec.rows.map(r => r.names.length));
-    for (let i=0; i<maxNames; i++) {
-      const rowBg = i%2===0 ? '#fff' : '#fafafa';
-      html += `<tr>`;
-      sec.rows.forEach(r => {
-        const name = r.names[i] || '';
-        const person = state.people.find(p => p.name === name);
-        const isChef = person && person.role === 'chef';
-        const cellBg = name ? (isChef ? '#fff3e0' : '#e3f2fd') : rowBg;
-        const cellColor = name ? (isChef ? '#7f2a00' : '#0d47a1') : '#bbb';
-        html += `<td style="border:1px solid #ddd;padding:6px 10px;font-size:14px;font-weight:800;text-align:center;background:${cellBg};color:${cellColor};">${name || '—'}</td>`;
-      });
-      html += `</tr>`;
+  // 晚班
+  if (doNight) {
+    const nDays = [];
+    for (let d=1; d<=daysInMonth; d++) {
+      const w = new Date(mo.y, mo.m, d).getDay();
+      if (!HOLS[`${mo.y}-${mo.m+1}-${d}`] && w!==0 && w!==6) nDays.push(d);
     }
-    html += `</tbody></table>`;
-  });
+    if (nDays.length) {
+      html += `<div style="font-size:17px;font-weight:900;margin:14px 0 6px;color:#222;">📌 晚班</div>`;
+      toWeekChunks(nDays).forEach(chunk => {
+        html += buildChunkTable(chunk, 'night', expSiteIds);
+      });
+    }
+  }
+
+  // 假日值班
+  if (doHol) {
+    const hDays = [];
+    for (let d=1; d<=daysInMonth; d++) {
+      const w = new Date(mo.y, mo.m, d).getDay();
+      if (HOLS[`${mo.y}-${mo.m+1}-${d}`] || w===0 || w===6) hDays.push(d);
+    }
+    const activeHolDays = hDays.filter(d =>
+      expSiteIds.some(sid => mo.sitesData[sid]?.hol.has(d))
+    );
+    if (activeHolDays.length) {
+      html += `<div style="font-size:17px;font-weight:900;margin:14px 0 6px;color:#222;">📌 假日值班</div>`;
+      toWeekChunks(activeHolDays).forEach(chunk => {
+        html += buildChunkTable(chunk, 'hol', expSiteIds);
+      });
+    }
+  }
 
   html += `</div>`;
   container.innerHTML = html;
