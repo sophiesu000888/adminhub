@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -29,13 +28,15 @@ body {
   color: var(--ink); display: flex; flex-direction: column;
 }
 
+
+
 .btn-lock {
-border: 2.5px solid #388e3c; background: #e8f5e9; color: #2e7d32;
-padding: 8px 18px; border-radius: var(–hand-radius);
-font-size: 1.14rem; font-weight: 700; cursor: pointer;
-white-space: nowrap; transition: all 0.1s;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif;
-box-shadow: 3px 3px 0 0 #388e3c;
+  border: 2.5px solid #388e3c; background: #e8f5e9; color: #2e7d32;
+  padding: 8px 18px; border-radius: var(--hand-radius);
+  font-size: 1.14rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: all 0.1s;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  box-shadow: 3px 3px 0 0 #388e3c;
 }
 .btn-lock:hover { transform: translate(2px,2px); box-shadow: 1px 1px 0 0 #388e3c; }
 .btn-lock:active { transform: translate(3px,3px); box-shadow: none; }
@@ -45,16 +46,16 @@ box-shadow: 3px 3px 0 0 #388e3c;
 
 /* ── Main ── */
 main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; }
-.card { background: var(–card-bg); border-radius: 14px; border: 3px solid var(–border-dark); padding: 10px; margin-bottom: 10px; }
+.card { background: var(--card-bg); border-radius: 14px; border: 3px solid var(--border-dark); padding: 10px; margin-bottom: 10px; }
 
 .cat-bar { display: flex; gap: 8px; margin-bottom: 8px; overflow-x: auto; flex-shrink: 0; }
 .cat-btn {
-padding: 5px 20px; border-radius: var(–hand-radius);
-font-size: 20px; font-weight: 700; cursor: pointer; white-space: nowrap;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; transition: 0.12s;
-/* default blue */
-border: 2.5px solid #2563eb; background: #dbeafe; color: #1e3a8a;
-box-shadow: 2px 2px 0px 0px #1d4ed8;
+  padding: 5px 20px; border-radius: var(--hand-radius);
+  font-size: 20px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; transition: 0.12s;
+  /* default blue */
+  border: 2.5px solid #2563eb; background: #dbeafe; color: #1e3a8a;
+  box-shadow: 2px 2px 0px 0px #1d4ed8;
 }
 .cat-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0px 0px #1d4ed8; }
 .cat-btn.active { background: #1d4ed8; color: #fff; border-color: #1e3a8a; box-shadow: none; }
@@ -77,76 +78,69 @@ box-shadow: 2px 2px 0px 0px #1d4ed8;
 .cal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; flex-shrink: 0; }
 .cal-cell {
-height: 52px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-font-size: 28px; font-weight: 800; cursor: pointer; position: relative;
-border: 2px solid #eee; background: #fafafa; transition: 0.1s;
+  height: 52px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 800; cursor: pointer; position: relative;
+  border: 2px solid #eee; background: #fafafa; transition: 0.1s;
 }
 .cal-cell.disabled { opacity: 0.35; cursor: not-allowed; background: transparent; border-style: dashed; }
-.cal-cell.is-hol { color: var(–hol-tx); background: var(–hol-bg); border-color: var(–hol-bd); }
+.cal-cell.is-hol { color: var(--hol-tx); background: var(--hol-bg); border-color: var(--hol-bd); }
 .cal-cell.is-wknd { color: #777; background: #f5f5f5; border-color: #ddd; }
-.cal-cell.sel-hol { background: var(–hol-tx) !important; color: #fff !important; border-color: var(–border-dark); box-shadow: 2px 2px 0 var(–border-dark); }
-.cal-cell.sel-night { background: var(–night-tx) !important; color: #fff !important; border-color: var(–border-dark); box-shadow: 2px 2px 0 var(–border-dark); }
-.cal-cell.sel-night2 { background: #388e3c !important; color: #fff !important; border-color: var(–border-dark); box-shadow: 2px 2px 0 var(–border-dark); }
+.cal-cell.sel-hol { background: var(--hol-tx) !important; color: #fff !important; border-color: var(--border-dark); box-shadow: 2px 2px 0 var(--border-dark); }
+.cal-cell.sel-night { background: var(--night-tx) !important; color: #fff !important; border-color: var(--border-dark); box-shadow: 2px 2px 0 var(--border-dark); }
+.cal-cell.sel-night2 { background: #388e3c !important; color: #fff !important; border-color: var(--border-dark); box-shadow: 2px 2px 0 var(--border-dark); }
 .pub-name { font-size: 13px; text-align: center; width: 100%; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; }
 
 /* ── People list ── */
 #pList {
-display: grid; grid-template-columns: repeat(auto-fill, 128px);
-gap: 5px; padding: 6px;
-background: #fafafa; border: 2px solid var(–border-dark); border-radius: 8px;
-overflow-y: auto; flex: 1; align-content: start;
+  display: grid; grid-template-columns: repeat(auto-fill, 76px);
+  gap: 5px; padding: 6px;
+  background: #fafafa; border: 2px solid var(--border-dark); border-radius: 8px;
+  overflow-y: auto; flex: 1; align-content: start;
 }
 .p-card {
-display: flex; flex-direction: column; align-items: center; justify-content: center;
-padding: 10px 4px; border-radius: 6px; gap: 5px;
-cursor: pointer; transition: 0.15s; border: 2px solid;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 5px 4px; border-radius: 6px; gap: 3px;
+  cursor: pointer; transition: 0.15s; border: 2px solid;
 }
-.p-card.chef { background: var(–chef-bg); border-color: var(–chef-bd); }
-.p-card.assist { background: var(–assist-bg); border-color: var(–assist-bd); }
+.p-card.chef { background: var(--chef-bg); border-color: var(--chef-bd); }
+.p-card.assist { background: var(--assist-bg); border-color: var(--assist-bd); }
 .p-card:hover { filter: brightness(0.94); }
 .p-card .p-badge {
-font-size: 9px; font-weight: 900; padding: 1px 5px; border-radius: 3px; color: #fff;
+  font-size: 9px; font-weight: 900; padding: 1px 5px; border-radius: 3px; color: #fff;
 }
-.p-card.chef .p-badge { background: var(–chef-bd); }
-.p-card.assist .p-badge { background: var(–assist-bd); }
-.p-card .p-name { font-size: 18px; font-weight: 900; text-align: center; }
-.p-card.chef .p-name { color: var(–chef-tx); }
-.p-card.assist .p-name { color: var(–assist-tx); }
+.p-card.chef .p-badge { background: var(--chef-bd); }
+.p-card.assist .p-badge { background: var(--assist-bd); }
+.p-card .p-name { font-size: 16px; font-weight: 900; text-align: center; }
+.p-card.chef .p-name { color: var(--chef-tx); }
+.p-card.assist .p-name { color: var(--assist-tx); }
 .p-card .p-del {
-border: 1.5px solid rgba(0,0,0,0.18); color: rgba(0,0,0,0.45); background: rgba(255,255,255,0.6);
-padding: 1px 5px; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 800; width: 100%; text-align: center;
+  border: 1.5px solid rgba(0,0,0,0.18); color: rgba(0,0,0,0.45); background: rgba(255,255,255,0.6);
+  padding: 1px 5px; border-radius: 3px; cursor: pointer; font-size: 9px; font-weight: 800; width: 100%; text-align: center;
 }
 
 /* ── Table chip — role-colored ── */
 .p-chip {
-display: flex; align-items: center; justify-content: space-between; text-align: center;
-padding: 4px 8px; border-radius: 4px; font-size: 18px; font-weight: 900;
-margin: 2px 0; border: 1.5px solid; width: 100%; white-space: nowrap;
+  display: flex; align-items: center; justify-content: space-between; text-align: center;
+  padding: 2px 5px; border-radius: 4px; font-size: 11px; font-weight: 900;
+  margin: 2px 0; border: 1.5px solid; width: 100%; white-space: nowrap;
 }
-.p-chip.chef { background: var(–chef-bg); border-color: var(–chef-bd); color: var(–chef-tx); }
-.p-chip.assist { background: var(–assist-bg); border-color: var(–assist-bd); color: var(–assist-tx); }
+.p-chip.chef { background: var(--chef-bg); border-color: var(--chef-bd); color: var(--chef-tx); }
+.p-chip.assist { background: var(--assist-bg); border-color: var(--assist-bd); color: var(--assist-tx); }
 .p-chip.dimmed { background: #f5f5f5 !important; border-color: #ddd !important; color: #bbb !important; }
-.p-chip.highlighted { background: var(–border-dark) !important; border-color: var(–border-dark) !important; color: #fff !important; }
+.p-chip.highlighted { background: var(--border-dark) !important; border-color: var(--border-dark) !important; color: #fff !important; }
 .p-chip-role { display: none; }
 .p-chip-del { cursor: pointer; font-size: 9px; margin-left: 4px; opacity: 0.5; }
 .p-chip-del:hover { opacity: 1; color: #d32f2f; }
 
-/* ── Table centering ── */
-#scheduleCenter { display: flex; flex-direction: column; align-items: center; padding-bottom: 10px; }
-
-/* ── Night table wider columns ── */
-.night-table th { width: 140px; min-width: 140px; }
-.night-table td { width: 140px; min-width: 140px; }
-
 /* ── Table ── */
-.table-wrapper { border-radius: 12px; border: 3px solid var(–border-dark); margin-bottom: 12px; background: #fff; width: max-content; }
-table { width: max-content; border-collapse: collapse; table-layout: fixed; }
-th { background: #f8f8f8; padding: 2px 2px; font-size: 22px; border-bottom: 2px solid var(–border-dark); border-right: 1px solid #ddd; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.1; width: 108px; min-width: 108px; }
-td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; text-align: center; vertical-align: middle; width: 108px; min-width: 108px; }
+.table-wrapper { border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 12px; background: #fff; width: max-content; min-width: 100%; }
+table { width: max-content; min-width: 100%; border-collapse: collapse; }
+th { background: #f8f8f8; padding: 2px 2px; font-size: 22px; border-bottom: 2px solid var(--border-dark); border-right: 1px solid #ddd; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.1; }
+td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; text-align: center; vertical-align: middle; min-width: 64px; }
 .sticky-col {
-position: sticky; left: 0; background: #f8f8f8; z-index: 10;
-font-weight: 900; border-right: 2px solid var(–border-dark); width: 80px; min-width: 80px;
-font-size: 22px !important; text-align: center; vertical-align: middle;
+  position: sticky; left: 0; background: #f8f8f8; z-index: 10;
+  font-weight: 900; border-right: 2px solid var(--border-dark); width: 52px;
+  font-size: 22px !important; text-align: center; vertical-align: middle;
 }
 .td-disabled { background: #f5f5f5; color: #bbb; vertical-align: middle; }
 .add-slot { width: 22px; height: 22px; border-radius: 4px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 3px auto; color: #999; font-size: 14px; font-weight: 900; }
@@ -157,19 +151,19 @@ font-size: 22px !important; text-align: center; vertical-align: middle;
 
 /* ── Warning banner (persistent, above tables) ── */
 #warnBanner {
-display: none; background: #fff3e0; border: 2px solid #e65100; border-radius: 8px;
-padding: 6px 12px; margin-bottom: 8px; font-size: 12px; font-weight: 900;
-color: #bf360c; flex-shrink: 0; align-items: center; gap: 8px;
+  display: none; background: #fff3e0; border: 2px solid #e65100; border-radius: 8px;
+  padding: 6px 12px; margin-bottom: 8px; font-size: 12px; font-weight: 900;
+  color: #bf360c; flex-shrink: 0; align-items: center; gap: 8px;
 }
 #warnBanner.visible { display: flex; }
 
 /* ── Toast notification ── */
 #toast {
-position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
-background: #212121; color: #fff; padding: 8px 18px; border-radius: 20px;
-font-size: 13px; font-weight: 800; z-index: 900; opacity: 0;
-transition: all 0.3s ease; pointer-events: none; white-space: nowrap;
-border: 2px solid #555;
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+  background: #212121; color: #fff; padding: 8px 18px; border-radius: 20px;
+  font-size: 13px; font-weight: 800; z-index: 900; opacity: 0;
+  transition: all 0.3s ease; pointer-events: none; white-space: nowrap;
+  border: 2px solid #555;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #toast.warn { background: #bf360c; border-color: #ff8a65; }
@@ -177,66 +171,66 @@ border: 2px solid #555;
 /* ── Popup menu ── */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 500; display: none; }
 .menu-pop {
-position: fixed; background: #fff; border-radius: 8px; border: 3px solid var(–border-dark);
-box-shadow: 4px 4px 0px var(–border-dark); z-index: 501; display: none; padding: 8px;
-min-width: 200px; max-height: 240px; overflow-y: auto;
+  position: fixed; background: #fff; border-radius: 8px; border: 3px solid var(--border-dark);
+  box-shadow: 4px 4px 0px var(--border-dark); z-index: 501; display: none; padding: 8px;
+  min-width: 200px; max-height: 240px; overflow-y: auto;
 }
 .menu-item { padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; font-weight: 800; border: 2px solid transparent; }
-.menu-item:hover:not(.disabled) { border-color: var(–border-dark); background: #f9f9f9; }
+.menu-item:hover:not(.disabled) { border-color: var(--border-dark); background: #f9f9f9; }
 .menu-item.disabled { opacity: 0.4; cursor: not-allowed; }
 .menu-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.2); flex-shrink: 0; }
 
 /* ── Summary ── */
 .sum-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 .sum-card { padding: 6px 5px; border-radius: 7px; border: 2px solid; text-align: center; }
-.sum-card.chef { background: var(–chef-bg); border-color: var(–chef-bd); box-shadow: 3px 3px 0 var(–chef-bd); color: var(–chef-tx); }
-.sum-card.assist { background: var(–assist-bg); border-color: var(–assist-bd); box-shadow: 3px 3px 0 var(–assist-bd); color: var(–assist-tx); }
+.sum-card.chef { background: var(--chef-bg); border-color: var(--chef-bd); box-shadow: 3px 3px 0 var(--chef-bd); color: var(--chef-tx); }
+.sum-card.assist { background: var(--assist-bg); border-color: var(--assist-bd); box-shadow: 3px 3px 0 var(--assist-bd); color: var(--assist-tx); }
 
 .vw { display: none; flex: 1; overflow-y: hidden; overflow-x: visible; flex-direction: column; min-height: 0; }
 .vw.active { display: flex; }
 
 .input-group { display: flex; gap: 5px; margin-top: 8px; }
-.styled-input { flex: 1; border-radius: var(–hand-radius); border: 2px solid var(–border-dark); padding: 5px 8px; font-size: 18px; font-weight: 700; outline: none; font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; }
-.styled-btn { background: #fff; border: 2px solid var(–border-dark); padding: 5px 12px; border-radius: var(–hand-radius); font-size: 18px; font-weight: 700; cursor: pointer; font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; box-shadow: var(–shadow-sm); transition: 0.12s; }
-.styled-btn:hover { transform: translate(1px,1px); box-shadow: var(–shadow-hover); }
-.styled-btn:active { background: var(–border-dark); color: #fff; box-shadow: none; }
+.styled-input { flex: 1; border-radius: var(--hand-radius); border: 2px solid var(--border-dark); padding: 5px 8px; font-size: 18px; font-weight: 700; outline: none; font-family: 'Kalam', 'Noto Sans TC', sans-serif; }
+.styled-btn { background: #fff; border: 2px solid var(--border-dark); padding: 5px 12px; border-radius: var(--hand-radius); font-size: 18px; font-weight: 700; cursor: pointer; font-family: 'Kalam', 'Noto Sans TC', sans-serif; box-shadow: var(--shadow-sm); transition: 0.12s; }
+.styled-btn:hover { transform: translate(1px,1px); box-shadow: var(--shadow-hover); }
+.styled-btn:active { background: var(--border-dark); color: #fff; box-shadow: none; }
 
 /* ── Edit modal ── */
 .edit-modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 600; display: none; align-items: center; justify-content: center; }
 .edit-modal-bg.open { display: flex; }
-.edit-modal { background: #fff; border-radius: var(–hand-radius); border: 2px solid var(–border-dark); box-shadow: 4px 4px 0 var(–border-dark); padding: 16px; width: 290px; }
+.edit-modal { background: #fff; border-radius: var(--hand-radius); border: 2px solid var(--border-dark); box-shadow: 4px 4px 0 var(--border-dark); padding: 16px; width: 290px; }
 .edit-modal h4 { margin: 0 0 12px 0; font-size: 15px; font-weight: 900; }
 .edit-modal-btns { display: flex; gap: 6px; margin-top: 10px; }
 .edit-modal-btns button { flex: 1; }
 .color-picker-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
 .color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.15s; flex-shrink: 0; }
-.color-swatch.selected { border-color: var(–border-dark) !important; transform: scale(1.25); }
+.color-swatch.selected { border-color: var(--border-dark) !important; transform: scale(1.25); }
 .color-swatch.used-by-other { opacity: 0.3; cursor: not-allowed; }
 
 /* ── Roster filter buttons ── */
 .filter-person-btn {
-padding: 4px 16px; border-radius: var(–hand-radius); border: 2px solid #ccc;
-background: #fff; font-size: 20px; font-weight: 700; cursor: pointer;
-white-space: nowrap; transition: 0.12s; color: var(–text-main);
-display: inline-flex; align-items: center; gap: 5px;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; box-shadow: var(–shadow-sm);
+  padding: 4px 16px; border-radius: var(--hand-radius); border: 2px solid #ccc;
+  background: #fff; font-size: 20px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: 0.12s; color: var(--text-main);
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; box-shadow: var(--shadow-sm);
 }
-.filter-person-btn:hover { transform: translate(1px,1px); box-shadow: var(–shadow-hover); }
-.filter-person-btn.all-btn.active { background: var(–border-dark); color: #fff; border-color: var(–border-dark); }
-.filter-person-btn.chef-btn { border-color: var(–chef-bd); color: var(–chef-tx); background: var(–chef-bg); }
-.filter-person-btn.chef-btn.active { background: var(–chef-bd); color: #fff; border-color: var(–chef-bd); box-shadow: 2px 2px 0 var(–chef-tx); }
-.filter-person-btn.assist-btn { border-color: var(–assist-bd); color: var(–assist-tx); background: var(–assist-bg); }
-.filter-person-btn.assist-btn.active { background: var(–assist-bd); color: #fff; border-color: var(–assist-bd); box-shadow: 2px 2px 0 var(–assist-tx); }
+.filter-person-btn:hover { transform: translate(1px,1px); box-shadow: var(--shadow-hover); }
+.filter-person-btn.all-btn.active { background: var(--border-dark); color: #fff; border-color: var(--border-dark); }
+.filter-person-btn.chef-btn { border-color: var(--chef-bd); color: var(--chef-tx); background: var(--chef-bg); }
+.filter-person-btn.chef-btn.active { background: var(--chef-bd); color: #fff; border-color: var(--chef-bd); box-shadow: 2px 2px 0 var(--chef-tx); }
+.filter-person-btn.assist-btn { border-color: var(--assist-bd); color: var(--assist-tx); background: var(--assist-bg); }
+.filter-person-btn.assist-btn.active { background: var(--assist-bd); color: #fff; border-color: var(--assist-bd); box-shadow: 2px 2px 0 var(--assist-tx); }
 .fpb-role { font-size: 15px; opacity: 0.7; }
 .filter-person-btn.active .fpb-role { opacity: 0.9; }
 
 /* ── Export button ── */
 .export-btn {
-padding: 5px 14px; border-radius: var(–hand-radius); border: 2px solid var(–border-dark);
-background: #fff; font-size: 14px; font-weight: 900; cursor: pointer;
-box-shadow: var(–shadow-sm); white-space: nowrap; font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; transition: 0.12s;
+  padding: 5px 14px; border-radius: var(--hand-radius); border: 2px solid var(--border-dark);
+  background: #fff; font-size: 14px; font-weight: 900; cursor: pointer;
+  box-shadow: var(--shadow-sm); white-space: nowrap; font-family: 'Kalam', 'Noto Sans TC', sans-serif; transition: 0.12s;
 }
-.export-btn:hover { transform: translate(1px,1px); box-shadow: var(–shadow-hover); }
+.export-btn:hover { transform: translate(1px,1px); box-shadow: var(--shadow-hover); }
 
 /* ── Week stripes ── */
 .week-a { background: #fafafa; }
@@ -244,26 +238,27 @@ box-shadow: var(–shadow-sm); white-space: nowrap; font-family: ‘Kalam’, �
 th.week-a { background: #f3f3f3; }
 th.week-b { background: #e8eeff; }
 
+
 #drawerOverlay {
-position: fixed; inset: 0; background: rgba(0,0,0,0.25);
-z-index: 600; display: none;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.25);
+  z-index: 600; display: none;
 }
 #drawerOverlay.open { display: block; }
 
 #overviewDrawer {
-position: fixed; top: 44px; right: -340px; width: 320px; height: calc(100vh - 44px);
-background: var(–card-bg);
-border-left: 3px solid var(–border-dark);
-box-shadow: -4px 0 16px rgba(0,0,0,0.15);
-z-index: 700; display: flex; flex-direction: column;
-transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
+  position: fixed; top: 44px; right: -340px; width: 320px; height: calc(100vh - 44px);
+  background: var(--card-bg);
+  border-left: 3px solid var(--border-dark);
+  box-shadow: -4px 0 16px rgba(0,0,0,0.15);
+  z-index: 700; display: flex; flex-direction: column;
+  transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
 }
 #overviewDrawer.open { right: 0; }
 
 #drawerHeader {
-display: flex; justify-content: space-between; align-items: center;
-padding: 20px 24px 17px; border-bottom: 2px solid var(–border-dark);
-flex-shrink: 0; background: #e7eeff;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px 17px; border-bottom: 2px solid var(--border-dark);
+  flex-shrink: 0; background: #e7eeff;
 }
 
 #vw-roster { overflow-y: auto; }
@@ -271,28 +266,28 @@ flex-shrink: 0; background: #e7eeff;
 
 /* ══ NEW TOPBAR ══ */
 #topbar {
-background: transparent;
-display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
-padding: 14px 12px 12px; gap: 10px;
+  background: transparent;
+  display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
+  padding: 14px 12px 12px; gap: 10px;
 }
 .header-title {
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; font-size: 3.2rem; font-weight: 700;
-color: var(–ink); letter-spacing: 2px; line-height: 1;
--webkit-text-stroke: 1px rgba(45,45,45,0.2);
-transform: rotate(-1deg); display: inline-block;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 3.2rem; font-weight: 700;
+  color: var(--ink); letter-spacing: 2px; line-height: 1;
+  -webkit-text-stroke: 1px rgba(45,45,45,0.2);
+  transform: rotate(-1deg); display: inline-block;
 }
 .topbar-actions {
-display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
 }
 .tbar-btn {
-padding: 8px 18px; border-radius: var(–hand-radius);
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif;
-font-size: 1.14rem; font-weight: 700; cursor: pointer;
-border: 2.5px solid var(–ink); background: #fff8e7;
-color: var(–ink); box-shadow: var(–shadow-sm);
-white-space: nowrap; transition: all 0.1s;
+  padding: 8px 18px; border-radius: var(--hand-radius);
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1.14rem; font-weight: 700; cursor: pointer;
+  border: 2.5px solid var(--ink); background: #fff8e7;
+  color: var(--ink); box-shadow: var(--shadow-sm);
+  white-space: nowrap; transition: all 0.1s;
 }
-.tbar-btn:hover { transform: translate(2px,2px); box-shadow: var(–shadow-hover); }
+.tbar-btn:hover { transform: translate(2px,2px); box-shadow: var(--shadow-hover); }
 .tbar-btn:active { transform: translate(3px,3px); box-shadow: none; }
 .tbar-btn.danger { border-color: #d32f2f; background: #ffe7e7; color: #d32f2f; box-shadow: 3px 3px 0 0 #d32f2f; }
 .tbar-btn.danger:hover { box-shadow: 1px 1px 0 0 #d32f2f; }
@@ -303,43 +298,45 @@ white-space: nowrap; transition: all 0.1s;
 
 /* ══ Month tabs row (outside card) ══ */
 #moTabsRow {
-display: flex; align-items: center; justify-content: center; gap: 6px;
-padding: 0 12px 4px; flex-shrink: 0;
-margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 12px 4px; flex-shrink: 0;
+  transform: scale(0.8);
+  transform-origin: center center;
+  margin-bottom: -8px;
 }
 .mo-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 2px; }
 .mo-tab {
-padding: 4px 16px; border-radius: var(–hand-radius); border: 2.5px solid #2563eb;
-background: #dbeafe; color: #1e3a8a; font-size: 18px; font-weight: 700;
-cursor: pointer; white-space: nowrap; transition: 0.1s;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; box-shadow: 2px 2px 0px 0px #1d4ed8;
+  padding: 4px 16px; border-radius: var(--hand-radius); border: 2.5px solid #2563eb;
+  background: #dbeafe; color: #1e3a8a; font-size: 18px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: 0.1s;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; box-shadow: 2px 2px 0px 0px #1d4ed8;
 }
 .mo-tab:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0px 0px #1d4ed8; }
 .mo-tab.active { background: #1d4ed8; color: #fff; border-color: #1e3a8a; box-shadow: none; }
 
 /* ══ Right tab stack (all 3 side buttons in a column) ══ */
 #rightTabStack {
-position: fixed; right: 0; top: 50%; transform: translateY(-50%);
-z-index: 400; display: flex; flex-direction: column;
-align-items: flex-end; gap: 4px;
+  position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+  z-index: 400; display: flex; flex-direction: column;
+  align-items: flex-end; gap: 4px;
 }
 .side-tab-btn {
-border: none; border-radius: 12px 0 0 12px;
-width: 48px; padding: 15px 0; cursor: pointer;
-display: flex; flex-direction: column; align-items: center; gap: 5px;
-box-shadow: -3px 0 8px rgba(0,0,0,0.12); transition: width 0.15s, box-shadow 0.15s;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif; font-weight: 700;
-border-top: 1.5px solid rgba(45,45,45,0.18);
-border-bottom: 1.5px solid rgba(45,45,45,0.18);
-border-left: 3px solid rgba(45,45,45,0.18);
+  border: none; border-radius: 12px 0 0 12px;
+  width: 48px; padding: 15px 0; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  box-shadow: -3px 0 8px rgba(0,0,0,0.12); transition: width 0.15s, box-shadow 0.15s;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700;
+  border-top: 1.5px solid rgba(45,45,45,0.18);
+  border-bottom: 1.5px solid rgba(45,45,45,0.18);
+  border-left: 3px solid rgba(45,45,45,0.18);
 }
 .side-tab-btn:hover { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,0.2); }
 .side-tab-btn span.icon { font-size: 1.38rem; line-height: 1; }
 .side-tab-btn span.label {
-writing-mode: vertical-rl; text-orientation: mixed;
-font-size: 0.87rem; font-weight: 700; letter-spacing: 2px;
-opacity: 0.9; line-height: 1;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-size: 0.87rem; font-weight: 700; letter-spacing: 2px;
+  opacity: 0.9; line-height: 1;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
 }
 #mgmtTabBtn   { background: #f0fff8; color: #4a9a7a; border-left: 3px solid #4a9a7a; }
 #peopleTabBtn { background: #fff8e7; color: #b8860b; border-left: 3px solid #b8860b; }
@@ -347,93 +344,91 @@ font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif;
 
 /* ══ Side drawers ══ */
 #sideOverlay {
-position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 600; display: none;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 600; display: none;
 }
 #sideOverlay.open { display: block; }
 .side-drawer {
-position: fixed; top: 44px; right: -360px; width: 340px; height: calc(100vh - 44px);
-background: var(–card-bg); border-left: 3px solid var(–border-dark);
-box-shadow: -4px 0 16px rgba(0,0,0,0.15);
-z-index: 700; display: flex; flex-direction: column;
-transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
+  position: fixed; top: 44px; right: -360px; width: 340px; height: calc(100vh - 44px);
+  background: var(--card-bg); border-left: 3px solid var(--border-dark);
+  box-shadow: -4px 0 16px rgba(0,0,0,0.15);
+  z-index: 700; display: flex; flex-direction: column;
+  transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
 }
 .side-drawer.open { right: 0; }
 .drawer-hdr {
-display: flex; justify-content: space-between; align-items: center;
-padding: 20px 24px 17px; border-bottom: 2px solid var(–border-dark);
-flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px 17px; border-bottom: 2px solid var(--border-dark);
+  flex-shrink: 0;
 }
 #peopleDrawer .drawer-hdr { background: #fff8e7; border-bottom-color: #b8860b; }
 #calDrawer    .drawer-hdr { background: #e7f8ff; border-bottom-color: #4a90a8; }
 .drawer-hdr-title {
-font-weight: 700; font-size: 1.5rem;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif;
+  font-weight: 700; font-size: 1.5rem;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
 }
 .drawer-close-btn {
-background: white; border: 2px solid var(–border-dark);
-box-shadow: 2px 2px 0 0 rgba(45,45,45,0.18);
-font-size: 16px; cursor: pointer; line-height: 1;
-padding: 4px 8px; border-radius: 6px; font-weight: 700;
-transition: transform 0.1s, box-shadow 0.1s;
+  background: white; border: 2px solid var(--border-dark);
+  box-shadow: 2px 2px 0 0 rgba(45,45,45,0.18);
+  font-size: 16px; cursor: pointer; line-height: 1;
+  padding: 4px 8px; border-radius: 6px; font-weight: 700;
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 .drawer-close-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 rgba(45,45,45,0.18); }
 .drawer-body {
-flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column;
+  flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column;
 }
 .drawer-body button   { font-size: 1.1rem !important; padding: 7px 16px !important; }
 .drawer-body select   { font-size: 1.1rem !important; padding: 6px 28px 6px 8px !important; }
-.drawer-body input[type=“text”] { font-size: 1.1rem !important; padding: 7px 10px !important; }
+.drawer-body input[type="text"] { font-size: 1.1rem !important; padding: 7px 10px !important; }
 .drawer-body label    { font-size: 1.05rem !important; }
 
 /* ══ Overview button (part of rightTabStack) ══ */
 #overviewBtn {
-background: #e7eeff; color: #1565c0;
-border: none; border-radius: 12px 0 0 12px;
-width: 48px; padding: 15px 0; cursor: pointer;
-display: flex; flex-direction: column; align-items: center; gap: 5px;
-box-shadow: -3px 0 8px rgba(0,0,0,0.12); transition: width 0.15s, box-shadow 0.15s;
-border-top: 1.5px solid #1565c0; border-bottom: 1.5px solid #1565c0; border-left: 3px solid #1565c0;
+  background: #e7eeff; color: #1565c0;
+  border: none; border-radius: 12px 0 0 12px;
+  width: 48px; padding: 15px 0; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  box-shadow: -3px 0 8px rgba(0,0,0,0.12); transition: width 0.15s, box-shadow 0.15s;
+  border-top: 1.5px solid #1565c0; border-bottom: 1.5px solid #1565c0; border-left: 3px solid #1565c0;
 }
 #overviewBtn:hover { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,0.2); }
 #overviewBtn .icon { font-size: 1.38rem; line-height: 1; }
 #overviewBtn .label {
-writing-mode: vertical-rl; text-orientation: mixed;
-font-size: 0.87rem; font-weight: 700; letter-spacing: 2px;
-opacity: 0.9; line-height: 1;
-font-family: ‘Kalam’, ‘Noto Sans TC’, sans-serif;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-size: 0.87rem; font-weight: 700; letter-spacing: 2px;
+  opacity: 0.9; line-height: 1;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
 }
 
 @media (max-width: 600px) {
-#topbar { padding: 10px 10px 8px; gap: 8px; }
-.header-title { font-size: 2rem; letter-spacing: 1px; }
-.topbar-actions { gap: 6px; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
-.tbar-btn { padding: 8px 6px; font-size: 1rem; text-align: center; width: 100%; }
-.btn-lock { padding: 8px 6px; font-size: 1rem; width: 100%; }
+  #topbar { padding: 10px 10px 8px; gap: 8px; }
+  .header-title { font-size: 2rem; letter-spacing: 1px; }
+  .topbar-actions { gap: 6px; display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .tbar-btn { padding: 8px 6px; font-size: 1rem; text-align: center; width: 100%; }
+  .btn-lock { padding: 8px 6px; font-size: 1rem; width: 100%; }
 
-#moTabsRow { padding: 4px 2px 6px; }
-.mo-tab { padding: 6px 10px; font-size: 0.95rem; }
+  #moTabsRow { padding: 4px 2px 6px; }
+  .mo-tab { padding: 6px 10px; font-size: 0.95rem; }
 
-.section-title { font-size: 1.1rem; padding: 6px 10px; }
+  .section-title { font-size: 1.1rem; padding: 6px 10px; }
 
-td, th { font-size: 0.95rem; padding: 4px 6px; }
-th { font-size: 1rem; }
+  td, th { font-size: 0.95rem; padding: 4px 6px; }
+  th { font-size: 1rem; }
 
-.day-hd { min-width: 52px; font-size: 0.9rem; }
-.name-cell { min-width: 54px; font-size: 0.9rem; }
+  .day-hd { min-width: 52px; font-size: 0.9rem; }
+  .name-cell { min-width: 54px; font-size: 0.9rem; }
 
-.shift-badge { font-size: 0.85rem; padding: 2px 5px; }
-.leave-badge { font-size: 0.85rem; padding: 2px 5px; }
+  .shift-badge { font-size: 0.85rem; padding: 2px 5px; }
+  .leave-badge { font-size: 0.85rem; padding: 2px 5px; }
 
-/* 避免右側固定按鈕（48px）蓋住表格內容的刪除鈕 */
-.table-wrapper { margin-right: 52px; }
+  /* 避免右側固定按鈕（48px）蓋住表格內容的刪除鈕 */
+  .table-wrapper { margin-right: 52px; }
 }
 </style>
-
 </head>
 <body>
 
 <!-- ══ TOPBAR ══ -->
-
 <div id="topbar">
   <div class="header-title">Shift Schedule</div>
   <div class="topbar-actions">
@@ -453,21 +448,18 @@ th { font-size: 1rem; }
     <div id="moTabsRow">
       <div class="mo-tabs" id="moTabs"></div>
     </div>
-    <div id="scrollArea" style="flex:1;overflow:auto;">
-      <div id="scheduleCenter">
-        <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:18px;">📌 晚班</div>
-        <div id="nTables"></div>
-        <div id="holSection">
-          <div style="font-weight:900;margin:12px 0 8px;font-size:18px;">📌 假日值班</div>
-          <div id="hTables"></div>
-        </div>
+    <div style="flex:1;overflow:auto;">
+      <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:14px;">📌 晚班</div>
+      <div class="table-wrapper"><table><thead id="nHead"></thead><tbody id="nBody"></tbody></table></div>
+      <div id="holSection">
+        <div style="font-weight:900;margin:12px 0 8px;font-size:14px;">📌 假日值班</div>
+        <div class="table-wrapper"><table><thead id="hHead"></thead><tbody id="hBody"></tbody></table></div>
       </div>
     </div>
   </div>
 </main>
 
 <!-- ══ Right tab stack ══ -->
-
 <div id="rightTabStack">
   <button id="calTabBtn" class="side-tab-btn" onclick="openSideDrawer('cal')" title="日期設定">
     <span class="icon">📅</span>
@@ -488,7 +480,6 @@ th { font-size: 1rem; }
 </div>
 
 <!-- ══ Mgmt Drawer ══ -->
-
 <div id="mgmtDrawer" class="side-drawer">
   <div class="drawer-hdr" style="background:#f0fff8;border-bottom-color:#4a9a7a;">
     <span class="drawer-hdr-title">📋 管理</span>
@@ -499,11 +490,9 @@ th { font-size: 1rem; }
 </div>
 
 <!-- ══ Side overlay ══ -->
-
 <div id="sideOverlay" onclick="closeSideDrawer()"></div>
 
 <!-- ══ People Drawer ══ -->
-
 <div id="peopleDrawer" class="side-drawer">
   <div class="drawer-hdr">
     <span class="drawer-hdr-title">👥 人員設定</span>
@@ -526,7 +515,6 @@ th { font-size: 1rem; }
 </div>
 
 <!-- ══ Calendar Drawer ══ -->
-
 <div id="calDrawer" class="side-drawer">
   <div class="drawer-hdr">
     <span class="drawer-hdr-title">📅 日期設定</span>
@@ -545,7 +533,6 @@ th { font-size: 1rem; }
 </div>
 
 <!-- ══ Overview drawer ══ -->
-
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="overviewDrawer">
   <div id="drawerHeader">
@@ -560,7 +547,6 @@ th { font-size: 1rem; }
 <div id="toast"></div>
 
 <!-- Export Modal -->
-
 <div class="edit-modal-bg" id="exportModalBg">
   <div class="edit-modal" style="width:340px;">
     <h4>📤 匯出排班</h4>
@@ -584,11 +570,9 @@ th { font-size: 1rem; }
 </div>
 
 <!-- Hidden export canvas container -->
-
 <div id="exportContainer" style="position:fixed;left:-9999px;top:0;background:#fff;padding:20px;font-family:'Kalam','Noto Sans TC',sans-serif;"></div>
 
 <!-- Add Site Modal -->
-
 <div class="edit-modal-bg" id="addSiteModalBg">
   <div class="edit-modal" style="width:320px;">
     <h4>📍 新增地點</h4>
@@ -611,7 +595,6 @@ th { font-size: 1rem; }
 </div>
 
 <!-- Edit modal -->
-
 <div class="edit-modal-bg" id="editModalBg">
   <div class="edit-modal">
     <h4>✏️ 編輯人員</h4>
@@ -630,15 +613,10 @@ th { font-size: 1rem; }
   </div>
 
 <style>body { padding-top: 60px !important; }</style>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script src="firebase-config.js"></script>
-
 <script src="shared.js"></script>
 
 <script>
@@ -1054,144 +1032,77 @@ function renderRoster() {
   // Check if any site has hol enabled (not all noHol)
   const hasHolSites = Object.values(getSites()).some(s => !s.noHol);
   document.getElementById('holSection').style.display = hasHolSites ? '' : 'none';
-  buildTable('hTables',hDays,mo,'hol');
-  buildTable('nTables',nDays,mo,'night');
-  _doCenter();
+  buildTable('hHead','hBody',hDays,mo,'hol');
+  buildTable('nHead','nBody',nDays,mo,'night');
 }
-function _doCenter() {
-  // Read the widest table-wrapper rendered inside nTables / hTables
-  const sc = document.getElementById('scheduleCenter');
-  const sa = document.getElementById('scrollArea');
-  if (!sc || !sa) return;
-  // Reset first so offsetWidth is natural
-  sc.style.marginLeft = '0';
-  // Use rAF x2 to wait for browser layout
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    const wrappers = sc.querySelectorAll('.table-wrapper');
-    let tableW = 0;
-    wrappers.forEach(w => { tableW = Math.max(tableW, w.getBoundingClientRect().width); });
-    if (!tableW) return;
-    const saW = sa.getBoundingClientRect().width;
-    const gap = saW - tableW;
-    sc.style.marginLeft = (gap > 0 ? Math.floor(gap / 2) : 0) + 'px';
-  }));
-}
-window.addEventListener('resize', _doCenter);
-function buildTable(containerId, days, mo, type) {
-  const container = document.getElementById(containerId);
+function buildTable(headId, bodyId, days, mo, type) {
+  const head=document.getElementById(headId), body=document.getElementById(bodyId);
 
-  // Week stripe helper
+  // Week number helper — returns ISO week index (0-based from first week of month)
   function weekStripe(d) {
-    return Math.floor((d - 1 + (new Date(mo.y, mo.m, 1).getDay() + 6) % 7) / 7) % 2 === 0 ? 'week-a' : 'week-b';
+    // which Monday-anchored week does this day belong to?
+    const date = new Date(mo.y, mo.m, d);
+    const day1 = new Date(mo.y, mo.m, 1);
+    // offset: 0=Mon...6=Sun
+    const dayOfWeek = (date.getDay() + 6) % 7;
+    const weekOfYear = Math.floor((date - day1) / 86400000 / 7 +
+      ((day1.getDay() + 6) % 7) / 7);
+    return Math.floor((d - 1 + (day1.getDay() + 6) % 7) / 7) % 2 === 0 ? 'week-a' : 'week-b';
   }
 
+  head.innerHTML = `<tr>
+    <th class="sticky-col">廠區</th>
+    ${days.map(d => {
+      const wc = weekStripe(d);
+      const w = new Date(mo.y,mo.m,d).getDay();
+      return `<th class="${wc}" style="padding:1px 2px;"><div style="line-height:1.1;">${mo.m+1}/${d}</div><div style="font-size:22px;font-weight:900;color:#333;margin-top:0;line-height:1;">(${DOW[w]})</div></th>`;
+    }).join('')}
+  </tr>`;
+
   const sites = getSites();
-
-  // Split days into chunks: new chunk starts on Monday (getDay()===1), except the very first day
-  const chunks = [];
-  let cur = [];
-  days.forEach(d => {
-    const dow = new Date(mo.y, mo.m, d).getDay();
-    if (dow === 1 && cur.length > 0) { chunks.push(cur); cur = []; }
-    cur.push(d);
-  });
-  if (cur.length > 0) chunks.push(cur);
-
-  // For weekday (night) chunks, pad each chunk to a full Mon–Fri week using cross-month days
-  const daysInMonth = new Date(mo.y, mo.m+1, 0).getDate();
-  const paddedChunks = chunks.map(chunkDays => {
-    if (type !== 'night') return chunkDays.map(d => ({ d, crossMonth: false }));
-    // Find the Monday of this chunk's first day
-    const firstD = chunkDays[0];
-    const firstDow = new Date(mo.y, mo.m, firstD).getDay(); // 0=Sun..6=Sat
-    const mondayOffset = firstDow === 0 ? -6 : 1 - firstDow;
-    const mondayD = firstD + mondayOffset;
-    // Build Mon–Fri (5 days)
-    const result = [];
-    for (let i = 0; i < 5; i++) {
-      const dayNum = mondayD + i;
-      if (dayNum < 1) {
-        // Prev month day
-        const prevMonthDays = new Date(mo.y, mo.m, 0).getDate();
-        result.push({ d: prevMonthDays + dayNum, crossMonth: true, crossDir: 'prev' });
-      } else if (dayNum > daysInMonth) {
-        // Next month day
-        result.push({ d: dayNum - daysInMonth, crossMonth: true, crossDir: 'next' });
-      } else {
-        result.push({ d: dayNum, crossMonth: false });
-      }
-    }
-    return result;
-  });
-
-  container.innerHTML = paddedChunks.map((chunkEntries, ci) => {
-    const headHtml = `<tr>
-      <th class="sticky-col">廠區</th>
-      ${chunkEntries.map(({ d, crossMonth, crossDir }) => {
-        let displayM, actualD, dateObj;
-        if (crossMonth && crossDir === 'prev') {
-          const prev = new Date(mo.y, mo.m, 0);
-          displayM = prev.getMonth() + 1; actualD = d;
-          dateObj = new Date(mo.y, mo.m - 1, d);
-        } else if (crossMonth && crossDir === 'next') {
-          displayM = mo.m + 2 > 12 ? 1 : mo.m + 2; actualD = d;
-          dateObj = new Date(mo.y, mo.m + 1, d);
-        } else {
-          displayM = mo.m + 1; actualD = d;
-          dateObj = new Date(mo.y, mo.m, d);
-        }
-        const w = dateObj.getDay();
-        const wc = crossMonth ? '' : weekStripe(d);
-        const opacity = crossMonth ? 'opacity:0.35;' : '';
-        return `<th class="${wc}" style="padding:1px 2px;${opacity}"><div style="line-height:1.1;">${displayM}/${actualD}</div><div style="font-size:22px;font-weight:900;color:#333;margin-top:0;line-height:1;">(${DOW[w]})</div></th>`;
-      }).join('')}
-    </tr>`;
-
-    const bodyHtml = Object.keys(sites).map(sid => {
-      if (type === 'hol' && sites[sid].noHol) return '';
-      if (type === 'night' && sites[sid].noNight) return '';
-      if (!mo.sitesData[sid]) return '';
-      const cells = chunkEntries.map(({ d, crossMonth, crossDir }) => {
-        const wc = crossMonth ? '' : weekStripe(d);
-        const baseStyle = `vertical-align:top;padding:4px;`;
-        if (crossMonth) return `<td class="td-disabled ${wc}" style="${baseStyle}opacity:0.35;">－</td>`;
-        const inNight = type==='night' && (mo.sitesData[sid].night.has(d) || (mo.sitesData[sid].night2||new Set()).has(d));
-        const inHol   = type==='hol'   && mo.sitesData[sid].hol.has(d);
-        if (!inNight && !inHol) return `<td class="td-disabled ${wc}" style="${baseStyle}">－</td>`;
-        const isGreen = type==='night' && (mo.sitesData[sid].night2||new Set()).has(d);
-        const timeBadge = (type==='night' && sid==='f20')
-          ? `<div style="font-size:10px;font-weight:900;color:${isGreen?'#2e7d32':'#1565c0'};margin-bottom:2px;">${isGreen?'20:30':'20:00'}</div>` : '';
-        const key=`${sid}_${d}`, assigned=mo.roster[key]||[];
-        const warn = cellWarning(assigned);
-        const warnHtml = warn ? `<div class="warn-badge">${warn}</div>` : '';
-        const chipsHtml = assigned.map(pid => {
-          const p=state.people.find(x=>x.id==pid);
-          if (!p) return '';
-          const filterPid = getRosterFilterPid();
-          const isHighlighted = filterPid && p.id == filterPid;
-          const isDimmed = filterPid && p.id != filterPid;
-          const extraClass = isHighlighted ? ' highlighted' : isDimmed ? ' dimmed' : ` ${p.role}`;
-          return `<div class="p-chip${extraClass}">
-            <span style="flex:1;text-align:center;"><span class="p-chip-role">${p.role==='chef'?'廚':'助'}</span>${p.name}</span>
-            <span style="display:flex;align-items:center;gap:2px;">
-              ${state.isLockedRoster?'':
-                `<span class="p-chip-del" style="font-size:10px;opacity:0.45;display:inline-flex;align-items:center;" onclick="event.stopPropagation();copyPerson(${pid})" title="複製"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="15" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg></span>
-                 <span class="p-chip-del" onclick="removeAssign('${key}',${pid})">✖</span>`}
-            </span>
-          </div>`;
-        }).join('');
-        const addBtn = state.isLockedRoster ? '' : `<div class="add-slot" onclick="openMenu('${sid}',${d},'${key}',event)">＋</div>`;
-        return `<td class="${warn?'warn-cell':''} ${wc}" style="${baseStyle}">
-          ${timeBadge||''}${warnHtml}
-          <div style="display:flex;flex-direction:column;align-items:stretch;gap:1px;">${chipsHtml}</div>
-          ${addBtn}
-        </td>`;
+  body.innerHTML = Object.keys(sites).map(sid => {
+    // skip if site has noHol and this is a hol table
+    if (type === 'hol' && sites[sid].noHol) return '';
+    // skip if site has noNight and this is a night table
+    if (type === 'night' && sites[sid].noNight) return '';
+    // skip if sitesData doesn't have this sid yet
+    if (!mo.sitesData[sid]) return '';
+    const cells = days.map(d => {
+      const wc = weekStripe(d);
+      const baseStyle = `vertical-align:top;padding:4px;`;
+      const inNight = type==='night' && (mo.sitesData[sid].night.has(d) || (mo.sitesData[sid].night2||new Set()).has(d));
+      const inHol   = type==='hol'   && mo.sitesData[sid].hol.has(d);
+      if (!inNight && !inHol) return `<td class="td-disabled ${wc}" style="${baseStyle}">－</td>`;
+      const isGreen = type==='night' && (mo.sitesData[sid].night2||new Set()).has(d);
+      const timeBadge = (type==='night' && sid==='f20')
+        ? `<div style="font-size:10px;font-weight:900;color:${isGreen?'#2e7d32':'#1565c0'};margin-bottom:2px;">${isGreen?'20:30':'20:00'}</div>` : '';
+      const key=`${sid}_${d}`, assigned=mo.roster[key]||[];
+      const warn = cellWarning(assigned);
+      const warnHtml = warn ? `<div class="warn-badge">${warn}</div>` : '';
+      const chipsHtml = assigned.map(pid => {
+        const p=state.people.find(x=>x.id==pid);
+        if (!p) return '';
+        const filterPid = getRosterFilterPid();
+        const isHighlighted = filterPid && p.id == filterPid;
+        const isDimmed = filterPid && p.id != filterPid;
+        const extraClass = isHighlighted ? ' highlighted' : isDimmed ? ' dimmed' : ` ${p.role}`;
+        return `<div class="p-chip${extraClass}">
+          <span style="flex:1;text-align:center;"><span class="p-chip-role">${p.role==='chef'?'廚':'助'}</span>${p.name}</span>
+          <span style="display:flex;align-items:center;gap:2px;">
+            ${state.isLockedRoster?'':
+              `<span class="p-chip-del" style="font-size:10px;opacity:0.45;display:inline-flex;align-items:center;" onclick="event.stopPropagation();copyPerson(${pid})" title="複製"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="15" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg></span>
+               <span class="p-chip-del" onclick="removeAssign('${key}',${pid})">✖</span>`}
+          </span>
+        </div>`;
       }).join('');
-      return `<tr><td class="sticky-col" style="text-align:center;vertical-align:middle;">${sites[sid].name}</td>${cells}</tr>`;
+      const addBtn = state.isLockedRoster ? '' : `<div class="add-slot" onclick="openMenu('${sid}',${d},'${key}',event)">＋</div>`;
+      return `<td class="${warn?'warn-cell':''} ${wc}" style="${baseStyle}">
+        ${timeBadge||''}${warnHtml}
+        <div style="display:flex;flex-direction:column;align-items:stretch;gap:1px;">${chipsHtml}</div>
+        ${addBtn}
+      </td>`;
     }).join('');
-
-    const nightClass = type === 'night' ? ' night-table' : '';
-    return `<div class="table-wrapper${nightClass}" style="margin-bottom:12px;"><table><thead>${headHtml}</thead><tbody>${bodyHtml}</tbody></table></div>`;
+    return `<tr><td class="sticky-col" style="text-align:center;vertical-align:middle;">${sites[sid].name}</td>${cells}</tr>`;
   }).join('');
 }
 
@@ -1646,43 +1557,56 @@ function renderMgmt() {
           placeholder="例：平日晚班為一整週"
           onchange="setSiteRule('${sid}','night',this.value)"
         >${(state.siteRules&&state.siteRules[sid]&&state.siteRules[sid].night)||''}</textarea>
-
-```
-    <div style="font-size:0.95rem;color:#555;margin-bottom:4px;margin-top:4px;">假日規則：</div>
-    <textarea rows="2" style="width:100%;font-size:0.95rem;border:1.5px solid #ccc;border-radius:6px;padding:5px;font-family:inherit;resize:none;"
-      placeholder="例：國定假日強制休假"
-      onchange="setSiteRule('${sid}','hol',this.value)"
-    >${(state.siteRules&&state.siteRules[sid]&&state.siteRules[sid].hol)||''}</textarea>
-  </div>
-`}).join('')}
-```
-
-`; } function deleteSite(sid) { const allSites = getSites(); const s = allSites[sid]; if (!s) return; if (!confirm(`確定要刪除地點「${s.name}」嗎？\n⚠️ 該地點的所有排班資料將一併刪除！`)) return; if (state.extraSites[sid]) { delete state.extraSites[sid]; } else { // default site — track in deletedSites list if (!state.deletedSites) state.deletedSites = []; if (!state.deletedSites.includes(sid)) state.deletedSites.push(sid); } state.months.forEach(mo => { delete mo.sitesData[sid]; }); const remaining = Object.keys(getSites()); if (!remaining.includes(state.curSite)) state.curSite = remaining[0] || ''; saveData(); renderAll(); renderSiteTabsInCalDrawer(); renderMgmt(); showToast(`🗑 已刪除地點：${s.name}`);
+        <div style="font-size:0.95rem;color:#555;margin-bottom:4px;margin-top:4px;">假日規則：</div>
+        <textarea rows="2" style="width:100%;font-size:0.95rem;border:1.5px solid #ccc;border-radius:6px;padding:5px;font-family:inherit;resize:none;"
+          placeholder="例：國定假日強制休假"
+          onchange="setSiteRule('${sid}','hol',this.value)"
+        >${(state.siteRules&&state.siteRules[sid]&&state.siteRules[sid].hol)||''}</textarea>
+      </div>
+    `}).join('')}
+  `;
+}
+function deleteSite(sid) {
+  const allSites = getSites();
+  const s = allSites[sid];
+  if (!s) return;
+  if (!confirm(`確定要刪除地點「${s.name}」嗎？\n⚠️ 該地點的所有排班資料將一併刪除！`)) return;
+  if (state.extraSites[sid]) {
+    delete state.extraSites[sid];
+  } else {
+    // default site — track in deletedSites list
+    if (!state.deletedSites) state.deletedSites = [];
+    if (!state.deletedSites.includes(sid)) state.deletedSites.push(sid);
+  }
+  state.months.forEach(mo => { delete mo.sitesData[sid]; });
+  const remaining = Object.keys(getSites());
+  if (!remaining.includes(state.curSite)) state.curSite = remaining[0] || '';
+  saveData(); renderAll(); renderSiteTabsInCalDrawer(); renderMgmt();
+  showToast(`🗑 已刪除地點：${s.name}`);
 }
 
 function setSiteRule(sid, type, val) {
-if (!state.siteRules) state.siteRules = {};
-if (!state.siteRules[sid]) state.siteRules[sid] = {};
-state.siteRules[sid][type] = val;
-saveData();
+  if (!state.siteRules) state.siteRules = {};
+  if (!state.siteRules[sid]) state.siteRules[sid] = {};
+  state.siteRules[sid][type] = val;
+  saveData();
 }
 
 // ── Init ─────────────────────────────────────────────────────
 requireAuth((user) => {
-_currentUser = user;
-injectStatusBar(‘schedule’);
-_autoSave = makeAutoSave(‘schedule’, collectData, 1000);
-startSync(‘schedule’, user, (content) => {
-applyData(content);
-if (state.months.length === 0) {
-addMonth(2026, 2);
-}
-const curMo = state.months[state.curMoIdx];
-if (curMo) { state.calY = curMo.y; state.calM = curMo.m; }
-renderAll();
-});
+  _currentUser = user;
+  injectStatusBar('schedule');
+  _autoSave = makeAutoSave('schedule', collectData, 1000);
+  startSync('schedule', user, (content) => {
+    applyData(content);
+    if (state.months.length === 0) {
+      addMonth(2026, 2);
+    }
+    const curMo = state.months[state.curMoIdx];
+    if (curMo) { state.calY = curMo.y; state.calM = curMo.m; }
+    renderAll();
+  });
 });
 </script>
-
 </body>
 </html>
