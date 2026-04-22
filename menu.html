@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -3063,18 +3064,26 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     if (!item || item === "-" || item === "-- 品項 --") {
       td2.style.background = ""; td2.style.color = "";
       inp2.style.background = ""; inp2.style.color = "";
-      inp2.style.fontWeight = ""; inp2.style.borderColor = "";
+      inp2.style.fontWeight = ""; inp2.style.borderColor = ""; inp2.style.outline = "";
       td2.className = `td-l2 ${defaultStyleL2}`;
     } else {
+      // 檢查品項是否在 DB 的任何類別中（含星號/不含星號都算）
+      const baseName = item.replace(/\*$/, '');
+      const allDBItems = Object.values(DB).flat();
+      const isInDB = allDBItems.some(i => i.replace(/\*$/, '') === baseName);
+
       const colors = getFoodColors(item);
       if (colors) {
         td2.style.background = colors.bg; td2.style.color = colors.fg;
         inp2.style.background = colors.bg; inp2.style.color = colors.fg;
-        inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
+        inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent"; inp2.style.outline = "";
       } else {
         td2.style.background = ""; td2.style.color = "";
         inp2.style.background = ""; inp2.style.color = "";
-        inp2.style.fontWeight = "600"; inp2.style.borderColor = "transparent";
+        inp2.style.fontWeight = "600";
+        // 不在 DB 裡 → 紅框警示
+        inp2.style.borderColor = isInDB ? "transparent" : "var(--red)";
+        inp2.style.outline = isInDB ? "" : "2px solid var(--red)";
         td2.className = `td-l2 ${defaultStyleL2}`;
       }
     }
