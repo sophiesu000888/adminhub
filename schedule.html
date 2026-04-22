@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -92,14 +93,14 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 
 /* ── People list ── */
 #pList {
-  display: grid; grid-template-columns: repeat(auto-fill, 76px);
+  display: grid; grid-template-columns: repeat(auto-fill, 128px);
   gap: 5px; padding: 6px;
   background: #fafafa; border: 2px solid var(--border-dark); border-radius: 8px;
   overflow-y: auto; flex: 1; align-content: start;
 }
 .p-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 5px 4px; border-radius: 6px; gap: 3px;
+  padding: 10px 4px; border-radius: 6px; gap: 5px;
   cursor: pointer; transition: 0.15s; border: 2px solid;
 }
 .p-card.chef { background: var(--chef-bg); border-color: var(--chef-bd); }
@@ -110,7 +111,7 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 }
 .p-card.chef .p-badge { background: var(--chef-bd); }
 .p-card.assist .p-badge { background: var(--assist-bd); }
-.p-card .p-name { font-size: 16px; font-weight: 900; text-align: center; }
+.p-card .p-name { font-size: 18px; font-weight: 900; text-align: center; }
 .p-card.chef .p-name { color: var(--chef-tx); }
 .p-card.assist .p-name { color: var(--assist-tx); }
 .p-card .p-del {
@@ -121,7 +122,7 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 /* ── Table chip — role-colored ── */
 .p-chip {
   display: flex; align-items: center; justify-content: space-between; text-align: center;
-  padding: 2px 5px; border-radius: 4px; font-size: 11px; font-weight: 900;
+  padding: 4px 8px; border-radius: 4px; font-size: 18px; font-weight: 900;
   margin: 2px 0; border: 1.5px solid; width: 100%; white-space: nowrap;
 }
 .p-chip.chef { background: var(--chef-bg); border-color: var(--chef-bd); color: var(--chef-tx); }
@@ -132,14 +133,21 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 .p-chip-del { cursor: pointer; font-size: 9px; margin-left: 4px; opacity: 0.5; }
 .p-chip-del:hover { opacity: 1; color: #d32f2f; }
 
+/* ── Table centering ── */
+#scheduleCenter { display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 10px; }
+
+/* ── Night table wider columns ── */
+.night-table th { width: 140px; min-width: 140px; }
+.night-table td { width: 140px; min-width: 140px; }
+
 /* ── Table ── */
-.table-wrapper { border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 12px; background: #fff; width: max-content; min-width: 100%; }
-table { width: max-content; min-width: 100%; border-collapse: collapse; }
-th { background: #f8f8f8; padding: 2px 2px; font-size: 22px; border-bottom: 2px solid var(--border-dark); border-right: 1px solid #ddd; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.1; }
-td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; text-align: center; vertical-align: middle; min-width: 64px; }
+.table-wrapper { border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 12px; background: #fff; width: max-content; }
+table { width: max-content; border-collapse: collapse; table-layout: fixed; }
+th { background: #f8f8f8; padding: 2px 2px; font-size: 22px; border-bottom: 2px solid var(--border-dark); border-right: 1px solid #ddd; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.1; width: 108px; min-width: 108px; }
+td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; text-align: center; vertical-align: middle; width: 108px; min-width: 108px; }
 .sticky-col {
   position: sticky; left: 0; background: #f8f8f8; z-index: 10;
-  font-weight: 900; border-right: 2px solid var(--border-dark); width: 52px;
+  font-weight: 900; border-right: 2px solid var(--border-dark); width: 80px; min-width: 80px;
   font-size: 22px !important; text-align: center; vertical-align: middle;
 }
 .td-disabled { background: #f5f5f5; color: #bbb; vertical-align: middle; }
@@ -300,9 +308,7 @@ th.week-b { background: #e8eeff; }
 #moTabsRow {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 0 12px 4px; flex-shrink: 0;
-  transform: scale(0.8);
-  transform-origin: center center;
-  margin-bottom: -8px;
+  margin-bottom: 4px;
 }
 .mo-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 2px; }
 .mo-tab {
@@ -448,12 +454,14 @@ th.week-b { background: #e8eeff; }
     <div id="moTabsRow">
       <div class="mo-tabs" id="moTabs"></div>
     </div>
-    <div style="flex:1;overflow:auto;">
-      <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:14px;">📌 晚班</div>
-      <div class="table-wrapper"><table><thead id="nHead"></thead><tbody id="nBody"></tbody></table></div>
-      <div id="holSection">
-        <div style="font-weight:900;margin:12px 0 8px;font-size:14px;">📌 假日值班</div>
-        <div class="table-wrapper"><table><thead id="hHead"></thead><tbody id="hBody"></tbody></table></div>
+    <div id="scrollArea" style="flex:1;overflow:auto;">
+      <div id="scheduleCenter">
+        <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:18px;">📌 晚班</div>
+        <div id="nTables"></div>
+        <div id="holSection">
+          <div style="font-weight:900;margin:12px 0 8px;font-size:18px;">📌 假日值班</div>
+          <div id="hTables"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1032,77 +1040,144 @@ function renderRoster() {
   // Check if any site has hol enabled (not all noHol)
   const hasHolSites = Object.values(getSites()).some(s => !s.noHol);
   document.getElementById('holSection').style.display = hasHolSites ? '' : 'none';
-  buildTable('hHead','hBody',hDays,mo,'hol');
-  buildTable('nHead','nBody',nDays,mo,'night');
+  buildTable('hTables',hDays,mo,'hol');
+  buildTable('nTables',nDays,mo,'night');
+  _doCenter();
 }
-function buildTable(headId, bodyId, days, mo, type) {
-  const head=document.getElementById(headId), body=document.getElementById(bodyId);
+function _doCenter() {
+  // Read the widest table-wrapper rendered inside nTables / hTables
+  const sc = document.getElementById('scheduleCenter');
+  const sa = document.getElementById('scrollArea');
+  if (!sc || !sa) return;
+  // Reset first so offsetWidth is natural
+  sc.style.marginLeft = '0';
+  // Use rAF x2 to wait for browser layout
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const wrappers = sc.querySelectorAll('.table-wrapper');
+    let tableW = 0;
+    wrappers.forEach(w => { tableW = Math.max(tableW, w.getBoundingClientRect().width); });
+    if (!tableW) return;
+    const saW = sa.getBoundingClientRect().width;
+    const gap = saW - tableW;
+    sc.style.marginLeft = (gap > 0 ? Math.floor(gap / 2) : 0) + 'px';
+  }));
+}
+window.addEventListener('resize', _doCenter);
+function buildTable(containerId, days, mo, type) {
+  const container = document.getElementById(containerId);
 
-  // Week number helper — returns ISO week index (0-based from first week of month)
+  // Week stripe helper
   function weekStripe(d) {
-    // which Monday-anchored week does this day belong to?
-    const date = new Date(mo.y, mo.m, d);
-    const day1 = new Date(mo.y, mo.m, 1);
-    // offset: 0=Mon...6=Sun
-    const dayOfWeek = (date.getDay() + 6) % 7;
-    const weekOfYear = Math.floor((date - day1) / 86400000 / 7 +
-      ((day1.getDay() + 6) % 7) / 7);
-    return Math.floor((d - 1 + (day1.getDay() + 6) % 7) / 7) % 2 === 0 ? 'week-a' : 'week-b';
+    return Math.floor((d - 1 + (new Date(mo.y, mo.m, 1).getDay() + 6) % 7) / 7) % 2 === 0 ? 'week-a' : 'week-b';
   }
 
-  head.innerHTML = `<tr>
-    <th class="sticky-col">廠區</th>
-    ${days.map(d => {
-      const wc = weekStripe(d);
-      const w = new Date(mo.y,mo.m,d).getDay();
-      return `<th class="${wc}" style="padding:1px 2px;"><div style="line-height:1.1;">${mo.m+1}/${d}</div><div style="font-size:22px;font-weight:900;color:#333;margin-top:0;line-height:1;">(${DOW[w]})</div></th>`;
-    }).join('')}
-  </tr>`;
-
   const sites = getSites();
-  body.innerHTML = Object.keys(sites).map(sid => {
-    // skip if site has noHol and this is a hol table
-    if (type === 'hol' && sites[sid].noHol) return '';
-    // skip if site has noNight and this is a night table
-    if (type === 'night' && sites[sid].noNight) return '';
-    // skip if sitesData doesn't have this sid yet
-    if (!mo.sitesData[sid]) return '';
-    const cells = days.map(d => {
-      const wc = weekStripe(d);
-      const baseStyle = `vertical-align:top;padding:4px;`;
-      const inNight = type==='night' && (mo.sitesData[sid].night.has(d) || (mo.sitesData[sid].night2||new Set()).has(d));
-      const inHol   = type==='hol'   && mo.sitesData[sid].hol.has(d);
-      if (!inNight && !inHol) return `<td class="td-disabled ${wc}" style="${baseStyle}">－</td>`;
-      const isGreen = type==='night' && (mo.sitesData[sid].night2||new Set()).has(d);
-      const timeBadge = (type==='night' && sid==='f20')
-        ? `<div style="font-size:10px;font-weight:900;color:${isGreen?'#2e7d32':'#1565c0'};margin-bottom:2px;">${isGreen?'20:30':'20:00'}</div>` : '';
-      const key=`${sid}_${d}`, assigned=mo.roster[key]||[];
-      const warn = cellWarning(assigned);
-      const warnHtml = warn ? `<div class="warn-badge">${warn}</div>` : '';
-      const chipsHtml = assigned.map(pid => {
-        const p=state.people.find(x=>x.id==pid);
-        if (!p) return '';
-        const filterPid = getRosterFilterPid();
-        const isHighlighted = filterPid && p.id == filterPid;
-        const isDimmed = filterPid && p.id != filterPid;
-        const extraClass = isHighlighted ? ' highlighted' : isDimmed ? ' dimmed' : ` ${p.role}`;
-        return `<div class="p-chip${extraClass}">
-          <span style="flex:1;text-align:center;"><span class="p-chip-role">${p.role==='chef'?'廚':'助'}</span>${p.name}</span>
-          <span style="display:flex;align-items:center;gap:2px;">
-            ${state.isLockedRoster?'':
-              `<span class="p-chip-del" style="font-size:10px;opacity:0.45;display:inline-flex;align-items:center;" onclick="event.stopPropagation();copyPerson(${pid})" title="複製"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="15" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg></span>
-               <span class="p-chip-del" onclick="removeAssign('${key}',${pid})">✖</span>`}
-          </span>
-        </div>`;
+
+  // Split days into chunks: new chunk starts on Monday (getDay()===1), except the very first day
+  const chunks = [];
+  let cur = [];
+  days.forEach(d => {
+    const dow = new Date(mo.y, mo.m, d).getDay();
+    if (dow === 1 && cur.length > 0) { chunks.push(cur); cur = []; }
+    cur.push(d);
+  });
+  if (cur.length > 0) chunks.push(cur);
+
+  // For weekday (night) chunks, pad each chunk to a full Mon–Fri week using cross-month days
+  const daysInMonth = new Date(mo.y, mo.m+1, 0).getDate();
+  const paddedChunks = chunks.map(chunkDays => {
+    if (type !== 'night') return chunkDays.map(d => ({ d, crossMonth: false }));
+    // Find the Monday of this chunk's first day
+    const firstD = chunkDays[0];
+    const firstDow = new Date(mo.y, mo.m, firstD).getDay(); // 0=Sun..6=Sat
+    const mondayOffset = firstDow === 0 ? -6 : 1 - firstDow;
+    const mondayD = firstD + mondayOffset;
+    // Build Mon–Fri (5 days)
+    const result = [];
+    for (let i = 0; i < 5; i++) {
+      const dayNum = mondayD + i;
+      if (dayNum < 1) {
+        // Prev month day
+        const prevMonthDays = new Date(mo.y, mo.m, 0).getDate();
+        result.push({ d: prevMonthDays + dayNum, crossMonth: true, crossDir: 'prev' });
+      } else if (dayNum > daysInMonth) {
+        // Next month day
+        result.push({ d: dayNum - daysInMonth, crossMonth: true, crossDir: 'next' });
+      } else {
+        result.push({ d: dayNum, crossMonth: false });
+      }
+    }
+    return result;
+  });
+
+  container.innerHTML = paddedChunks.map((chunkEntries, ci) => {
+    const headHtml = `<tr>
+      <th class="sticky-col">廠區</th>
+      ${chunkEntries.map(({ d, crossMonth, crossDir }) => {
+        let displayM, actualD, dateObj;
+        if (crossMonth && crossDir === 'prev') {
+          const prev = new Date(mo.y, mo.m, 0);
+          displayM = prev.getMonth() + 1; actualD = d;
+          dateObj = new Date(mo.y, mo.m - 1, d);
+        } else if (crossMonth && crossDir === 'next') {
+          displayM = mo.m + 2 > 12 ? 1 : mo.m + 2; actualD = d;
+          dateObj = new Date(mo.y, mo.m + 1, d);
+        } else {
+          displayM = mo.m + 1; actualD = d;
+          dateObj = new Date(mo.y, mo.m, d);
+        }
+        const w = dateObj.getDay();
+        const wc = crossMonth ? '' : weekStripe(d);
+        const opacity = crossMonth ? 'opacity:0.35;' : '';
+        return `<th class="${wc}" style="padding:1px 2px;${opacity}"><div style="line-height:1.1;">${displayM}/${actualD}</div><div style="font-size:22px;font-weight:900;color:#333;margin-top:0;line-height:1;">(${DOW[w]})</div></th>`;
+      }).join('')}
+    </tr>`;
+
+    const bodyHtml = Object.keys(sites).map(sid => {
+      if (type === 'hol' && sites[sid].noHol) return '';
+      if (type === 'night' && sites[sid].noNight) return '';
+      if (!mo.sitesData[sid]) return '';
+      const cells = chunkEntries.map(({ d, crossMonth, crossDir }) => {
+        const wc = crossMonth ? '' : weekStripe(d);
+        const baseStyle = `vertical-align:top;padding:4px;`;
+        if (crossMonth) return `<td class="td-disabled ${wc}" style="${baseStyle}opacity:0.35;">－</td>`;
+        const inNight = type==='night' && (mo.sitesData[sid].night.has(d) || (mo.sitesData[sid].night2||new Set()).has(d));
+        const inHol   = type==='hol'   && mo.sitesData[sid].hol.has(d);
+        if (!inNight && !inHol) return `<td class="td-disabled ${wc}" style="${baseStyle}">－</td>`;
+        const isGreen = type==='night' && (mo.sitesData[sid].night2||new Set()).has(d);
+        const timeBadge = (type==='night' && sid==='f20')
+          ? `<div style="font-size:10px;font-weight:900;color:${isGreen?'#2e7d32':'#1565c0'};margin-bottom:2px;">${isGreen?'20:30':'20:00'}</div>` : '';
+        const key=`${sid}_${d}`, assigned=mo.roster[key]||[];
+        const warn = cellWarning(assigned);
+        const warnHtml = warn ? `<div class="warn-badge">${warn}</div>` : '';
+        const chipsHtml = assigned.map(pid => {
+          const p=state.people.find(x=>x.id==pid);
+          if (!p) return '';
+          const filterPid = getRosterFilterPid();
+          const isHighlighted = filterPid && p.id == filterPid;
+          const isDimmed = filterPid && p.id != filterPid;
+          const extraClass = isHighlighted ? ' highlighted' : isDimmed ? ' dimmed' : ` ${p.role}`;
+          return `<div class="p-chip${extraClass}">
+            <span style="flex:1;text-align:center;"><span class="p-chip-role">${p.role==='chef'?'廚':'助'}</span>${p.name}</span>
+            <span style="display:flex;align-items:center;gap:2px;">
+              ${state.isLockedRoster?'':
+                `<span class="p-chip-del" style="font-size:10px;opacity:0.45;display:inline-flex;align-items:center;" onclick="event.stopPropagation();copyPerson(${pid})" title="複製"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="15" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg></span>
+                 <span class="p-chip-del" onclick="removeAssign('${key}',${pid})">✖</span>`}
+            </span>
+          </div>`;
+        }).join('');
+        const addBtn = state.isLockedRoster ? '' : `<div class="add-slot" onclick="openMenu('${sid}',${d},'${key}',event)">＋</div>`;
+        return `<td class="${warn?'warn-cell':''} ${wc}" style="${baseStyle}">
+          ${timeBadge||''}${warnHtml}
+          <div style="display:flex;flex-direction:column;align-items:stretch;gap:1px;">${chipsHtml}</div>
+          ${addBtn}
+        </td>`;
       }).join('');
-      const addBtn = state.isLockedRoster ? '' : `<div class="add-slot" onclick="openMenu('${sid}',${d},'${key}',event)">＋</div>`;
-      return `<td class="${warn?'warn-cell':''} ${wc}" style="${baseStyle}">
-        ${timeBadge||''}${warnHtml}
-        <div style="display:flex;flex-direction:column;align-items:stretch;gap:1px;">${chipsHtml}</div>
-        ${addBtn}
-      </td>`;
+      return `<tr><td class="sticky-col" style="text-align:center;vertical-align:middle;">${sites[sid].name}</td>${cells}</tr>`;
     }).join('');
-    return `<tr><td class="sticky-col" style="text-align:center;vertical-align:middle;">${sites[sid].name}</td>${cells}</tr>`;
+
+    const nightClass = type === 'night' ? ' night-table' : '';
+    return `<div class="table-wrapper${nightClass}" style="margin-bottom:12px;"><table><thead>${headHtml}</thead><tbody>${bodyHtml}</tbody></table></div>`;
   }).join('');
 }
 
