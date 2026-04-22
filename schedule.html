@@ -135,7 +135,7 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 .p-chip-del:hover { opacity: 1; color: #d32f2f; }
 
 /* ── Table centering ── */
-#scheduleCenter { display: flex; flex-direction: column; padding-bottom: 10px; width: 100%; }
+#scheduleCenter { display: flex; flex-direction: column; padding-bottom: 10px; width: 100%; align-items: flex-start; }
 
 /* ── Night table wider columns ── */
 .night-table th { width: 140px; min-width: 140px; }
@@ -457,13 +457,13 @@ th.week-b { background: #e8eeff; }
     </div>
     <div id="scrollArea" style="flex:1;overflow:auto;">
       <div id="scheduleCenter">
-        <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
-          <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:18px;align-self:flex-start;">📌 晚班</div>
-          <div id="nTables" style="display:flex;flex-direction:column;align-items:center;width:100%;"></div>
+        <div id="nightSection" style="display:inline-block;margin-bottom:12px;">
+          <div id="nightSectionTitle" style="font-weight:900;margin-bottom:8px;font-size:18px;">📌 晚班</div>
+          <div id="nTables" style="display:flex;flex-direction:column;"></div>
         </div>
-        <div id="holSection" style="display:flex;flex-direction:column;align-items:center;width:100%;">
-          <div style="font-weight:900;margin:12px 0 8px;font-size:18px;align-self:flex-start;">📌 假日值班</div>
-          <div id="hTables" style="display:flex;flex-direction:column;align-items:center;width:100%;"></div>
+        <div id="holSection" style="display:inline-block;margin-bottom:12px;">
+          <div style="font-weight:900;margin:0 0 8px;font-size:18px;">📌 假日值班</div>
+          <div id="hTables" style="display:flex;flex-direction:column;"></div>
         </div>
       </div>
     </div>
@@ -970,12 +970,24 @@ function changeCal(offset) {
 // ── People ───────────────────────────────────────────────────
 function renderPeople() {
   const list = document.getElementById('pList'); list.innerHTML='';
-  state.people.forEach(p => {
+  state.people.forEach((p, idx) => {
     const card = document.createElement('div');
     card.className = `p-card ${p.role}`;
+    const isChef = p.role === 'chef';
+    const arrowBorderColor = isChef ? 'var(--chef-bd)' : 'var(--assist-bd)';
+    const arrowBg = isChef ? 'var(--chef-bg)' : 'var(--assist-bg)';
+    const arrowTx = isChef ? 'var(--chef-tx)' : 'var(--assist-tx)';
+    const arrowShadow = isChef ? 'var(--chef-bd)' : 'var(--assist-bd)';
+    const arrowBase = `cursor:pointer;border:1.5px solid ${arrowBorderColor};background:${arrowBg};color:${arrowTx};border-radius:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;box-shadow:1px 1px 0 0 ${arrowShadow};transition:all 0.1s;flex-shrink:0;`;
+    const upDisabled = idx === 0 ? 'opacity:0.25;pointer-events:none;' : '';
+    const downDisabled = idx === state.people.length - 1 ? 'opacity:0.25;pointer-events:none;' : '';
     card.innerHTML = `
       <span class="p-badge">${p.role==='chef'?'廚師':'廚助'}</span>
       <span class="p-name">${p.name}</span>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-left:auto;">
+        <div style="${arrowBase}${upDisabled}" onclick="event.stopPropagation();movePerson(${p.id},-1)" title="上移">▲</div>
+        <div style="${arrowBase}${downDisabled}" onclick="event.stopPropagation();movePerson(${p.id},1)" title="下移">▼</div>
+      </div>
       <button class="p-del" onclick="event.stopPropagation();removePerson(${p.id})">刪除</button>
     `;
     card.onclick = () => openEditModal(p.id);
@@ -1001,6 +1013,18 @@ function removePerson(id) {
   state.people = state.people.filter(p=>p.id!==id);
   saveData(); renderPeople();
   showToast('已刪除人員');
+}
+function movePerson(id, dir) {
+  if (state.isLockedSetup) return showToast('⚠️ 設定已鎖定，請先解除鎖定', true);
+  const idx = state.people.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= state.people.length) return;
+  const arr = [...state.people];
+  const [item] = arr.splice(idx, 1);
+  arr.splice(newIdx, 0, item);
+  state.people = arr;
+  saveData(); renderPeople();
 }
 function openEditModal(id) {
   if (state.isLockedSetup) return showToast('⚠️ 設定已鎖定，請先解除鎖定', true);
@@ -1071,7 +1095,7 @@ function renderRoster() {
   }
   // Check if any site has hol enabled (not all noHol)
   const hasHolSites = Object.values(getSites()).some(s => !s.noHol);
-  document.getElementById('holSection').style.display = hasHolSites ? '' : 'none';
+  document.getElementById('holSection').style.display = hasHolSites ? 'inline-block' : 'none';
   buildTable('hTables',hDays,mo,'hol');
   buildTable('nTables',nDays,mo,'night');
   _doCenter();
@@ -1081,8 +1105,8 @@ function _doCenter() {
   if (!sa) return;
   const saW = sa.clientWidth;
 
-  // Center night section
-  const nSection = document.querySelector('#scheduleCenter > div:first-child');
+  // Center night section (title + tables block together)
+  const nSection = document.getElementById('nightSection');
   const nWrappers = document.getElementById('nTables')?.querySelectorAll('.table-wrapper');
   if (nSection && nWrappers && nWrappers.length) {
     let nW = 0;
@@ -1090,7 +1114,7 @@ function _doCenter() {
     nSection.style.marginLeft = saW > nW ? Math.floor((saW - nW) / 2) + 'px' : '0px';
   }
 
-  // Center holiday section
+  // Center holiday section (title + tables block together)
   const hSection = document.getElementById('holSection');
   const hWrappers = document.getElementById('hTables')?.querySelectorAll('.table-wrapper');
   if (hSection && hWrappers && hWrappers.length) {
