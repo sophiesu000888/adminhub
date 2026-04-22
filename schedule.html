@@ -442,7 +442,7 @@ th.week-b { background: #e8eeff; }
     <button class="tbar-btn danger" onclick="deleteCurrentMonth()">🗑️ 刪除月份</button>
     <button class="tbar-btn add-site" onclick="openAddSiteModal()">📍 新增地點</button>
     <button class="tbar-btn export" onclick="openExportModal()">📤 匯出</button>
-    <button id="lockBtn" class="btn-lock" onclick="toggleLock()">🔓 解除鎖定</button>
+    <button id="lockBtn" class="btn-lock" onclick="toggleLock()">✏️ 排班中</button>
   </div>
 </div>
 
@@ -727,8 +727,8 @@ function updateLockBtn() {
   const btn = document.getElementById('lockBtn');
   const isLocked = currentLockState();
   btn.classList.remove('hidden');
-  if (isLocked) { btn.innerHTML = '🔒 鎖定中'; btn.classList.add('locked'); }
-  else { btn.innerHTML = '🔓 解除鎖定'; btn.classList.remove('locked'); }
+  if (isLocked) { btn.innerHTML = '✅ 排班完成'; btn.classList.add('locked'); }
+  else { btn.innerHTML = '✏️ 排班中'; btn.classList.remove('locked'); }
 }
 function toggleLock() {
   // 從解鎖 → 鎖定時，檢查有設值班日但沒排人員的格子
