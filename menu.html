@@ -5409,6 +5409,7 @@ let _addToItemsName = '';
 let _addToItemsHasStar = false;
 
 function openAddToItemsPopup(itemName, anchorEl) {
+  closeAllPopups();
   _addToItemsName = itemName.replace(/\*$/, ''); // 去掉星號存純品名
   _addToItemsHasStar = itemName.endsWith('*');   // 記錄原本有無星號
 
@@ -5494,6 +5495,7 @@ let _catPopupCat = null;
 let _catPopupItem = null;
 
 function openCatItemPopup(cat, itemName, anchorEl) {
+  closeAllPopups();
   _catPopupCat = cat;
   _catPopupItem = itemName;
   const popup = document.getElementById("catItemPopup");
