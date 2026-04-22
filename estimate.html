@@ -631,7 +631,9 @@ var ap6bCfg = {lunchQty:3, dinnerQty:2, dinnerWeekOffset:1};
 
 function ap6bHasDinner(mon) {
   var wi = WEEK_MONS.indexOf(mon);
-  return wi>=0 && (wi%2)===ap6bCfg.dinnerWeekOffset;
+  if(wi < 0) return false;
+  var actualWeekNum = wi + WEEK_BASE_NUM; // 實際週次：14, 15, 16...
+  return (actualWeekNum % 2) === 1; // 奇數週有晚餐
 }
 function ap6bDayQty(ds) {
   if(isWeekend(ds)||isNatHoli(ds)) return 0;
