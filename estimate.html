@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -626,7 +627,7 @@ function f20Qty(ds) {
   return q;
 }
 
-var ap6bCfg = {lunchQty:3, dinnerQty:2, dinnerWeekOffset:0};
+var ap6bCfg = {lunchQty:3, dinnerQty:2, dinnerWeekOffset:1};
 
 function ap6bHasDinner(mon) {
   var wi = WEEK_MONS.indexOf(mon);
@@ -1347,7 +1348,7 @@ function renderAccBlock(id, content) {
   var badge = getBlockBadge(id);
   var emoji = {F20:'🏢',AP6B:'🏢',P8:'🍱','群聯':'🏭','央廚':'🍳','聯電':'🏭'}[id]||'🏢';
   var desc  = {F20:'午餐固定 '+f20Cfg.lunchBase+'隻・15:00 +'+f20Cfg.lunch1500+'隻・晚餐 +'+f20Cfg.dinnerQty+'隻',
-               AP6B:'固定午餐・隔週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
+               AP6B:'固定午餐・奇數週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
                '群聯':'主餐'+qlCfg.main+'隻/天 / 雙拼'+qlCfg.dbl+'隻/天','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
                '聯電':'主餐'+lianDianCfg.main+'隻 / 雙拼'+lianDianCfg.dbl+'隻 / 晚餐'+lianDianCfg.dinner+'隻（以日為單位）'}[id]||'';
   var headerCls = 'acc-header' + (open?' open':'');
@@ -1619,7 +1620,7 @@ function buildAP6BBlock(tmw) {
     '</div>';
 
   return qtyPanel+
-    '<div style="font-size:26px;color:var(--dim);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;"><b style="color:var(--purple);">偶數週</b>有晚餐</div>'+
+    '<div style="font-size:26px;color:var(--dim);margin-bottom:8px;font-family:&apos;Patrick Hand&apos;,sans-serif;"><b style="color:var(--purple);">奇數週</b>有晚餐</div>'+
     '<div class="week-list" style="max-height:280px;">'+rows+'</div>';
 }
 
