@@ -1498,7 +1498,11 @@ button {
   <div style="font-weight:800;font-size:0.95rem;color:#c62828;margin-bottom:4px;">⚠️ 品項不在 ITEMS 列表</div>
   <div id="addToItemsName" style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:12px;"></div>
   <div style="font-size:0.82rem;color:#607d8b;margin-bottom:4px;font-weight:600;">分類</div>
-  <select id="addToItemsCat" style="width:100%;margin-bottom:12px;font-size:0.9rem;padding:6px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;"></select>
+  <select id="addToItemsCat" style="width:100%;margin-bottom:10px;font-size:0.9rem;padding:6px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;"></select>
+  <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;font-size:0.9rem;font-weight:600;color:#2e7d32;user-select:none;">
+    <input type="checkbox" id="addToItemsIsHealthy" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer;">
+    🌿 健康餐
+  </label>
   <div style="display:flex;gap:8px;">
     <button onclick="confirmAddToItems()" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ 新增至 ITEMS</button>
     <button onclick="document.getElementById('addToItemsPopup').style.display='none'" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
@@ -5406,6 +5410,10 @@ function openAddToItemsPopup(itemName, anchorEl) {
 
   nameEl.textContent = itemName;
 
+  // 健康餐勾選框預設與星號同步
+  const healthyCb = document.getElementById('addToItemsIsHealthy');
+  if (healthyCb) healthyCb.checked = _addToItemsHasStar;
+
   // 讀取 options 取得 CATS（從 Firebase modules/options）
   const { db } = initFirebase();
   db.collection('modules').doc('options').get().then(snap => {
@@ -5451,7 +5459,7 @@ async function confirmAddToItems() {
     const dup = existing.find(it => (it.name || '').replace(/\*$/, '') === _addToItemsName);
     if (dup) { alert(`「${_addToItemsName}」已在 ITEMS 列表中`); popup.style.display = 'none'; return; }
 
-    const newItem = { site: '', name: _addToItemsName, price: '', cat, box: '', isHealthy: _addToItemsHasStar, updatedAt: Date.now() };
+    const newItem = { site: '', name: _addToItemsName, price: '', cat, box: '', isHealthy: document.getElementById('addToItemsIsHealthy')?.checked ?? _addToItemsHasStar, updatedAt: Date.now() };
     const newList = [newItem, ...existing];
 
     const user = auth.currentUser;
