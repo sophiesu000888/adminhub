@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -579,7 +578,7 @@ th.week-b { background: #e8eeff; }
 </div>
 
 <!-- Hidden export canvas container -->
-<div id="exportContainer" style="position:fixed;left:-9999px;top:0;background:#fff;padding:20px;font-family:'Kalam','Noto Sans TC',sans-serif;"></div>
+<div id="exportContainer" style="position:fixed;left:-9999px;top:0;background:#fff;width:fit-content;white-space:nowrap;"></div>
 
 <!-- Add Site Modal -->
 <div class="edit-modal-bg" id="addSiteModalBg">
@@ -732,6 +731,40 @@ function updateLockBtn() {
   else { btn.innerHTML = '🔓 解除鎖定'; btn.classList.remove('locked'); }
 }
 function toggleLock() {
+  // 從解鎖 → 鎖定時，檢查有設值班日但沒排人員的格子
+  const isLockingRoster = state.curView === 'roster' && !state.isLockedRoster;
+  if (isLockingRoster) {
+    const mo = state.months[state.curMoIdx];
+    const sites = getSites();
+    const empty = [];
+    Object.keys(sites).forEach(sid => {
+      const sd = mo.sitesData[sid];
+      if (!sd) return;
+      const siteName = sites[sid].name;
+      ['hol','night'].forEach(type => {
+        if (type === 'hol' && sites[sid].noHol) return;
+        if (type === 'night' && sites[sid].noNight) return;
+        const daySet = type === 'hol' ? sd.hol : new Set([...(sd.night||[]), ...(sd.night2||[])]);
+        daySet.forEach(d => {
+          const key = `${sid}_${d}`;
+          const assigned = mo.roster[key] || [];
+          if (assigned.length === 0) {
+            const typeLabel = type === 'hol' ? '假日' : '晚班';
+            empty.push(`${mo.m+1}/${d}（${siteName} ${typeLabel}）`);
+          }
+        });
+      });
+    });
+    if (empty.length > 0) {
+      const msg = `⚠️ 以下 ${empty.length} 個班次有設值班日但尚未排人員：
+
+${empty.join('
+')}
+
+確定要鎖定嗎？`;
+      if (!confirm(msg)) return;
+    }
+  }
   if (state.curView === 'roster') { state.isLockedRoster = !state.isLockedRoster; }
   else if (state.curView === 'setup') { state.isLockedSetup = !state.isLockedSetup; }
   saveData(); updateLockBtn(); renderAll();
@@ -1545,9 +1578,10 @@ async function exportText() {
 
 // ── Export photo (PNG via html2canvas CDN) ──
 async function exportPhoto() {
-  const { doHol, doNight, sites } = getExportOptions();
-  const sections = buildExportData(doHol, doNight, sites);
-  if (!sections.length) { showToast('⚠️ 沒有可匯出的資料', true); return; }
+  // 先檢查有無資料（用臨時變數）
+  const _chk = getExportOptions();
+  const _sec = buildExportData(_chk.doHol, _chk.doNight, _chk.sites);
+  if (!_sec.length) { showToast('⚠️ 沒有可匯出的資料', true); return; }
 
   // Check html2canvas
   if (typeof html2canvas === 'undefined') {
@@ -1642,7 +1676,7 @@ async function exportPhoto() {
     return t;
   }
 
-  let html = `<div style="font-family:'Noto Sans TC',sans-serif;padding:24px;background:#fff;display:inline-block;">`;
+  let html = `<div style="font-family:'Noto Sans TC',sans-serif;padding:24px;background:#fff;display:inline-block;width:max-content;">`;
   html += `<div style="font-size:22px;font-weight:900;margin-bottom:18px;color:#222;">${mo.y}年${mo.m+1}月 排班表</div>`;
 
   // 晚班
@@ -1684,8 +1718,12 @@ async function exportPhoto() {
   showToast('⏳ 生成圖片中…');
   setTimeout(async () => {
     try {
-      const canvas = await html2canvas(container.firstChild, {
-        scale: 2, backgroundColor: '#ffffff', useCORS: true
+      const el = container.firstChild;
+      const elW = el.scrollWidth;
+      const elH = el.scrollHeight;
+      const canvas = await html2canvas(el, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        width: elW, height: elH, windowWidth: elW + 100, scrollX: 0, scrollY: 0
       });
       const link = document.createElement('a');
       link.download = `排班表_${mo.y}${String(mo.m+1).padStart(2,'0')}.png`;
