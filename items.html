@@ -1245,6 +1245,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       items.forEach(it => { if (!it.updatedAt) it.updatedAt = _defaultTs; });
       buildFilterBtns();
       render();
+      if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
       _remoteUpdate = false;
     });
   });
