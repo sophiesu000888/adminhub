@@ -1837,7 +1837,7 @@ function addMonthInit(){
   if(!date||isNaN(qty)||qty===''){alert('請填入日期及實際庫存隻數');return;}
   var cur=calcStock();
   var diff=qty-cur;
-  S.stockLog.push({date:date,qty:diff,note:'📅 月初庫存 '+qty+'隻'});
+  S.stockLog.push({date:date,qty:diff,note:'📅 月初庫存 '+qty+'隻',type:'monthInit',realQty:qty});
   document.getElementById('month-init-qty').value='';
   renderStockLog();updStockCalc();renderTopStats();saveState();
 }
@@ -1850,8 +1850,14 @@ function removeStock(i){
 }
 function renderStockLog(){
   document.getElementById('stock-log').innerHTML=S.stockLog.map(function(e,i){
-    return '<div class="sle"><span class="sd">'+e.date+'</span><span class="sn2">'+(e.note||'—')+'</span><span class="sq" style="color:'+(e.qty<0?'var(--red)':'var(--act)')+';">'+(e.qty>0?'+':'')+e.qty+' 隻</span>'+
-      '<button onclick="removeStock('+i+')" style="font-size:24px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">刪</button>'+'</div>';
+    var isMonthInit = e.type==='monthInit';
+    // 月初庫存：顯示實際庫存數（realQty），其他：顯示 qty 差值
+    var displayQty = isMonthInit ? (e.realQty !== undefined ? e.realQty : e.qty) : e.qty;
+    var displayColor = isMonthInit ? 'var(--blue)' : (e.qty<0?'var(--red)':'var(--act)');
+    var displaySign = isMonthInit ? '' : (e.qty>0?'+':'');
+    return '<div class="sle"><span class="sd">'+e.date+'</span><span class="sn2">'+(e.note||'—')+'</span>'+
+      '<span class="sq" style="color:'+displayColor+';">'+displaySign+displayQty+' 隻</span>'+
+      '<button onclick="removeStock('+i+')" style="font-size:24px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:12px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;">刪</button></div>';
   }).join('');
 }
 function updStockCalc(){
