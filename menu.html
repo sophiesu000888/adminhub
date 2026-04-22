@@ -5706,19 +5706,75 @@ function catPopupMove() {
 
 function catPopupDelete() {
   if (!_catPopupCat || !_catPopupItem) return;
-  if (!confirm("確定刪除品項「" + _catPopupItem + "」？")) return;
-  DB[_catPopupCat] = DB[_catPopupCat].filter(i => i !== _catPopupItem);
-  // 同步顏色組
-  const colorKey = FOOD_COLOR[_catPopupItem];
-  if (colorKey && COLOR_GROUPS[colorKey]) {
-    COLOR_GROUPS[colorKey].items = COLOR_GROUPS[colorKey].items.filter(i => i !== _catPopupItem);
-  }
-  delete FOOD_COLOR[_catPopupItem];
-  scheduleAutoSave();
-  showSaveToast("🗑️ 已刪除「" + _catPopupItem + "」");
+  const itemName = _catPopupItem;
+  const baseName = itemName.replace(/\*$/, '');
+
+  // 自訂確認視窗
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(45,45,45,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;';
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border:3px solid #c62828;border-radius:12px;box-shadow:6px 6px 0 0 #c62828;padding:24px 28px;max-width:340px;width:calc(100%-32px);font-family:inherit;">
+      <div style="font-size:1.5rem;margin-bottom:8px;">🗑️</div>
+      <div style="font-weight:800;font-size:1rem;color:#c62828;margin-bottom:6px;">確定刪除品項？</div>
+      <div style="font-weight:700;font-size:1.1rem;color:#1a1a1a;margin-bottom:16px;">「${itemName}」</div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;cursor:pointer;font-size:0.95rem;font-weight:600;color:#c62828;background:#fff3f3;border:1.5px solid #ffcdd2;border-radius:6px;padding:8px 10px;">
+        <input type="checkbox" id="_delSyncItemsCb" checked style="width:16px;height:16px;accent-color:#c62828;cursor:pointer;">
+        同步刪除 ITEMS 一覽表中的品項
+      </label>
+      <div style="display:flex;gap:8px;">
+        <button id="_delConfirmBtn" style="flex:1;background:#c62828;color:#fff;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">確定刪除</button>
+        <button id="_delCancelBtn" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:10px 0;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
   document.getElementById("catItemPopup").style.display = "none";
-  rerenderDBPanels();
-  initMgmtItems();
+
+  document.getElementById('_delCancelBtn').onclick = () => overlay.remove();
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+  document.getElementById('_delConfirmBtn').onclick = async () => {
+    const syncItems = document.getElementById('_delSyncItemsCb').checked;
+    overlay.remove();
+
+    // 刪除本地
+    DB[_catPopupCat] = DB[_catPopupCat].filter(i => i !== itemName);
+    const colorKey = FOOD_COLOR[itemName];
+    if (colorKey && COLOR_GROUPS[colorKey]) {
+      COLOR_GROUPS[colorKey].items = COLOR_GROUPS[colorKey].items.filter(i => i !== itemName);
+    }
+    delete FOOD_COLOR[itemName];
+    scheduleAutoSave();
+    rerenderDBPanels();
+    initMgmtItems();
+
+    if (syncItems) {
+      try {
+        const { db, auth } = initFirebase();
+        const snap = await db.collection('modules').doc('items').get();
+        const existing = (snap.exists && snap.data().content)
+          ? restoreFromFirestore(snap.data().content) : [];
+        if (!Array.isArray(existing)) { showSaveToast('🗑️ 已刪除（ITEMS 同步失敗）'); return; }
+        const filtered = existing.filter(it => (it.name || '').replace(/\*$/, '') !== baseName);
+        const user = auth.currentUser;
+        await db.collection('modules').doc('items').set({
+          content: sanitizeForFirestore(filtered),
+          lastSaved: {
+            uid: user ? user.uid : 'menu',
+            displayName: user ? (user.displayName || user.email) : 'menu',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          }
+        });
+        showSaveToast('🗑️ 已刪除「' + itemName + '」（含 ITEMS）');
+      } catch(e) {
+        console.error('同步刪除 ITEMS 失敗', e);
+        showSaveToast('🗑️ 已刪除「' + itemName + '」（ITEMS 同步失敗）');
+      }
+    } else {
+      showSaveToast('🗑️ 已刪除「' + itemName + '」');
+    }
+  };
 }
 
 function addNewCategoryFromPanel() {
