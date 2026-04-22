@@ -756,12 +756,7 @@ function toggleLock() {
       });
     });
     if (empty.length > 0) {
-      const msg = `⚠️ 以下 ${empty.length} 個班次有設值班日但尚未排人員：
-
-${empty.join('
-')}
-
-確定要鎖定嗎？`;
+      const msg = '⚠️ 以下 ' + empty.length + ' 個班次有設值班日但尚未排人員：\n\n' + empty.join('\n') + '\n\n確定要鎖定嗎？';
       if (!confirm(msg)) return;
     }
   }
