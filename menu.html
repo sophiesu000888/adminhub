@@ -1493,9 +1493,17 @@ button {
   </div>
 </div>
 
-
-
-<div class="save-toast" id="saveToast">✅ 已自動儲存</div>
+<!-- 新增至 ITEMS 浮層 -->
+<div id="addToItemsPopup" style="display:none;position:fixed;z-index:10000;background:#fff;border:2px solid #e53935;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,0.22);padding:16px 18px;min-width:240px;max-width:320px;">
+  <div style="font-weight:800;font-size:0.95rem;color:#c62828;margin-bottom:4px;">⚠️ 品項不在 ITEMS 列表</div>
+  <div id="addToItemsName" style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:12px;"></div>
+  <div style="font-size:0.82rem;color:#607d8b;margin-bottom:4px;font-weight:600;">分類</div>
+  <select id="addToItemsCat" style="width:100%;margin-bottom:12px;font-size:0.9rem;padding:6px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;"></select>
+  <div style="display:flex;gap:8px;">
+    <button onclick="confirmAddToItems()" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ 新增至 ITEMS</button>
+    <button onclick="document.getElementById('addToItemsPopup').style.display='none'" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:6px;padding:8px 0;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
+  </div>
+</div>
 
 <style>body { padding-top: 60px !important; }</style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -4295,9 +4303,17 @@ function renderCatDB() {
         if (_latestItemsSet.size > 0 && !_latestItemsSet.has(baseName)) {
           chip.style.outline = "2px solid red";
           chip.style.outlineOffset = "1px";
-          chip.title = "⚠ 此品項不在 items 品項列表中";
+          chip.title = "⚠ 此品項不在 items 品項列表中，點擊可新增";
+          chip.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openAddToItemsPopup(itemName, chip);
+          });
         } else {
           chip.title = "點擊編輯";
+          chip.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openCatItemPopup(cat, itemName, chip);
+          });
         }
       } else {
         chip.style.background = style.itemBg;
@@ -4310,10 +4326,13 @@ function renderCatDB() {
       const chipColor = cat === "主菜"
         ? (itemName.endsWith("*") ? "#1b5e20" : "#0d47a1")
         : style.itemFg;
-      chip.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openCatItemPopup(cat, itemName, chip);
-      });
+      // 非主菜的 click handler（主菜已在上方分支各自設定）
+      if (cat !== "主菜") {
+        chip.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openCatItemPopup(cat, itemName, chip);
+        });
+      }
       return chip;
     }
 
@@ -4583,8 +4602,10 @@ initApp();
 document.addEventListener("click", (e) => {
   const cp = document.getElementById("colorItemPopup");
   const pp = document.getElementById("catItemPopup");
+  const ap = document.getElementById("addToItemsPopup");
   if (cp && cp.style.display !== "none" && !cp.contains(e.target)) cp.style.display = "none";
   if (pp && pp.style.display !== "none" && !pp.contains(e.target)) pp.style.display = "none";
+  if (ap && ap.style.display !== "none" && !ap.contains(e.target)) ap.style.display = "none";
 });
 
 // ===== 多抽屜系統 =====
@@ -5368,6 +5389,79 @@ function deleteCurrentColorGroupFromPanel() {
   rerenderDBPanels();
   scheduleAutoSave();
   showSaveToast("🗑️ 已刪除顏色組");
+}
+
+// ===== 新增至 ITEMS（跨檔案寫入 Firebase）=====
+let _addToItemsName = '';
+
+function openAddToItemsPopup(itemName, anchorEl) {
+  _addToItemsName = itemName.replace(/\*$/, ''); // 去掉星號存純品名
+  const popup = document.getElementById('addToItemsPopup');
+  const nameEl = document.getElementById('addToItemsName');
+  const catSel = document.getElementById('addToItemsCat');
+
+  nameEl.textContent = itemName;
+
+  // 讀取 options 取得 CATS（從 Firebase modules/options）
+  const { db } = initFirebase();
+  db.collection('modules').doc('options').get().then(snap => {
+    const cats = (snap.exists && snap.data().content && Array.isArray(snap.data().content.cats))
+      ? snap.data().content.cats
+      : ['豬','雞','牛','鴨','雙拼','舒肥'];
+    catSel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  }).catch(() => {
+    catSel.innerHTML = ['豬','雞','牛','鴨','雙拼','舒肥'].map(c => `<option value="${c}">${c}</option>`).join('');
+  });
+
+  // 定位浮層
+  const rect = anchorEl.getBoundingClientRect();
+  popup.style.display = 'block';
+  const pw = popup.offsetWidth || 280;
+  let left = rect.left;
+  let top = rect.bottom + 6;
+  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  if (top + 180 > window.innerHeight) top = rect.top - 180;
+  popup.style.left = left + window.scrollX + 'px';
+  popup.style.top  = top  + window.scrollY + 'px';
+}
+
+async function confirmAddToItems() {
+  const cat = document.getElementById('addToItemsCat').value;
+  if (!_addToItemsName) return;
+  const popup = document.getElementById('addToItemsPopup');
+
+  try {
+    const { db, auth } = initFirebase();
+    const snap = await db.collection('modules').doc('items').get();
+    // items 存在 content 欄位（makeAutoSave 格式：{ content: [...], lastSaved: {...} }）
+    const existing = (snap.exists && snap.data().content)
+      ? restoreFromFirestore(snap.data().content)
+      : [];
+    if (!Array.isArray(existing)) { alert('讀取 ITEMS 資料失敗'); return; }
+
+    // 檢查是否已存在
+    const dup = existing.find(it => (it.name || '').replace(/\*$/, '') === _addToItemsName);
+    if (dup) { alert(`「${_addToItemsName}」已在 ITEMS 列表中`); popup.style.display = 'none'; return; }
+
+    const newItem = { site: '', name: _addToItemsName, price: '', cat, box: '', isHealthy: false, updatedAt: Date.now() };
+    const newList = [newItem, ...existing];
+
+    const user = auth.currentUser;
+    await db.collection('modules').doc('items').set({
+      content: sanitizeForFirestore(newList),
+      lastSaved: {
+        uid: user ? user.uid : 'menu',
+        displayName: user ? (user.displayName || user.email) : 'menu',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }
+    });
+
+    popup.style.display = 'none';
+    showSaveToast('✅ 已新增至 ITEMS：' + _addToItemsName);
+  } catch(e) {
+    console.error(e);
+    alert('新增失敗：' + e.message);
+  }
 }
 
 // ===== 類別抽屜：浮層操作 =====
