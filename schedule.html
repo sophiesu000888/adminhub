@@ -1517,7 +1517,7 @@ async function exportText() {
       if (r.names.length === 0) {
         lines.push(`${dateStr} （無人員）`);
       } else {
-        r.names.forEach(n => lines.push(`${dateStr} ${n}`));
+        lines.push(`${dateStr} ${r.names.join(' ')}`);
       }
     });
     lines.push('');
