@@ -508,16 +508,16 @@ th.week-b { background: #e8eeff; }
     <button class="drawer-close-btn" onclick="closeSideDrawer()">✕</button>
   </div>
   <div class="drawer-body">
-    <div style="font-weight:900;font-size:14px;margin-bottom:5px;flex-shrink:0;">＋ 新增人員</div>
+    <div style="font-weight:900;font-size:18px;margin-bottom:5px;flex-shrink:0;">＋ 新增人員</div>
     <div class="input-group" style="flex-shrink:0;margin-top:0;margin-bottom:10px;">
-      <select id="pRole" class="styled-input" style="flex:0.45;font-size:14px;padding:8px 10px;">
+      <select id="pRole" class="styled-input" style="flex:0.45;font-size:18px;padding:8px 10px;">
         <option value="chef">廚師</option>
         <option value="assist">廚助</option>
       </select>
       <input type="text" id="pName" class="styled-input" placeholder="輸入姓名"
              style="font-size:14px;padding:8px 10px;"
              onkeydown="if(event.key==='Enter'&&!event.isComposing)addNewPerson()">
-      <button onclick="addNewPerson()" class="styled-btn" style="font-size:14px;padding:8px 16px;">新增</button>
+      <button onclick="addNewPerson()" class="styled-btn" style="font-size:18px;padding:8px 16px;">新增</button>
     </div>
     <div id="pList"></div>
   </div>
@@ -1419,22 +1419,11 @@ function renderSummary() {
     const c = p.role === 'chef' ? chefDeep : assistDeep;
     const roleLabel = p.role === 'chef' ? '廚師' : '廚助';
 
-    const prevRow = prevMo ? `
-      <div style="display:flex;align-items:baseline;margin-top:3px;">
-        <span style="flex:1;text-align:right;font-size:20px;font-weight:900;color:${c.lightTx};padding-right:4px;">${prevMo.m+1}月</span>
-        <span style="flex:1;text-align:left;font-size:20px;font-weight:900;color:${c.lightTx};line-height:1;">${prevCounts[p.id]}</span>
-      </div>` : '';
-
-    return `<div class="sum-card ${p.role}" data-pid="${p.id}">
-      <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:5px;">
-        <span style="font-size:7px;font-weight:900;padding:1px 4px;background:${c.bd};color:#fff;border-radius:3px;white-space:nowrap;">${roleLabel}</span>
-        <span style="font-weight:900;font-size:13px;color:${c.tx};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
-      </div>
-      <div style="display:flex;align-items:baseline;">
-        <span style="flex:1;text-align:right;font-size:20px;font-weight:900;color:${c.tx};padding-right:4px;">${mo.m+1}月</span>
-        <span style="flex:1;text-align:left;font-size:20px;font-weight:900;color:${c.tx};line-height:1;">${counts[p.id]}</span>
-      </div>
-      ${prevRow}
+    return `<div class="sum-card ${p.role}" data-pid="${p.id}" style="display:flex;align-items:center;gap:8px;padding:8px 12px;text-align:left;">
+      <span style="font-size:18px;font-weight:900;padding:1px 6px;background:${c.bd};color:#fff;border-radius:4px;white-space:nowrap;flex-shrink:0;">${roleLabel}</span>
+      <span style="font-weight:900;font-size:18px;color:${c.tx};white-space:nowrap;flex-shrink:0;">${p.name}</span>
+      <span style="font-size:18px;font-weight:900;color:${c.tx};white-space:nowrap;margin-left:auto;flex-shrink:0;">${mo.m+1}月&nbsp;${counts[p.id]}</span>
+      ${prevMo ? `<span style="font-size:18px;font-weight:900;color:${c.lightTx};white-space:nowrap;flex-shrink:0;">${prevMo.m+1}月&nbsp;${prevCounts[p.id]}</span>` : ''}
     </div>`;
   }).join('');
 }
