@@ -475,6 +475,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 }
 #matrix-wrap thead th.th-name {
   text-align: left; width: 240px; min-width: 240px;
+  background: #2e7d32; color: #fff;
 }
 #matrix-wrap thead th.col-healthy {
   background: #2e7d32; color: #fff;
@@ -486,8 +487,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 }
 #matrix-wrap tbody td.td-name {
   text-align: left; font-weight: 700;
-  background: #f0ece0;
-  border-right: 1px solid var(--border2);
+  background: #edf7ed;
+  border-right: 1px solid #2e7d32;
 }
 #matrix-wrap tbody td.col-healthy {
   background: #edf7ed;
@@ -825,12 +826,12 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   <!-- 頁籤 -->
   <div id="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('list')">📋 品項列表</button>
-    <button class="tab-btn" onclick="switchTab('matrix')">📊 一覽表</button>
+    <button class="tab-btn" onclick="switchTab('list')">📋 品項列表</button>
+    <button class="tab-btn active" onclick="switchTab('matrix')">📊 一覽表</button>
   </div>
 
   <!-- 列表 view -->
-  <div id="list-view">
+  <div id="list-view" style="display:none;">
 
   <!-- 工具列 -->
   <div class="toolbar">
@@ -919,7 +920,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   </div><!-- /list-view -->
 
   <!-- 一覽表 view -->
-  <div id="matrix-view" style="display:none;">
+  <div id="matrix-view">
     <!-- 一覽表篩選工具列 -->
     <div class="toolbar" style="margin-bottom:12px;">
       <div class="toolbar-row">
@@ -1846,7 +1847,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
 
   // ── TABS ──
-  let currentTab = 'list';
+  let currentTab = 'matrix';
 
   function switchTab(tab) {
     currentTab = tab;
