@@ -1482,7 +1482,10 @@ button {
         </select>
         <button onclick="catPopupMoveToGroup()" style="width:100%;margin-bottom:8px;background:#2e7d32;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">📂 移到此分組</button>
       </div>
-      <button id="catPopupStarBtn" onclick="catPopupToggleStar()" style="display:none;width:100%;margin-bottom:8px;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;"></button>
+      <label id="catPopupStarRow" style="display:none;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:0.9rem;font-weight:700;color:#2e7d32;user-select:none;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:6px;padding:7px 10px;">
+        <input type="checkbox" id="catPopupStarCb" onchange="catPopupToggleStar()" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer;flex-shrink:0;">
+        🌿 健康餐（品名加 * ）
+      </label>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button onclick="catPopupSave()" style="flex:1;background:#1976d2;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
         <button onclick="catPopupMove()" style="flex:1;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➡️ 移動</button>
@@ -5502,14 +5505,12 @@ function openCatItemPopup(cat, itemName, anchorEl) {
   inp.value = itemName;
 
   // 主菜星號切換按鈕
-  const starBtn = document.getElementById("catPopupStarBtn");
+  const starRow = document.getElementById("catPopupStarRow");
+  const starCb  = document.getElementById("catPopupStarCb");
   if (cat === "主菜") {
     const hasStar = itemName.endsWith("*");
-    starBtn.style.display = "block";
-    starBtn.textContent = hasStar ? "🍽️ 僅作風味餐" : "🌿 可當健康餐";
-    starBtn.style.background = hasStar ? "#fff3e0" : "#e8f5e9";
-    starBtn.style.color = hasStar ? "#e65100" : "#2e7d32";
-    starBtn.style.border = hasStar ? "1.5px solid #ffcc80" : "1.5px solid #a5d6a7";
+    starRow.style.display = "flex";
+    starCb.checked = hasStar;
 
     // 顯示分組選單
     const groupRow = document.getElementById("catPopupGroupRow");
@@ -5528,7 +5529,7 @@ function openCatItemPopup(cat, itemName, anchorEl) {
       groupRow.style.display = "none";
     }
   } else {
-    starBtn.style.display = "none";
+    starRow.style.display = "none";
     document.getElementById("catPopupGroupRow").style.display = "none";
   }
 
@@ -5575,11 +5576,20 @@ function catPopupMoveToGroup() {
 
 function catPopupToggleStar() {
   if (!_catPopupCat || !_catPopupItem || _catPopupCat !== "主菜") return;
-  const hasStar = _catPopupItem.endsWith("*");
-  const newName = hasStar ? _catPopupItem.slice(0, -1) : _catPopupItem + "*";
+  const cb = document.getElementById("catPopupStarCb");
+  const wantStar = cb ? cb.checked : !_catPopupItem.endsWith("*");
+  const hasStar  = _catPopupItem.endsWith("*");
+  // 若狀態沒變就不動
+  if (wantStar === hasStar) return;
+  const newName = wantStar ? _catPopupItem + "*" : _catPopupItem.slice(0, -1);
+  const baseName = _catPopupItem.replace(/\*$/, "");
+
+  // 更新本地 DB
   const catArr = DB["主菜"];
   const i = catArr ? catArr.indexOf(_catPopupItem) : -1;
   if (i >= 0) catArr[i] = newName;
+
+  // 同步 FOOD_COLOR
   const colorKey = FOOD_COLOR[_catPopupItem];
   if (colorKey) {
     delete FOOD_COLOR[_catPopupItem];
@@ -5587,6 +5597,7 @@ function catPopupToggleStar() {
     const cg = COLOR_GROUPS[colorKey];
     if (cg) { const ci = cg.items.indexOf(_catPopupItem); if (ci >= 0) cg.items[ci] = newName; }
   }
+
   // 同步 MENU_GROUPS
   Object.values(MENU_GROUPS).forEach(groups => {
     groups.forEach(g => {
@@ -5594,11 +5605,40 @@ function catPopupToggleStar() {
       if (gi >= 0) g.items[gi] = newName;
     });
   });
+
+  _catPopupItem = newName;
   scheduleAutoSave();
   rerenderDBPanels();
   initMgmtItems();
+
+  // 同步 Firebase ITEMS 一覽表 isHealthy 欄位
+  (async () => {
+    try {
+      const { db, auth } = initFirebase();
+      const snap = await db.collection("modules").doc("items").get();
+      const existing = (snap.exists && snap.data().content)
+        ? restoreFromFirestore(snap.data().content) : [];
+      if (!Array.isArray(existing)) return;
+      const idx = existing.findIndex(it => (it.name || "").replace(/\*$/, "") === baseName);
+      if (idx < 0) return; // ITEMS 裡沒有這個品項就不更新
+      existing[idx] = { ...existing[idx], isHealthy: wantStar, updatedAt: Date.now() };
+      const user = auth.currentUser;
+      await db.collection("modules").doc("items").set({
+        content: sanitizeForFirestore(existing),
+        lastSaved: {
+          uid: user ? user.uid : "menu",
+          displayName: user ? (user.displayName || user.email) : "menu",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      });
+      showSaveToast(`✅「${newName}」已更新（含 ITEMS）`);
+    } catch(e) {
+      console.error("同步 ITEMS 失敗", e);
+      showSaveToast(`✅「${newName}」已更新（本地）`);
+    }
+  })();
+
   document.getElementById("catItemPopup").style.display = "none";
-  showSaveToast(`✅「${newName}」已更新`);
 }
 
 function catPopupSave() {
