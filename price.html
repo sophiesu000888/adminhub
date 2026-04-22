@@ -1,18 +1,10 @@
-這是一份修正後的完整 HTML 檔案。我已經解決了導致 `SyntaxError` 的正則表達式問題，並優化了腳本結構，確保 `openDrawer` 等函數能被正確讀取。
 
-### 主要修正點：
-1.  **修正正則表達式錯誤**：修復了 `highlight` 函數中轉義特殊字元的語法，避免出現 `Invalid regular expression`。
-2.  **函數定義優化**：確保所有 UI 控制函數（如 `openDrawer`）在按鈕被點擊前就已經完全載入。
-3.  **整合外部資源**：保留了你要求的 `firebase-config.js`、`shared.js` 以及導航欄所需的 `padding-top`。
-4.  **防錯處理**：增加了 `window.onerror` 監控與 `try-catch` 保護，避免單一錯誤導致整個系統癱瘓。
-
-```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>御品價格查詢系統</title>
+<title>價格查詢系統</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
@@ -149,7 +141,7 @@ td { padding: 12px; }
 <body>
 
 <div class="header">
-  <h1>御品價格查詢</h1>
+  <h1>價格查詢</h1>
   <div class="header-badge" id="headerBadge">載入中...</div>
 </div>
 
