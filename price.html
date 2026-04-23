@@ -32,6 +32,7 @@
 
 body {
   font-family: 'Noto Sans TC', sans-serif;
+  font-size: 18px;
   background-color: var(--paper);
   background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
   background-size: 22px 22px;
@@ -53,7 +54,7 @@ body {
   position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   font-family: 'Noto Sans TC', sans-serif;
   background: #fff8e7; border: 2px solid var(--ink); border-radius: 20px;
-  padding: 5px 14px; font-size: 0.85rem; font-weight: 700; box-shadow: 2px 2px 0 0 var(--shadow);
+  padding: 5px 14px; font-size: 1rem; font-weight: 700; box-shadow: 2px 2px 0 0 var(--shadow);
 }
 .header-badge span { color: var(--gold); }
 
@@ -72,107 +73,162 @@ body {
 .sidebar-section { padding: 12px 14px; border-bottom: 2px solid var(--ink); flex-shrink: 0; }
 .sidebar-label {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;
+  font-size: 1rem; font-weight: 700; margin-bottom: 6px;
   display: flex; justify-content: space-between; align-items: center;
 }
 
 #searchInput {
   width: 100%; background: var(--surface-card2); border: 2px solid var(--ink);
   border-radius: 8px; padding: 7px 10px; font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.9rem; outline: none;
+  font-size: 1rem; outline: none;
 }
 #searchInput:focus { background: white; }
+#quoteSearchInput {
+  width: 100%; background: var(--surface-card2); border: 2px solid var(--ink);
+  border-radius: 8px; padding: 7px 10px; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 1rem; outline: none;
+}
+#quoteSearchInput:focus { background: white; }
 
 .vendor-list { flex: 1; overflow-y: auto; padding: 8px; background: var(--surface-card2); }
 .vendor-btn {
   width: 100%; text-align: left; background: white; border: 1.5px solid rgba(45,45,45,0.2);
-  border-radius: 8px; padding: 7px 10px; margin-bottom: 5px; cursor: pointer;
+  border-radius: 8px; padding: 8px 10px; margin-bottom: 5px; cursor: pointer;
   display: flex; justify-content: space-between; align-items: center;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.88rem; font-weight: 600; transition: all .1s;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; font-weight: 600; transition: all .1s;
 }
 .vendor-btn:hover { border-color: var(--ink); }
 .vendor-btn.active { background: var(--ink); color: white; box-shadow: 2px 2px 0 0 var(--shadow); }
-.vendor-btn span { font-size: 0.78rem; opacity: 0.7; }
+.vendor-btn span { font-size: 0.85rem; opacity: 0.7; }
 
 /* ── COLUMN TOGGLE ── */
-.col-toggle-panel { padding: 10px 14px; border-top: 2px solid var(--ink); background: #fafaf8; flex-shrink: 0; }
-.col-toggle-title {
-  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 0.88rem; font-weight: 700; margin-bottom: 7px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.col-toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; max-height: 160px; overflow-y: auto; }
+.col-toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 .col-toggle-item {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 0.8rem; padding: 3px 0; white-space: nowrap; overflow: hidden; cursor: pointer;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 1rem; padding: 4px 0; white-space: nowrap; overflow: hidden; cursor: pointer;
 }
-.col-toggle-item input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--blue); flex-shrink: 0; }
-.col-toggle-item label { cursor: pointer; overflow: hidden; text-overflow: ellipsis; user-select: none; }
+.col-toggle-item input[type=checkbox] { width: 17px; height: 17px; cursor: pointer; accent-color: var(--blue); flex-shrink: 0; }
+.col-toggle-item label { cursor: pointer; overflow: hidden; text-overflow: ellipsis; user-select: none; font-size: 1rem; }
 .col-toggle-item.custom-col label { color: var(--blue); font-weight: 700; }
 .col-toggle-item.custom-col .del-col-btn {
   margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer;
-  color: #ccc; font-size: 0.75rem; padding: 0 2px; line-height: 1;
+  color: #ccc; font-size: 0.85rem; padding: 0 2px; line-height: 1;
 }
 .col-toggle-item.custom-col .del-col-btn:hover { color: var(--red); }
-.col-toggle-actions { display: flex; gap: 6px; margin-top: 8px; }
+.col-toggle-actions { display: flex; gap: 8px; margin-top: 12px; }
 .col-toggle-reset {
-  font-size: 0.75rem; color: #888; border: 1px solid #ccc; border-radius: 4px;
-  padding: 2px 8px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif; flex: 1;
+  font-size: 1rem; color: #888; border: 1px solid #ccc; border-radius: 6px;
+  padding: 6px 12px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif; flex: 1;
 }
 .col-toggle-reset:hover { color: var(--ink); border-color: var(--ink); }
 .col-add-btn {
-  font-size: 0.75rem; color: var(--blue); border: 1px solid var(--blue); border-radius: 4px;
-  padding: 2px 8px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif; flex: 1;
+  font-size: 1rem; color: var(--blue); border: 1px solid var(--blue); border-radius: 6px;
+  padding: 6px 12px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif; flex: 1;
   font-weight: 700;
 }
 .col-add-btn:hover { background: #eef3ff; }
 
-/* ── SIDEBAR FOOTER ── */
-.sidebar-footer {
-  padding: 12px 14px; flex-shrink: 0; border-top: 2px solid var(--ink);
+/* ── VERTICAL TAB DRAWER ── */
+.vtab-rail {
+  position: fixed; right: 0; top: 50%; transform: translateY(-50%);
   display: flex; flex-direction: column; gap: 6px;
+  z-index: 1100; padding-right: 0;
+  pointer-events: none; /* rail container won't block clicks */
 }
-.btn-sketchy {
-  width: 100%; padding: 9px; background: #e7eeff; color: var(--blue);
-  border: 2.5px solid var(--blue); font-weight: 700; cursor: pointer;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  box-shadow: 3px 3px 0 0 var(--blue); font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.9rem; transition: all .1s;
+.vtab-btn {
+  pointer-events: auto; /* but buttons themselves are clickable */
 }
-.btn-sketchy:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 0 var(--blue); }
+.vtab-btn {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  background: white; border: 2px solid var(--ink);
+  border-right: none; border-radius: 10px 0 0 10px;
+  padding: 14px 8px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 1rem; font-weight: 700; color: var(--ink);
+  box-shadow: -3px 3px 0 var(--shadow);
+  transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-height: 80px;
+}
+.vtab-btn:hover { background: #f0f5ff; transform: translateX(-3px); }
+.vtab-btn.vtab-active { background: var(--ink); color: white; }
+.vtab-btn .vtab-icon { font-size: 1.3rem; writing-mode: horizontal-tb; }
+.vtab-btn .vtab-label { font-size: 0.95rem; }
 
-.btn-sketchy-sm {
-  width: 100%; padding: 7px; font-weight: 700; cursor: pointer;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.82rem; transition: all .1s;
-}
-.btn-sketchy-sm:hover { transform: translate(1px, 1px); }
+/* vtab colours */
+.vtab-btn.vt-blue   { border-color: var(--blue); color: var(--blue); box-shadow: -3px 3px 0 var(--blue); }
+.vtab-btn.vt-blue:hover   { background: #e7eeff; }
+.vtab-btn.vt-blue.vtab-active  { background: var(--blue); color: white; }
 
-.btn-backup {
-  background: #f0fff4; color: var(--green-dark);
-  border: 2px solid var(--green-dark);
-  box-shadow: 2px 2px 0 0 var(--green-dark);
-}
-.btn-backup:hover { box-shadow: 1px 1px 0 0 var(--green-dark); }
+.vtab-btn.vt-green  { border-color: var(--green-dark); color: var(--green-dark); box-shadow: -3px 3px 0 var(--green-dark); }
+.vtab-btn.vt-green:hover  { background: #f0fff4; }
+.vtab-btn.vt-green.vtab-active { background: var(--green-dark); color: white; }
 
-.btn-restore {
-  background: #fff8e7; color: var(--gold);
-  border: 2px solid var(--gold);
-  box-shadow: 2px 2px 0 0 var(--gold);
-}
-.btn-restore:hover { box-shadow: 1px 1px 0 0 var(--gold); }
+.vtab-btn.vt-gold   { border-color: var(--gold); color: var(--gold); box-shadow: -3px 3px 0 var(--gold); }
+.vtab-btn.vt-gold:hover   { background: #fffdf0; }
+.vtab-btn.vt-gold.vtab-active  { background: var(--gold); color: white; }
 
-.btn-clear {
-  background: #fff0ee; color: var(--red);
-  border: 2px solid var(--red);
-  box-shadow: 2px 2px 0 0 var(--red);
+.vtab-btn.vt-red    { border-color: var(--red); color: var(--red); box-shadow: -3px 3px 0 var(--red); }
+.vtab-btn.vt-red:hover    { background: #fff0ee; }
+.vtab-btn.vt-red.vtab-active   { background: var(--red); color: white; }
+
+.vtab-btn.vt-purple { border-color: var(--purple); color: var(--purple); box-shadow: -3px 3px 0 var(--purple-dark); }
+.vtab-btn.vt-purple:hover { background: var(--purple-light); }
+.vtab-btn.vt-purple.vtab-active{ background: var(--purple); color: white; }
+
+/* vtab panel (slides in from right, doesn't cover main content) */
+.vtab-panel {
+  position: fixed; right: -400px; top: 0; width: 360px; height: 100vh;
+  background: var(--paper); z-index: 1090;
+  border-left: 3px solid var(--ink);
+  box-shadow: -6px 0 24px rgba(0,0,0,0.10);
+  transition: right 0.28s ease;
+  display: flex; flex-direction: column; overflow: hidden;
+  pointer-events: none;
 }
-.btn-clear:hover { box-shadow: 1px 1px 0 0 var(--red); }
+.vtab-panel.open { right: 50px; pointer-events: auto; }  /* stays left of the tab rail */
+.vtab-panel-head {
+  padding: 16px 18px; border-bottom: 2px solid var(--ink);
+  display: flex; justify-content: space-between; align-items: center;
+  background: white; flex-shrink: 0;
+}
+.vtab-panel-head h3 { font-family: 'Kalam','Noto Sans TC',sans-serif; font-size: 1.2rem; }
+.vtab-panel-close {
+  background: white; border: 2px solid var(--ink); border-radius: 7px;
+  padding: 4px 10px; cursor: pointer; font-size: 1rem; font-family: inherit;
+  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
+}
+.vtab-panel-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+.vtab-panel-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+
+/* Action buttons inside vtab panel */
+.vt-action-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 13px 16px; margin-bottom: 8px;
+  border-radius: 12px; border: 2px solid; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; font-weight: 700;
+  transition: all .12s; text-align: left;
+}
+.vt-action-btn:hover { transform: translateX(-3px); }
+.vt-action-btn .vta-icon { font-size: 1.3rem; flex-shrink: 0; }
+.vt-action-btn .vta-text { flex: 1; }
+.vt-action-btn.vta-blue   { background: #e7eeff; color: var(--blue); border-color: var(--blue); box-shadow: 3px 3px 0 var(--blue); }
+.vt-action-btn.vta-green  { background: #f0fff4; color: var(--green-dark); border-color: var(--green-dark); box-shadow: 3px 3px 0 var(--green-dark); }
+.vt-action-btn.vta-gold   { background: #fff8e7; color: var(--gold); border-color: var(--gold); box-shadow: 3px 3px 0 var(--gold); }
+.vt-action-btn.vta-red    { background: #fff0ee; color: var(--red); border-color: var(--red); box-shadow: 3px 3px 0 var(--red); }
+.vt-action-btn.vta-purple { background: var(--purple-light); color: var(--purple); border-color: var(--purple); box-shadow: 3px 3px 0 var(--purple-dark); }
+.vt-section-title {
+  font-size: 0.82rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 14px 0 6px; border-top: 1px dashed rgba(45,45,45,0.12);
+  margin-top: 4px;
+}
+.vt-section-title:first-child { border-top: none; padding-top: 4px; }
+
+/* ── SIDEBAR FOOTER - kept for legacy, hidden ── */
+.sidebar-footer { display: none; }
 
 /* ── TABLE ── */
 .content { display: flex; flex-direction: column; min-height: 0; }
 .table-wrap { flex: 1; overflow: auto; }
-table { width: 100%; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 0.88rem; }
+table { width: 100%; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; }
 thead th {
   background: #c5d9f5; padding: 10px 12px; text-align: left;
   border-bottom: 2.5px solid var(--ink); position: sticky; top: 0; z-index: 10;
@@ -377,6 +433,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .mode-tabs {
   display: flex; justify-content: center; gap: 8px;
   margin-bottom: 14px;
+  position: relative; z-index: 10; /* ensure above vtab-panel but below vtab-btn */
 }
 .mode-tab {
   padding: 8px 28px; font-weight: 700; cursor: pointer;
@@ -438,23 +495,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
     <div class="vendor-list" id="vendorList"></div>
 
-    <div class="col-toggle-panel">
-      <div class="col-toggle-title">
-        <span>📋 顯示欄位</span>
-      </div>
-      <div class="col-toggle-grid" id="colToggleGrid"></div>
-      <div class="col-toggle-actions">
-        <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
-        <button class="col-add-btn" onclick="addCustomCol()">＋ 新增欄位</button>
-      </div>
-    </div>
 
-    <div class="sidebar-footer">
-      <button class="btn-sketchy" onclick="openDrawer('import')">📥 匯入 Excel</button>
-      <button class="btn-sketchy-sm btn-backup" onclick="doBackup()">💾 備份 JSON</button>
-      <button class="btn-sketchy-sm btn-restore" onclick="openDrawer('restore')">📂 匯入恢復備份</button>
-      <button class="btn-sketchy-sm btn-clear" onclick="doClearAll()">🗑 清除全部資料</button>
-    </div>
   </aside>
 
   <main class="content">
@@ -480,14 +521,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
     <div class="vendor-list" id="quoteVendorList"></div>
 
-    <div class="sidebar-footer">
-      <button class="btn-sketchy-purple" onclick="addNewQuote()">➕ 新增報價</button>
-      <button class="btn-sketchy-purple" onclick="openQuoteDrawer('quoteImport')">📥 匯入報價（Excel/PDF）</button>
-      <button class="btn-sketchy-sm btn-backup" onclick="syncQuoteFromPurchase()">🔄 從進貨紀錄更新報價</button>
-      <button class="btn-sketchy-sm btn-backup" onclick="doQuoteBackup()">💾 備份報價 JSON</button>
-      <button class="btn-sketchy-sm btn-restore" onclick="openQuoteDrawer('quoteRestore')">📂 恢復報價備份</button>
-      <button class="btn-sketchy-sm btn-clear" onclick="doClearQuote()">🗑 清除所有報價</button>
-    </div>
+
   </aside>
 
   <main class="content">
@@ -608,6 +642,152 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     </div>
     <div id="quoteRestoreLog">尚未選擇檔案</div>
     <button id="quoteRestoreConfirmBtn" class="btn-confirm-gold" disabled onclick="confirmQuoteRestore()">⚡ 確認恢復</button>
+  </div>
+</div>
+
+<!-- ══ VTAB RAIL (purchase mode) ══ -->
+<div class="vtab-rail" id="vtabRailPurchase">
+  <button class="vtab-btn vt-blue" id="vtab-cols" onclick="toggleVtab('vtab-cols','vtpanel-cols')">
+    <span class="vtab-icon">📋</span>
+    <span class="vtab-label">類別</span>
+  </button>
+  <button class="vtab-btn vt-blue" id="vtab-color" onclick="toggleVtab('vtab-color','vtpanel-color')">
+    <span class="vtab-icon">🎨</span>
+    <span class="vtab-label">顏色</span>
+  </button>
+  <button class="vtab-btn vt-green" id="vtab-export" onclick="toggleVtab('vtab-export','vtpanel-export')">
+    <span class="vtab-icon">📤</span>
+    <span class="vtab-label">匯出</span>
+  </button>
+  <button class="vtab-btn vt-gold" id="vtab-history" onclick="toggleVtab('vtab-history','vtpanel-history')">
+    <span class="vtab-icon">📚</span>
+    <span class="vtab-label">歷史</span>
+  </button>
+  <button class="vtab-btn vt-red" id="vtab-manage" onclick="toggleVtab('vtab-manage','vtpanel-manage')">
+    <span class="vtab-icon">⚙️</span>
+    <span class="vtab-label">管理</span>
+  </button>
+</div>
+
+<!-- vtab: 欄位顯示 -->
+<div class="vtab-panel" id="vtpanel-cols">
+  <div class="vtab-panel-head">
+    <h3>📋 顯示欄位</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <div class="col-toggle-grid" id="colToggleGrid"></div>
+    <div class="col-toggle-actions">
+      <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
+      <button class="col-add-btn" onclick="addCustomCol()">＋ 新增欄位</button>
+    </div>
+  </div>
+</div>
+
+<!-- vtab: 顏色（預留） -->
+<div class="vtab-panel" id="vtpanel-color">
+  <div class="vtab-panel-head">
+    <h3>🎨 顏色標記</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <p style="color:#aaa;font-size:0.9rem;line-height:1.7;">顏色標記功能開發中…</p>
+  </div>
+</div>
+
+<!-- vtab: 匯出 / 匯入 -->
+<div class="vtab-panel" id="vtpanel-export">
+  <div class="vtab-panel-head">
+    <h3>📤 匯入 / 匯出</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
+      <span class="vta-icon">📥</span><span class="vta-text">匯入 Excel</span>
+    </button>
+  </div>
+</div>
+
+<!-- vtab: 歷史（預留） -->
+<div class="vtab-panel" id="vtpanel-history">
+  <div class="vtab-panel-head">
+    <h3>📚 歷史紀錄</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <p style="color:#aaa;font-size:0.9rem;line-height:1.7;">歷史功能開發中…</p>
+  </div>
+</div>
+
+<!-- vtab: 管理 -->
+<div class="vtab-panel" id="vtpanel-manage">
+  <div class="vtab-panel-head">
+    <h3>⚙️ 資料管理</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <button class="vt-action-btn vta-green" onclick="closeVtabs();doBackup()">
+      <span class="vta-icon">💾</span><span class="vta-text">備份 JSON</span>
+    </button>
+    <button class="vt-action-btn vta-gold" onclick="closeVtabs();openDrawer('restore')">
+      <span class="vta-icon">📂</span><span class="vta-text">匯入恢復備份</span>
+    </button>
+    <button class="vt-action-btn vta-red" onclick="closeVtabs();doClearAll()">
+      <span class="vta-icon">🗑</span><span class="vta-text">清除全部資料</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ VTAB RAIL (quote mode) ══ -->
+<div class="vtab-rail" id="vtabRailQuote" style="display:none">
+  <button class="vtab-btn vt-purple" id="vtab-q-add" onclick="closeVtabs();addNewQuote()">
+    <span class="vtab-icon">➕</span>
+    <span class="vtab-label">新增</span>
+  </button>
+  <button class="vtab-btn vt-blue" id="vtab-q-import" onclick="toggleVtab('vtab-q-import','vtpanel-q-manage')">
+    <span class="vtab-icon">📥</span>
+    <span class="vtab-label">匯入</span>
+  </button>
+  <button class="vtab-btn vt-green" id="vtab-q-sync" onclick="closeVtabs();syncQuoteFromPurchase()">
+    <span class="vtab-icon">🔄</span>
+    <span class="vtab-label">同步</span>
+  </button>
+  <button class="vtab-btn vt-gold" id="vtab-q-backup" onclick="closeVtabs();doQuoteBackup()">
+    <span class="vtab-icon">💾</span>
+    <span class="vtab-label">備份</span>
+  </button>
+  <button class="vtab-btn vt-red" id="vtab-q-manage" onclick="toggleVtab('vtab-q-manage','vtpanel-q-danger')">
+    <span class="vtab-icon">⚙️</span>
+    <span class="vtab-label">管理</span>
+  </button>
+</div>
+
+<!-- vtab quote: 匯入相關 -->
+<div class="vtab-panel" id="vtpanel-q-manage">
+  <div class="vtab-panel-head">
+    <h3>📥 匯入報價</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <button class="vt-action-btn vta-blue" onclick="closeVtabs();openQuoteDrawer('quoteImport')">
+      <span class="vta-icon">📥</span><span class="vta-text">匯入報價（Excel/PDF）</span>
+    </button>
+    <button class="vt-action-btn vta-gold" onclick="closeVtabs();openQuoteDrawer('quoteRestore')">
+      <span class="vta-icon">📂</span><span class="vta-text">恢復報價備份</span>
+    </button>
+  </div>
+</div>
+
+<!-- vtab quote: 危險操作 -->
+<div class="vtab-panel" id="vtpanel-q-danger">
+  <div class="vtab-panel-head">
+    <h3>⚙️ 資料管理</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <button class="vt-action-btn vta-red" onclick="closeVtabs();doClearQuote()">
+      <span class="vta-icon">🗑</span><span class="vta-text">清除所有報價</span>
+    </button>
   </div>
 </div>
 
@@ -1327,10 +1507,31 @@ requireAuth((user) => {
 // ═══════════════════════════════════════════════════════════
 let currentMode = 'purchase';
 
+// ── Vtab Rail ──
+function closeVtabs() {
+  document.querySelectorAll('.vtab-panel').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.vtab-btn').forEach(b => b.classList.remove('vtab-active'));
+}
+window.closeVtabs = closeVtabs;
+
+window.toggleVtab = function(btnId, panelId) {
+  const panel = document.getElementById(panelId);
+  const btn   = document.getElementById(btnId);
+  const wasOpen = panel && panel.classList.contains('open');
+  closeVtabs();
+  if (!wasOpen && panel) {
+    panel.classList.add('open');
+    if (btn) btn.classList.add('vtab-active');
+  }
+};
+
 window.switchMode = function(mode) {
   currentMode = mode;
+  closeVtabs();
   document.getElementById('purchaseMode').style.display = mode === 'purchase' ? '' : 'none';
   document.getElementById('quoteMode').style.display    = mode === 'quote'    ? '' : 'none';
+  document.getElementById('vtabRailPurchase').style.display = mode === 'purchase' ? '' : 'none';
+  document.getElementById('vtabRailQuote').style.display    = mode === 'quote'    ? '' : 'none';
   const tP = document.getElementById('tabPurchase');
   const tQ = document.getElementById('tabQuote');
   tP.className = 'mode-tab' + (mode === 'purchase' ? ' active-purchase' : '');
