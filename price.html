@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -630,11 +629,34 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
+    <!-- 欄位對應設定 (collapsible) -->
+    <div class="col-map-settings">
+      <button class="col-map-toggle" onclick="togglePurchaseColMapSettings()">
+        ⚙️ 欄位對應設定
+        <span id="purchaseColMapIcon">▸</span>
+      </button>
+      <div id="purchaseColMapBody" style="display:none">
+        <div class="col-map-builtin" id="purchaseColMapBuiltin"></div>
+        <div id="purchaseColMapList"></div>
+        <button class="col-map-add-btn" onclick="addPurchaseColMapRow()">＋ 新增自訂對應</button>
+      </div>
+    </div>
+
     <div class="import-file-zone" onclick="document.getElementById('fileInput').click()">
       <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
       <div class="import-file-label">點擊選擇檔案<br><strong>.xlsx / .xls</strong></div>
     </div>
     <div id="importLog">尚未選擇檔案</div>
+
+    <!-- 動態欄位對應（匯入時出現） -->
+    <div id="purchaseDynMap" style="display:none">
+      <div class="col-map-dyn-title">⚠️ 以下欄位未識別，請手動指定對應：</div>
+      <div id="purchaseDynMapRows"></div>
+      <label class="col-map-save-label">
+        <input type="checkbox" id="purchaseDynMapSaveCheck"> 記住這些對應設定
+      </label>
+    </div>
+
     <button id="importConfirmBtn" class="btn-confirm" disabled onclick="confirmImport()">✅ 確認更新雲端</button>
   </div>
 </div>
@@ -896,23 +918,29 @@ let customCols   = [];
 let state        = { search: '', vendor: 'all', page: 1, pageSize: 150, filtered: [] };
 let pendingData  = null;
 let pendingRestore = null;
-let autoSave, autoSavePrefs, autoSaveQuoteMap;
-let visibleCols  = new Set(DEFAULT_VISIBLE);
+let autoSave, autoSavePrefs, autoSaveQuoteMap, autoSavePurchaseMap;
+let visibleCols = new Set(DEFAULT_VISIBLE);
+let colOrder    = FIXED_COLS.map(c => c.key);  // 欄位顯示順序
 let _detailCatIdx = null; // catalog index of open detail row
 
-// ── 合併欄位（固定 + 自訂）──
+// ── 合併欄位（固定 + 自訂，依 colOrder）──
 function allCols() {
-  return [
+  const base = [
     ...FIXED_COLS,
     ...customCols.map(c => ({ ...c, type: 'text', defaultVisible: true, isCustom: true }))
   ];
+  const map = Object.fromEntries(base.map(c => [c.key, c]));
+  const ordered = colOrder.map(k => map[k]).filter(Boolean);
+  base.forEach(c => { if (!colOrder.includes(c.key)) ordered.push(c); });
+  return ordered;
 }
 
 // ── 偏好存檔 ──
 function savePrefs() { if (autoSavePrefs) autoSavePrefs(); }
 
 window.resetCols = function() {
-  visibleCols = new Set(DEFAULT_VISIBLE);
+  colOrder    = FIXED_COLS.map(c => c.key).concat(customCols.map(c => c.key));
+  visibleCols = new Set(DEFAULT_VISIBLE.concat(customCols.map(c => c.key)));
   savePrefs();
   buildColToggleUI();
   renderTable();
@@ -923,9 +951,10 @@ window.addCustomCol = function() {
   const name = prompt('新欄位名稱（例如：內部備註、採購員…）');
   if (!name || !name.trim()) return;
   const label = name.trim();
-  if (customCols.find(c => c.label === label)) { alert(`「${label}」已存在`); return; }
+  if (allCols().find(c => c.label === label)) { alert(`「${label}」已存在`); return; }
   const key = 'custom_' + Date.now();
   customCols.push({ key, label });
+  colOrder.push(key);
   visibleCols.add(key);
   savePrefs();
   buildColToggleUI();
@@ -933,15 +962,27 @@ window.addCustomCol = function() {
 };
 
 window.deleteCustomCol = function(key, e) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
   const col = customCols.find(c => c.key === key);
   if (!col) return;
   if (!confirm(`刪除欄位「${col.label}」？（欄位內已填的備註資料也會消失）`)) return;
-  customCols = customCols.filter(c => c.key !== key);
+  customCols  = customCols.filter(c => c.key !== key);
+  colOrder    = colOrder.filter(k => k !== key);
   visibleCols.delete(key);
   catalog.forEach(r => { delete r[key]; });
   savePrefs();
   if (autoSave) autoSave();
+  buildColToggleUI();
+  renderTable();
+};
+
+window.moveCol = function(key, dir) {
+  const idx = colOrder.indexOf(key);
+  if (idx < 0) return;
+  const nIdx = idx + dir;
+  if (nIdx < 0 || nIdx >= colOrder.length) return;
+  [colOrder[idx], colOrder[nIdx]] = [colOrder[nIdx], colOrder[idx]];
+  savePrefs();
   buildColToggleUI();
   renderTable();
 };
@@ -972,21 +1013,22 @@ window.closeDrawers = function() {
 
 // ── 欄位 Checkbox UI ──
 function buildColToggleUI() {
-  const grid = document.getElementById('colToggleList');
+  const list = document.getElementById('colToggleList');
+  if (!list) return;
   const cols = allCols();
-  grid.innerHTML = cols.map(col => {
-    const checked = visibleCols.has(col.key) ? 'checked' : '';
-    if (col.isCustom) {
-      return `<label class="col-toggle-item custom-col" title="${esc(col.label)}">
-        <input type="checkbox" ${checked} onchange="toggleCol('${col.key}', this.checked)">
-        <label>${esc(col.label)}</label>
-        <button class="del-col-btn" onclick="deleteCustomCol('${col.key}', event)" title="刪除此欄位">✕</button>
-      </label>`;
-    }
-    return `<label class="col-toggle-item" title="${esc(col.label)}">
-      <input type="checkbox" ${checked} onchange="toggleCol('${col.key}', this.checked)">
-      <label>${esc(col.label)}</label>
-    </label>`;
+  list.innerHTML = cols.map((col, idx) => {
+    const checked  = visibleCols.has(col.key) ? 'checked' : '';
+    const isFirst  = idx === 0, isLast = idx === cols.length - 1;
+    return `<div class="q-col-item">
+      <div class="q-col-reorder">
+        <button class="q-col-reorder-btn" ${isFirst ? 'disabled' : ''} onclick="moveCol('${col.key}',-1)">←</button>
+        <button class="q-col-reorder-btn" ${isLast  ? 'disabled' : ''} onclick="moveCol('${col.key}',1)">→</button>
+      </div>
+      <input type="checkbox" ${checked} onchange="toggleCol('${col.key}',this.checked)">
+      <span class="q-col-label${col.isCustom?' custom':''}"
+            onclick="this.previousElementSibling.click()">${esc(col.label)}</span>
+      ${col.isCustom ? `<button class="q-col-del" onclick="deleteCustomCol('${col.key}')">✕</button>` : ''}
+    </div>`;
   }).join('');
 }
 
@@ -1268,6 +1310,142 @@ window.doClearAll = function() {
 // ═══════════════════════════════════════════════════════════
 // Excel 匯入
 // ═══════════════════════════════════════════════════════════
+// ══ 進貨：自訂欄位對應 ══════════════════════════════════════════
+
+const PURCHASE_FIELD_OPTS = [
+  { value: '',         label: '— 略過 —' },
+  ...FIXED_COLS.map(c => ({ value: c.key, label: c.label }))
+];
+
+let customPurchaseMap = {};
+
+function savePurchaseColMap() { if (autoSavePurchaseMap) autoSavePurchaseMap(); }
+
+function getEffectivePurchaseMap() {
+  return { ...EXCEL_COL_MAP, ...customPurchaseMap };
+}
+
+function purchaseFieldOptsHtml(selected) {
+  return PURCHASE_FIELD_OPTS.map(o =>
+    `<option value="${o.value}"${o.value === selected ? ' selected' : ''}>${esc(o.label)}</option>`
+  ).join('');
+}
+
+// ── B: 設定面板 ──
+window.togglePurchaseColMapSettings = function() {
+  const body = document.getElementById('purchaseColMapBody');
+  const icon = document.getElementById('purchaseColMapIcon');
+  const opening = body.style.display === 'none';
+  body.style.display = opening ? 'block' : 'none';
+  icon.textContent = opening ? '▾' : '▸';
+  if (opening) renderPurchaseColMapSettings();
+};
+
+function renderPurchaseColMapSettings() {
+  const builtinKeys = Object.keys(EXCEL_COL_MAP);
+  document.getElementById('purchaseColMapBuiltin').innerHTML =
+    `內建對應（唯讀）：<br>` +
+    builtinKeys.map(k => `<span style="font-family:'DM Mono',monospace">${esc(k)}</span>`).join('、');
+
+  const list = document.getElementById('purchaseColMapList');
+  list.innerHTML = Object.entries(customPurchaseMap).map(([alias, field]) => `
+    <div class="col-map-row">
+      <input type="text" value="${esc(alias)}" placeholder="Excel欄位名" data-role="alias">
+      <span style="color:#aaa;flex-shrink:0">→</span>
+      <select data-role="field">${purchaseFieldOptsHtml(field)}</select>
+      <button class="col-map-del" onclick="deletePurchaseColMapRow(this)">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', rebuildPurchaseColMap);
+    el.addEventListener('input',  rebuildPurchaseColMap);
+  });
+}
+
+window.addPurchaseColMapRow = function() {
+  const list = document.getElementById('purchaseColMapList');
+  const div = document.createElement('div');
+  div.className = 'col-map-row';
+  div.innerHTML = `
+    <input type="text" value="" placeholder="Excel欄位名" data-role="alias">
+    <span style="color:#aaa;flex-shrink:0">→</span>
+    <select data-role="field">${purchaseFieldOptsHtml('')}</select>
+    <button class="col-map-del" onclick="deletePurchaseColMapRow(this)">✕</button>`;
+  list.appendChild(div);
+  div.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', rebuildPurchaseColMap);
+    el.addEventListener('input',  rebuildPurchaseColMap);
+  });
+  div.querySelector('input').focus();
+};
+
+window.deletePurchaseColMapRow = function(btn) {
+  btn.closest('.col-map-row').remove();
+  rebuildPurchaseColMap();
+};
+
+function rebuildPurchaseColMap() {
+  customPurchaseMap = {};
+  document.querySelectorAll('#purchaseColMapList .col-map-row').forEach(row => {
+    const alias = row.querySelector('[data-role=alias]').value.trim();
+    const field = row.querySelector('[data-role=field]').value;
+    if (alias && field) customPurchaseMap[alias] = field;
+  });
+  savePurchaseColMap();
+}
+
+// ── A: 動態對應 ──
+let _rawPurchaseRows = null;
+
+function showPurchaseDynMapping(unrecognized) {
+  const wrap = document.getElementById('purchaseDynMap');
+  if (!unrecognized.length) { wrap.style.display = 'none'; return; }
+  document.getElementById('purchaseDynMapRows').innerHTML = unrecognized.map(col => `
+    <div class="col-map-dyn-row">
+      <span class="col-map-dyn-name" title="${esc(col)}">${esc(col)}</span>
+      <span style="color:#aaa;flex-shrink:0">→</span>
+      <select data-col="${esc(col)}" onchange="applyPurchaseDynMapping()">${purchaseFieldOptsHtml('')}</select>
+    </div>`).join('');
+  wrap.style.display = 'block';
+}
+
+window.applyPurchaseDynMapping = function() {
+  if (!_rawPurchaseRows) return;
+  const map = getEffectivePurchaseMap();
+  document.querySelectorAll('#purchaseDynMapRows select').forEach(sel => {
+    if (sel.value) map[sel.dataset.col] = sel.value;
+  });
+  _rebuildPendingFromRaw(map);
+};
+
+function _rebuildPendingFromRaw(map) {
+  function excelDateToStr(val) {
+    if (val === '' || val == null) return null;
+    if (typeof val === 'number' || (typeof val === 'string' && /^\d{5}$/.test(val.trim()))) {
+      const n = Number(val);
+      if (n > 40000 && n < 60000) {
+        const d = XLSX.SSF.parse_date_code(n);
+        return `${d.y}/${String(d.m).padStart(2,'0')}/${String(d.d).padStart(2,'0')}`;
+      }
+    }
+    if (val instanceof Date)
+      return `${val.getFullYear()}/${String(val.getMonth()+1).padStart(2,'0')}/${String(val.getDate()).padStart(2,'0')}`;
+    if (typeof val === 'string') {
+      const m = val.match(/(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+      if (m) return `${m[1]}/${m[2].padStart(2,'0')}/${m[3].padStart(2,'0')}`;
+    }
+    return val;
+  }
+  pendingData = _rawPurchaseRows.map(row => {
+    const rec = {};
+    Object.entries(row).forEach(([excelKey, val]) => {
+      const ourKey = map[excelKey];
+      if (ourKey === undefined) return;
+      rec[ourKey] = ourKey === 'date' ? excelDateToStr(val) : (val === '' ? null : val);
+    });
+    return rec;
+  }).filter(r => r.item || r.vendor);
+}
+
 window.handleFile = function(file) {
   if (!file) return;
   document.getElementById('importLog').textContent = '讀取中…';
@@ -1299,28 +1477,20 @@ window.handleFile = function(file) {
         return val;
       }
 
-      pendingData = raw.map(row => {
-        const rec = {};
-        Object.entries(row).forEach(([excelKey, val]) => {
-          const ourKey = EXCEL_COL_MAP[excelKey];
-          if (ourKey === undefined) return;
-          if (ourKey === 'date') {
-            rec[ourKey] = excelDateToStr(val);
-          } else {
-            rec[ourKey] = (val === '' ? null : val);
-          }
-        });
-        return rec;
-      }).filter(r => r.item || r.vendor);
+      _rawPurchaseRows = raw;
+      const effectiveMap = getEffectivePurchaseMap();
+      _rebuildPendingFromRaw(effectiveMap);
 
       const excelCols    = Object.keys(raw[0] || {});
-      const recognized   = excelCols.filter(k => EXCEL_COL_MAP[k] !== undefined);
-      const unrecognized = excelCols.filter(k => EXCEL_COL_MAP[k] === undefined);
+      const recognized   = excelCols.filter(k => effectiveMap[k] !== undefined);
+      const unrecognized = excelCols.filter(k => effectiveMap[k] === undefined);
 
       document.getElementById('importLog').innerHTML =
         `✅ 讀取 <strong>${pendingData.length}</strong> 筆\n` +
         `辨識欄位（${recognized.length}）：${recognized.join('、') || '無'}` +
-        (unrecognized.length ? `\n⚠️ 略過未識別欄位（${unrecognized.length}）：${unrecognized.join('、')}` : '');
+        (unrecognized.length ? `\n⚠️ 未識別（${unrecognized.length}）：${unrecognized.join('、')}` : '');
+      document.getElementById('purchaseDynMapSaveCheck').checked = false;
+      showPurchaseDynMapping(unrecognized);
       document.getElementById('importConfirmBtn').disabled = false;
     } catch(err) {
       document.getElementById('importLog').textContent = '❌ 讀取失敗：' + err.message;
@@ -1331,6 +1501,16 @@ window.handleFile = function(file) {
 
 window.confirmImport = function() {
   if (!pendingData) return;
+
+  // 儲存動態對應設定
+  if (document.getElementById('purchaseDynMapSaveCheck').checked) {
+    document.querySelectorAll('#purchaseDynMapRows select').forEach(sel => {
+      if (sel.value) customPurchaseMap[sel.dataset.col] = sel.value;
+    });
+    savePurchaseColMap();
+    if (document.getElementById('purchaseColMapBody').style.display !== 'none')
+      renderPurchaseColMapSettings();
+  }
 
   function recKey(r) {
     return [
@@ -1369,9 +1549,11 @@ window.confirmImport = function() {
   if (catalog.length > 50000) catalog = catalog.slice(-50000);
 
   pendingData = null;
+  _rawPurchaseRows = null;
   document.getElementById('importConfirmBtn').disabled = true;
   document.getElementById('importLog').textContent = '尚未選擇檔案';
   document.getElementById('fileInput').value = '';
+  document.getElementById('purchaseDynMap').style.display = 'none';
 
   closeDrawers();
   renderAll();
@@ -1509,17 +1691,18 @@ requireAuth((user) => {
 
   autoSavePrefs = makeAutoSave('price_prefs', () => ({
     visibleCols: [...visibleCols],
-    customCols
+    customCols,
+    colOrder
   }), 800);
 
   startSync('price_prefs', user, (content) => {
     if (content) {
-      if (Array.isArray(content.visibleCols) && content.visibleCols.length) {
+      if (Array.isArray(content.visibleCols) && content.visibleCols.length)
         visibleCols = new Set(content.visibleCols);
-      }
-      if (Array.isArray(content.customCols)) {
+      if (Array.isArray(content.customCols))
         customCols = content.customCols;
-      }
+      if (Array.isArray(content.colOrder) && content.colOrder.length)
+        colOrder = content.colOrder;
     }
     buildColToggleUI();
     renderTable();
@@ -1559,6 +1742,15 @@ requireAuth((user) => {
     buildQuoteColToggleUI();
     applyQuoteFilter();
     renderQuoteTable();
+  });
+
+  autoSavePurchaseMap = makeAutoSave('purchase_col_map', () => customPurchaseMap, 800);
+  startSync('purchase_col_map', user, (content) => {
+    if (content && typeof content === 'object') {
+      customPurchaseMap = content;
+      if (document.getElementById('purchaseColMapBody').style.display !== 'none')
+        renderPurchaseColMapSettings();
+    }
   });
 
   autoSaveQuoteMap = makeAutoSave('quote_col_map', () => customQuoteMap, 800);
