@@ -23,6 +23,7 @@
   --shadow: #2d2d2d;
   --gold: #b8942a;
   --green-dark: #2e7d32;
+  --red: #c0392b;
   --surface-card2: #f8f5ef;
 }
 
@@ -35,10 +36,8 @@ body {
   background-size: 22px 22px;
   color: var(--ink);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-  padding-top: 70px;
+  display: flex; flex-direction: column;
+  padding: 14px; padding-top: 70px;
 }
 
 /* ── HEADER ── */
@@ -46,24 +45,20 @@ body {
 .header h1 {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   font-size: 3rem; font-weight: 700; color: var(--ink);
-  letter-spacing: 2px;
-  -webkit-text-stroke: 1px rgba(45,45,45,0.2);
-  transform: rotate(-1deg);
-  display: inline-block; margin-bottom: 4px;
+  letter-spacing: 2px; -webkit-text-stroke: 1px rgba(45,45,45,0.2);
+  transform: rotate(-1deg); display: inline-block; margin-bottom: 4px;
 }
 .header-badge {
   position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   font-family: 'Noto Sans TC', sans-serif;
   background: #fff8e7; border: 2px solid var(--ink); border-radius: 20px;
-  padding: 5px 14px; font-size: 0.85rem; font-weight: 700;
-  box-shadow: 2px 2px 0 0 var(--shadow);
+  padding: 5px 14px; font-size: 0.85rem; font-weight: 700; box-shadow: 2px 2px 0 0 var(--shadow);
 }
 .header-badge span { color: var(--gold); }
 
 /* ── LAYOUT ── */
 .main { flex: 1; display: grid; grid-template-columns: 260px 1fr; gap: 16px; min-height: 0; }
 
-/* ── SKETCHY BOX ── */
 .sketchy-box {
   background: white; border: 2.5px solid var(--ink);
   border-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
@@ -77,6 +72,7 @@ body {
 .sidebar-label {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   font-size: 0.95rem; font-weight: 700; margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center;
 }
 
 #searchInput {
@@ -86,51 +82,55 @@ body {
 }
 #searchInput:focus { background: white; }
 
-/* ── VENDOR LIST ── */
 .vendor-list { flex: 1; overflow-y: auto; padding: 8px; background: var(--surface-card2); }
 .vendor-btn {
   width: 100%; text-align: left; background: white; border: 1.5px solid rgba(45,45,45,0.2);
   border-radius: 8px; padding: 7px 10px; margin-bottom: 5px; cursor: pointer;
   display: flex; justify-content: space-between; align-items: center;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.88rem; font-weight: 600;
-  transition: all .1s;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.88rem; font-weight: 600; transition: all .1s;
 }
 .vendor-btn:hover { border-color: var(--ink); }
 .vendor-btn.active { background: var(--ink); color: white; box-shadow: 2px 2px 0 0 var(--shadow); }
 .vendor-btn span { font-size: 0.78rem; opacity: 0.7; }
 
-/* ── COLUMN TOGGLE PANEL ── */
-.col-toggle-panel {
-  padding: 10px 14px; border-top: 2px solid var(--ink);
-  background: #fafaf8; flex-shrink: 0;
-}
+/* ── COLUMN TOGGLE ── */
+.col-toggle-panel { padding: 10px 14px; border-top: 2px solid var(--ink); background: #fafaf8; flex-shrink: 0; }
 .col-toggle-title {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   font-size: 0.88rem; font-weight: 700; margin-bottom: 7px;
   display: flex; justify-content: space-between; align-items: center;
 }
-.col-toggle-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px;
-  max-height: 190px; overflow-y: auto;
-}
+.col-toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; max-height: 160px; overflow-y: auto; }
 .col-toggle-item {
   display: flex; align-items: center; gap: 5px;
-  font-size: 0.8rem; padding: 3px 0;
-  white-space: nowrap; overflow: hidden; cursor: pointer;
+  font-size: 0.8rem; padding: 3px 0; white-space: nowrap; overflow: hidden; cursor: pointer;
 }
-.col-toggle-item input[type=checkbox] {
-  width: 14px; height: 14px; cursor: pointer;
-  accent-color: var(--blue); flex-shrink: 0;
-}
+.col-toggle-item input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--blue); flex-shrink: 0; }
 .col-toggle-item label { cursor: pointer; overflow: hidden; text-overflow: ellipsis; user-select: none; }
+.col-toggle-item.custom-col label { color: var(--blue); font-weight: 700; }
+.col-toggle-item.custom-col .del-col-btn {
+  margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer;
+  color: #ccc; font-size: 0.75rem; padding: 0 2px; line-height: 1;
+}
+.col-toggle-item.custom-col .del-col-btn:hover { color: var(--red); }
+.col-toggle-actions { display: flex; gap: 6px; margin-top: 8px; }
 .col-toggle-reset {
   font-size: 0.75rem; color: #888; border: 1px solid #ccc; border-radius: 4px;
-  padding: 1px 7px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif;
+  padding: 2px 8px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif; flex: 1;
 }
 .col-toggle-reset:hover { color: var(--ink); border-color: var(--ink); }
+.col-add-btn {
+  font-size: 0.75rem; color: var(--blue); border: 1px solid var(--blue); border-radius: 4px;
+  padding: 2px 8px; cursor: pointer; background: none; font-family: 'Noto Sans TC', sans-serif; flex: 1;
+  font-weight: 700;
+}
+.col-add-btn:hover { background: #eef3ff; }
 
-/* ── IMPORT BUTTON ── */
-.sidebar-footer { padding: 12px 14px; flex-shrink: 0; border-top: 2px solid var(--ink); }
+/* ── SIDEBAR FOOTER ── */
+.sidebar-footer {
+  padding: 12px 14px; flex-shrink: 0; border-top: 2px solid var(--ink);
+  display: flex; flex-direction: column; gap: 6px;
+}
 .btn-sketchy {
   width: 100%; padding: 9px; background: #e7eeff; color: var(--blue);
   border: 2.5px solid var(--blue); font-weight: 700; cursor: pointer;
@@ -139,6 +139,34 @@ body {
   font-size: 0.9rem; transition: all .1s;
 }
 .btn-sketchy:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 0 var(--blue); }
+
+.btn-sketchy-sm {
+  width: 100%; padding: 7px; font-weight: 700; cursor: pointer;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.82rem; transition: all .1s;
+}
+.btn-sketchy-sm:hover { transform: translate(1px, 1px); }
+
+.btn-backup {
+  background: #f0fff4; color: var(--green-dark);
+  border: 2px solid var(--green-dark);
+  box-shadow: 2px 2px 0 0 var(--green-dark);
+}
+.btn-backup:hover { box-shadow: 1px 1px 0 0 var(--green-dark); }
+
+.btn-restore {
+  background: #fff8e7; color: var(--gold);
+  border: 2px solid var(--gold);
+  box-shadow: 2px 2px 0 0 var(--gold);
+}
+.btn-restore:hover { box-shadow: 1px 1px 0 0 var(--gold); }
+
+.btn-clear {
+  background: #fff0ee; color: var(--red);
+  border: 2px solid var(--red);
+  box-shadow: 2px 2px 0 0 var(--red);
+}
+.btn-clear:hover { box-shadow: 1px 1px 0 0 var(--red); }
 
 /* ── TABLE ── */
 .content { display: flex; flex-direction: column; min-height: 0; }
@@ -150,11 +178,13 @@ thead th {
   font-family: 'Noto Sans TC', sans-serif; font-weight: 700; white-space: nowrap;
 }
 thead th.num { text-align: right; }
+thead th.custom-th { background: #ddeeff; color: var(--blue); }
 tbody tr { border-bottom: 1px solid rgba(45,45,45,0.1); cursor: pointer; }
 tbody tr:hover { background: #fff9e6; }
 td { padding: 10px 12px; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
 td.num { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--green-dark); }
 td.mono { font-family: 'DM Mono', monospace; }
+td.custom-td { color: var(--blue); font-style: italic; }
 mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .empty-msg { text-align: center; padding: 40px; color: #aaa; font-size: 1rem; }
 
@@ -162,8 +192,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .side-drawer {
   position: fixed; top: 0; right: -440px; width: 420px; max-width: 93vw; height: 100vh;
   background: var(--paper); z-index: 1200; box-shadow: -6px 0 28px rgba(0,0,0,0.12);
-  transition: right 0.3s ease; display: flex; flex-direction: column;
-  border-left: 3px solid var(--ink);
+  transition: right 0.3s ease; display: flex; flex-direction: column; border-left: 3px solid var(--ink);
 }
 .side-drawer.open { right: 0; }
 .drawer-head {
@@ -179,29 +208,61 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 }
 .drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 .drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
-
 .drawer-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  z-index: 1150; backdrop-filter: blur(2px);
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1150; backdrop-filter: blur(2px);
 }
 .drawer-overlay.show { display: block; }
 
-/* ── DETAIL DRAWER ── */
-.detail-kv { display: flex; flex-direction: column; gap: 0; }
-.detail-row {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 9px 0; border-bottom: 1px dashed rgba(45,45,45,0.12); gap: 16px;
+/* ── DETAIL DRAWER (edit mode) ── */
+.edit-form-grid { display: flex; flex-direction: column; gap: 10px; }
+.edit-form-row { display: flex; flex-direction: column; gap: 3px; }
+.edit-form-row label {
+  font-size: 0.78rem; color: #888; font-weight: 600; letter-spacing: 0.5px;
 }
-.detail-row:last-child { border-bottom: none; }
-.detail-key { font-size: 0.82rem; color: #888; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
-.detail-val { font-size: 0.9rem; font-weight: 700; text-align: right; word-break: break-all; }
-.detail-val.big { font-size: 1.5rem; color: var(--green-dark); font-family: 'DM Mono', monospace; }
-.detail-section-title {
-  font-size: 0.8rem; color: #999; font-weight: 700;
-  margin: 14px 0 6px; letter-spacing: 1px; text-transform: uppercase;
+.edit-form-row input,
+.edit-form-row textarea,
+.edit-form-row select {
+  width: 100%; background: white; border: 1.5px solid rgba(45,45,45,0.25);
+  border-radius: 7px; padding: 7px 10px; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.88rem; outline: none; transition: border-color .15s;
+  color: var(--ink);
 }
+.edit-form-row input:focus,
+.edit-form-row textarea:focus { border-color: var(--blue); background: #f0f5ff; }
+.edit-form-row input[type=number] { font-family: 'DM Mono', monospace; font-weight: 700; }
+.edit-form-row.num-row input { color: var(--green-dark); }
+.edit-form-row textarea { resize: vertical; min-height: 56px; }
 
-/* ── IMPORT DRAWER ── */
+.edit-section-title {
+  font-size: 0.78rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 10px 0 4px; border-top: 1px dashed rgba(45,45,45,0.12);
+  margin-top: 4px;
+}
+.edit-section-title:first-child { border-top: none; padding-top: 0; }
+
+.drawer-foot {
+  padding: 14px 20px; border-top: 2px solid var(--ink); background: white; flex-shrink: 0;
+  display: flex; gap: 8px;
+}
+.btn-save-detail {
+  flex: 1; padding: 10px; font-weight: 700; cursor: pointer;
+  background: var(--blue); color: white;
+  border: 2.5px solid #1a3a7a; border-radius: 8px;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.92rem;
+  box-shadow: 3px 3px 0 #1a3a7a; transition: all .1s;
+}
+.btn-save-detail:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1a3a7a; }
+
+.btn-delete-detail {
+  padding: 10px 16px; font-weight: 700; cursor: pointer;
+  background: #fff0ee; color: var(--red);
+  border: 2.5px solid var(--red); border-radius: 8px;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.92rem;
+  box-shadow: 3px 3px 0 var(--red); transition: all .1s;
+}
+.btn-delete-detail:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--red); }
+
+/* ── IMPORT / BACKUP RESTORE DRAWER ── */
 .import-file-zone {
   border: 2.5px dashed rgba(45,45,45,0.3); border-radius: 10px;
   padding: 22px; text-align: center; cursor: pointer;
@@ -226,6 +287,31 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .btn-confirm:hover:not(:disabled) { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1b5e20; }
 .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── RESTORE DRAWER ── */
+#restoreLog {
+  font-size: 0.83rem; color: #555; line-height: 1.7;
+  background: var(--surface-card2); border-radius: 8px; padding: 10px 12px;
+  min-height: 50px; margin-bottom: 14px; white-space: pre-wrap;
+}
+.restore-file-zone {
+  border: 2.5px dashed rgba(184,148,42,0.5); border-radius: 10px;
+  padding: 22px; text-align: center; cursor: pointer;
+  transition: all .15s; margin-bottom: 14px; background: #fffdf5;
+}
+.restore-file-zone:hover { border-color: var(--gold); background: #fff8e7; }
+.restore-file-zone input[type=file] { display: none; }
+.restore-file-label { font-size: 0.9rem; color: #666; line-height: 1.6; }
+.restore-file-label strong { color: var(--gold); }
+.btn-confirm-gold {
+  width: 100%; padding: 11px; font-weight: 700; cursor: pointer;
+  background: var(--gold); color: white;
+  border: 2.5px solid #8a6e1a; border-radius: 8px;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.95rem;
+  box-shadow: 3px 3px 0 #8a6e1a; transition: all .1s;
+}
+.btn-confirm-gold:hover:not(:disabled) { transform: translate(1px,1px); box-shadow: 2px 2px 0 #8a6e1a; }
+.btn-confirm-gold:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── TOAST ── */
 .toast {
   position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
@@ -235,6 +321,50 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 }
 .toast.show { opacity: 1; }
 .toast.success { background: #f0fdf4; color: #1b5e20; border: 2px solid #2e7d32; }
+.toast.error { background: #fff0ee; color: var(--red); border: 2px solid var(--red); }
+.toast.warn { background: #fffce8; color: #7a5a00; border: 2px solid var(--gold); }
+
+/* ── ITEM POPOVER ── */
+#item-popover {
+  position: fixed; z-index: 9000; pointer-events: none;
+  background: white; border: 2.5px solid var(--ink);
+  border-radius: 10px 3px 9px 3px / 3px 9px 3px 10px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 12px 16px; min-width: 200px; max-width: 280px;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.82rem;
+  opacity: 0; transition: opacity .12s;
+}
+#item-popover.show { opacity: 1; }
+.pop-title {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;
+  color: var(--ink); border-bottom: 1.5px dashed rgba(45,45,45,0.2);
+  padding-bottom: 6px; word-break: break-all;
+}
+.pop-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 4px 0; gap: 10px;
+}
+.pop-row:not(:last-child) { border-bottom: 1px dashed rgba(45,45,45,0.08); }
+.pop-label { color: #888; font-size: 0.78rem; white-space: nowrap; }
+.pop-val { font-weight: 700; font-family: 'DM Mono', monospace; color: var(--green-dark); }
+.pop-val.hi { color: var(--red); }
+.pop-sub { font-size: 0.72rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
+.pop-no-data { color: #bbb; font-size: 0.8rem; text-align: center; padding: 4px 0; }
+
+/* ── DETAIL READ-ONLY section (history) ── */
+.detail-kv { display: flex; flex-direction: column; }
+.detail-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px dashed rgba(45,45,45,0.12); gap: 16px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { font-size: 0.78rem; color: #888; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.detail-val { font-size: 0.88rem; font-weight: 700; text-align: right; word-break: break-all; }
+.detail-section-title {
+  font-size: 0.78rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 14px 0 6px;
+}
 
 @media (max-width: 768px) {
   .main { grid-template-columns: 1fr; }
@@ -251,10 +381,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 </div>
 
 <div class="main">
-
-  <!-- ── 側邊欄 ── -->
   <aside class="sidebar sketchy-box">
-
     <div class="sidebar-section">
       <div class="sidebar-label">🔍 搜尋</div>
       <input type="text" id="searchInput" placeholder="品項、廠商、貨號…" autocomplete="off">
@@ -262,22 +389,25 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 
     <div class="vendor-list" id="vendorList"></div>
 
-    <!-- 欄位顯示設定 -->
     <div class="col-toggle-panel">
       <div class="col-toggle-title">
         <span>📋 顯示欄位</span>
-        <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
       </div>
       <div class="col-toggle-grid" id="colToggleGrid"></div>
+      <div class="col-toggle-actions">
+        <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
+        <button class="col-add-btn" onclick="addCustomCol()">＋ 新增欄位</button>
+      </div>
     </div>
 
     <div class="sidebar-footer">
       <button class="btn-sketchy" onclick="openDrawer('import')">📥 匯入 Excel</button>
+      <button class="btn-sketchy-sm btn-backup" onclick="doBackup()">💾 備份 JSON</button>
+      <button class="btn-sketchy-sm btn-restore" onclick="openDrawer('restore')">📂 匯入恢復備份</button>
+      <button class="btn-sketchy-sm btn-clear" onclick="doClearAll()">🗑 清除全部資料</button>
     </div>
-
   </aside>
 
-  <!-- ── 主表格 ── -->
   <main class="content">
     <div class="table-wrap sketchy-box">
       <table id="mainTable">
@@ -287,24 +417,29 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
       <div class="empty-msg" id="emptyMsg">沒有資料，請先匯入 Excel</div>
     </div>
   </main>
-
 </div>
 
-<!-- Overlay -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
 
-<!-- Detail Drawer -->
+<!-- Detail / Edit Drawer -->
 <div class="side-drawer" id="drawerDetail">
   <div class="drawer-head">
-    <h2 id="detailTitle">詳細資料</h2>
+    <h2 id="detailTitle">✏️ 編輯資料</h2>
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
-    <div class="detail-kv" id="detailBody"></div>
+    <!-- History section (read-only) -->
+    <div id="detailHistorySection"></div>
+    <!-- Edit form -->
+    <div class="edit-form-grid" id="detailEditForm"></div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn-save-detail" onclick="saveDetail()">💾 儲存</button>
+    <button class="btn-delete-detail" onclick="deleteDetail()">🗑 刪除此筆</button>
   </div>
 </div>
 
-<!-- Import Drawer -->
+<!-- Import Excel Drawer -->
 <div class="side-drawer" id="drawerImport">
   <div class="drawer-head">
     <h2>📥 匯入 Excel</h2>
@@ -320,66 +455,115 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   </div>
 </div>
 
+<!-- Restore Backup Drawer -->
+<div class="side-drawer" id="drawerRestore">
+  <div class="drawer-head">
+    <h2>📂 恢復備份</h2>
+    <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <p style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:14px;">
+      選擇先前備份的 <strong>.json</strong> 檔案，資料將<strong>完全覆蓋</strong>現有雲端資料。
+    </p>
+    <div class="restore-file-zone" onclick="document.getElementById('restoreFileInput').click()">
+      <input type="file" id="restoreFileInput" accept=".json" onchange="handleRestoreFile(this.files[0])">
+      <div class="restore-file-label">點擊選擇備份檔案<br><strong>.json</strong></div>
+    </div>
+    <div id="restoreLog">尚未選擇檔案</div>
+    <button id="restoreConfirmBtn" class="btn-confirm-gold" disabled onclick="confirmRestore()">⚡ 確認恢復（覆蓋現有資料）</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+<div id="item-popover"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// 欄位定義：key=存入 catalog 的欄位名, label=顯示名稱,
-// excelKeys=Excel 欄名陣列, type=顯示樣式, defaultVisible=預設
+// 固定欄位定義
 // ═══════════════════════════════════════════════════════════
-const ALL_COLS = [
-  { key: 'site',     label: '廠區',          excelKeys: ['廠區'],                              type: 'text', defaultVisible: false },
-  { key: 'vendor',   label: '廠商',          excelKeys: ['廠商'],                              type: 'text', defaultVisible: true  },
-  { key: 'year',     label: '年',            excelKeys: ['年'],                                type: 'mono', defaultVisible: false },
-  { key: 'month',    label: '月',            excelKeys: ['月'],                                type: 'mono', defaultVisible: false },
-  { key: 'day',      label: '日',            excelKeys: ['日'],                                type: 'mono', defaultVisible: false },
-  { key: 'date',     label: '日期',          excelKeys: ['日期'],                              type: 'mono', defaultVisible: false },
-  { key: 'sku',      label: '貨號',          excelKeys: ['貨號'],                              type: 'mono', defaultVisible: false },
-  { key: 'item',     label: '品項',          excelKeys: ['品項'],                              type: 'text', defaultVisible: true  },
-  { key: 'query',    label: '查詢欄',        excelKeys: ['查詢欄'],                            type: 'text', defaultVisible: false },
-  { key: 'spec',     label: '單位規格',      excelKeys: ['單位規格(g/pcs)', '單位規格'],       type: 'text', defaultVisible: false },
-  { key: 'qty',      label: '進貨數量',      excelKeys: ['進貨數量'],                          type: 'num',  defaultVisible: false },
-  { key: 'unit',     label: '進貨單位',      excelKeys: ['進貨單位'],                          type: 'text', defaultVisible: false },
-  { key: 'priceEx',  label: '進貨單價',      excelKeys: ['進貨單價'],                          type: 'num',  defaultVisible: false },
-  { key: 'priceTax', label: '含稅單價',      excelKeys: ['進貨單價(含稅)'],                    type: 'num',  defaultVisible: true  },
-  { key: 'amount',   label: '進貨金額',      excelKeys: ['進貨金額'],                          type: 'num',  defaultVisible: false },
-  { key: 'tax',      label: '稅',            excelKeys: ['稅'],                                type: 'num',  defaultVisible: false },
-  { key: 'note',     label: '備註',          excelKeys: ['備註'],                              type: 'text', defaultVisible: false },
-  { key: 'note2',    label: '備註(另帳)',    excelKeys: ['備註(另外作帳)'],                    type: 'text', defaultVisible: false },
-  { key: 'note3',    label: '群聯備註1',     excelKeys: ['群聯備註1'],                         type: 'text', defaultVisible: false },
-  { key: 'note4',    label: '群聯備註2',     excelKeys: ['群聯備註2'],                         type: 'text', defaultVisible: false },
-  { key: 'note5',    label: '群聯備註3',     excelKeys: ['群聯備註3'],                         type: 'text', defaultVisible: false },
+const FIXED_COLS = [
+  { key: 'site',     label: '廠區',         excelKeys: ['廠區'],                            type: 'text', defaultVisible: false },
+  { key: 'vendor',   label: '廠商',         excelKeys: ['廠商'],                            type: 'text', defaultVisible: true  },
+  { key: 'year',     label: '年',           excelKeys: ['年'],                              type: 'mono', defaultVisible: false },
+  { key: 'month',    label: '月',           excelKeys: ['月'],                              type: 'mono', defaultVisible: false },
+  { key: 'day',      label: '日',           excelKeys: ['日'],                              type: 'mono', defaultVisible: false },
+  { key: 'date',     label: '日期',         excelKeys: ['日期'],                            type: 'mono', defaultVisible: false },
+  { key: 'sku',      label: '貨號',         excelKeys: ['貨號'],                            type: 'mono', defaultVisible: false },
+  { key: 'item',     label: '品項',         excelKeys: ['品項'],                            type: 'text', defaultVisible: true  },
+  { key: 'query',    label: '查詢欄',       excelKeys: ['查詢欄'],                          type: 'text', defaultVisible: false },
+  { key: 'unit',     label: '單位',         excelKeys: ['單位'],                            type: 'text', defaultVisible: false },
+  { key: 'spec',     label: '規格(g/pcs)',  excelKeys: ['規格(g/pcs)','單位規格(g/pcs)'],  type: 'text', defaultVisible: false },
+  { key: 'qty',      label: '進貨數量',     excelKeys: ['進貨數量'],                        type: 'num',  defaultVisible: false },
+  { key: 'buyUnit',  label: '進貨單位',     excelKeys: ['進貨單位'],                        type: 'text', defaultVisible: false },
+  { key: 'priceEx',  label: '進貨單價',     excelKeys: ['進貨單價'],                        type: 'num',  defaultVisible: false },
+  { key: 'priceTax', label: '含稅單價',     excelKeys: ['進貨單價(含稅)'],                  type: 'num',  defaultVisible: true  },
+  { key: 'amount',   label: '進貨金額',     excelKeys: ['進貨金額'],                        type: 'num',  defaultVisible: false },
+  { key: 'tax',      label: '稅',           excelKeys: ['稅'],                              type: 'num',  defaultVisible: false },
+  { key: 'note',     label: '備註',         excelKeys: ['備註'],                            type: 'text', defaultVisible: false },
+  { key: 'note2',    label: '備註(另帳)',   excelKeys: ['備註(另外作帳)'],                  type: 'text', defaultVisible: false },
+  { key: 'note3',    label: '群聯備註1',    excelKeys: ['群聯備註1'],                       type: 'text', defaultVisible: false },
+  { key: 'note4',    label: '群聯備註2',    excelKeys: ['群聯備註2'],                       type: 'text', defaultVisible: false },
+  { key: 'note5',    label: '群聯備註3',    excelKeys: ['群聯備註3'],                       type: 'text', defaultVisible: false },
 ];
 
-// 建立 Excel欄名 → key 對照表
 const EXCEL_COL_MAP = {};
-ALL_COLS.forEach(col => col.excelKeys.forEach(ek => { EXCEL_COL_MAP[ek] = col.key; }));
+FIXED_COLS.forEach(col => col.excelKeys.forEach(ek => { EXCEL_COL_MAP[ek] = col.key; }));
 
-const VISIBLE_PREF_KEY = 'price_visible_cols_v2';
-const DEFAULT_VISIBLE   = ALL_COLS.filter(c => c.defaultVisible).map(c => c.key);
+const DEFAULT_VISIBLE = FIXED_COLS.filter(c => c.defaultVisible).map(c => c.key);
 
 // ── 狀態 ──
-let catalog     = [];
-let historyList = [];
-let state       = { search: '', vendor: 'all', page: 1, pageSize: 150, filtered: [] };
-let pendingData = null;
-let autoSave;
-let visibleCols = loadVisibleCols();
+let catalog      = [];
+let historyList  = [];
+let customCols   = [];
+let state        = { search: '', vendor: 'all', page: 1, pageSize: 150, filtered: [] };
+let pendingData  = null;
+let pendingRestore = null;
+let autoSave, autoSavePrefs;
+let visibleCols  = new Set(DEFAULT_VISIBLE);
+let _detailCatIdx = null; // catalog index of open detail row
 
-// ── 欄位偏好：本機 localStorage ──
-function loadVisibleCols() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(VISIBLE_PREF_KEY));
-    if (Array.isArray(stored) && stored.length) return new Set(stored);
-  } catch(e) {}
-  return new Set(DEFAULT_VISIBLE);
+// ── 合併欄位（固定 + 自訂）──
+function allCols() {
+  return [
+    ...FIXED_COLS,
+    ...customCols.map(c => ({ ...c, type: 'text', defaultVisible: true, isCustom: true }))
+  ];
 }
-function saveVisibleCols() {
-  localStorage.setItem(VISIBLE_PREF_KEY, JSON.stringify([...visibleCols]));
-}
+
+// ── 偏好存檔 ──
+function savePrefs() { if (autoSavePrefs) autoSavePrefs(); }
+
 window.resetCols = function() {
   visibleCols = new Set(DEFAULT_VISIBLE);
-  saveVisibleCols();
+  savePrefs();
+  buildColToggleUI();
+  renderTable();
+};
+
+// ── 新增自訂欄位 ──
+window.addCustomCol = function() {
+  const name = prompt('新欄位名稱（例如：內部備註、採購員…）');
+  if (!name || !name.trim()) return;
+  const label = name.trim();
+  if (customCols.find(c => c.label === label)) { alert(`「${label}」已存在`); return; }
+  const key = 'custom_' + Date.now();
+  customCols.push({ key, label });
+  visibleCols.add(key);
+  savePrefs();
+  buildColToggleUI();
+  renderTable();
+};
+
+window.deleteCustomCol = function(key, e) {
+  e.stopPropagation();
+  const col = customCols.find(c => c.key === key);
+  if (!col) return;
+  if (!confirm(`刪除欄位「${col.label}」？（欄位內已填的備註資料也會消失）`)) return;
+  customCols = customCols.filter(c => c.key !== key);
+  visibleCols.delete(key);
+  catalog.forEach(r => { delete r[key]; });
+  savePrefs();
+  if (autoSave) autoSave();
   buildColToggleUI();
   renderTable();
 };
@@ -392,7 +576,7 @@ function esc(s) {
 function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function fmtNum(v) {
   const n = Number(v);
-  return isNaN(n) ? String(v) : n.toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return isNaN(n) ? String(v) : n.toLocaleString('zh-TW', { minimumFractionDigits:0, maximumFractionDigits:2 });
 }
 
 // ── Drawers ──
@@ -405,31 +589,40 @@ window.openDrawer = function(id) {
 window.closeDrawers = function() {
   document.querySelectorAll('.side-drawer').forEach(d => d.classList.remove('open'));
   document.getElementById('drawerOverlay').classList.remove('show');
+  _detailCatIdx = null;
 };
 
 // ── 欄位 Checkbox UI ──
 function buildColToggleUI() {
   const grid = document.getElementById('colToggleGrid');
-  grid.innerHTML = ALL_COLS.map(col => `
-    <label class="col-toggle-item" title="${esc(col.label)}">
-      <input type="checkbox" ${visibleCols.has(col.key) ? 'checked' : ''}
-        onchange="toggleCol('${col.key}', this.checked)">
+  const cols = allCols();
+  grid.innerHTML = cols.map(col => {
+    const checked = visibleCols.has(col.key) ? 'checked' : '';
+    if (col.isCustom) {
+      return `<label class="col-toggle-item custom-col" title="${esc(col.label)}">
+        <input type="checkbox" ${checked} onchange="toggleCol('${col.key}', this.checked)">
+        <label>${esc(col.label)}</label>
+        <button class="del-col-btn" onclick="deleteCustomCol('${col.key}', event)" title="刪除此欄位">✕</button>
+      </label>`;
+    }
+    return `<label class="col-toggle-item" title="${esc(col.label)}">
+      <input type="checkbox" ${checked} onchange="toggleCol('${col.key}', this.checked)">
       <label>${esc(col.label)}</label>
-    </label>
-  `).join('');
+    </label>`;
+  }).join('');
 }
+
 window.toggleCol = function(key, checked) {
   if (checked) visibleCols.add(key); else visibleCols.delete(key);
-  saveVisibleCols();
+  savePrefs();
   renderTable();
 };
 
-// ── 側邊廠商列表 ──
+// ── 廠商列表 ──
 function renderSidebar() {
   const counts = {};
   catalog.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
   const vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
-
   const vList = document.getElementById('vendorList');
   vList.innerHTML = `<button class="vendor-btn ${state.vendor==='all'?'active':''}" onclick="setVendor('all')">全部 <span>${catalog.length}</span></button>`;
   vendors.forEach(([v, c]) => {
@@ -440,31 +633,26 @@ function renderSidebar() {
 window.setVendor = function(v) { state.vendor = v; state.page = 1; renderAll(); };
 
 // ── 主渲染 ──
-function renderAll() {
-  renderSidebar();
-  applyFilter();
-  renderTable();
-}
+function renderAll() { renderSidebar(); applyFilter(); renderTable(); }
 
 function applyFilter() {
   const q = state.search.toLowerCase();
   state.filtered = catalog.filter(r => {
     if (state.vendor !== 'all' && r.vendor !== state.vendor) return false;
     if (!q) return true;
-    return ALL_COLS.some(col => String(r[col.key]||'').toLowerCase().includes(q));
+    return allCols().some(col => String(r[col.key]||'').toLowerCase().includes(q));
   });
 }
 
 function renderTable() {
-  const cols = ALL_COLS.filter(c => visibleCols.has(c.key));
+  const cols = allCols().filter(c => visibleCols.has(c.key));
   const q    = state.search.toLowerCase();
   const re   = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
 
-  // thead
-  document.getElementById('tableHead').innerHTML =
-    cols.map(c => `<th class="${c.type==='num'?'num':''}">${esc(c.label)}</th>`).join('');
+  document.getElementById('tableHead').innerHTML = cols.map(c =>
+    `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}">${esc(c.label)}</th>`
+  ).join('');
 
-  // rows
   const rows = state.filtered.slice(0, state.pageSize);
   const tbody = document.getElementById('tableBody');
   const emptyMsg = document.getElementById('emptyMsg');
@@ -481,13 +669,23 @@ function renderTable() {
   tbody.innerHTML = rows.map((r, idx) => {
     const cells = cols.map(col => {
       const raw = r[col.key];
-      if (raw === null || raw === undefined || raw === '') return `<td></td>`;
+      if (raw === null || raw === undefined || raw === '') {
+        return `<td class="${col.isCustom?'custom-td':''}"></td>`;
+      }
       if (col.type === 'num' && !isNaN(Number(raw))) {
         return `<td class="num">${fmtNum(raw)}</td>`;
       }
       let val = esc(String(raw));
       if (re) val = val.replace(re, '<mark>$1</mark>');
-      return `<td class="${col.type==='mono'?'mono':''}" title="${esc(String(raw))}">${val}</td>`;
+      const cls = col.isCustom ? 'custom-td' : (col.type==='mono' ? 'mono' : '');
+      if (col.key === 'item') {
+        const v  = esc(r.vendor   || '');
+        const it = esc(r.item     || '');
+        const bu = esc(r.buyUnit  || '');
+        return `<td class="${cls}" onmouseenter="_showItemPopover(event,'${v.replace(/'/g,"\'")}','${it.replace(/'/g,"\'")}','${bu.replace(/'/g,"\'")}')` +
+               ` onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)">${val}</td>`;
+      }
+      return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
     }).join('');
     return `<tr onclick="showDetail(${idx})">${cells}</tr>`;
   }).join('');
@@ -498,70 +696,248 @@ function renderTable() {
       : `共 <span>${catalog.length}</span> 筆`;
 }
 
-// ── 詳細抽屜 ──
-window.showDetail = function(idx) {
-  const r = state.filtered[idx];
+// ═══════════════════════════════════════════════════════════
+// Detail / Edit Drawer（完整可編輯）
+// ═══════════════════════════════════════════════════════════
+window.showDetail = function(filteredIdx) {
+  const r = state.filtered[filteredIdx];
   if (!r) return;
-  document.getElementById('detailTitle').textContent = r.item || '詳細資料';
+  _detailCatIdx = catalog.indexOf(r);
+  document.getElementById('detailTitle').textContent = '✏️ ' + (r.item || '編輯資料');
 
-  const mainRows = ALL_COLS.filter(c => {
-    const v = r[c.key];
-    return v !== null && v !== undefined && v !== '';
-  }).map(c => {
-    const raw = r[c.key];
-    let valHtml;
-    if (c.type === 'num' && !isNaN(Number(raw))) {
-      valHtml = `<span class="big">$${fmtNum(raw)}</span>`;
-    } else {
-      valHtml = esc(String(raw));
-    }
-    return `<div class="detail-row">
-      <span class="detail-key">${esc(c.label)}</span>
-      <span class="detail-val">${valHtml}</span>
-    </div>`;
-  }).join('');
-
-  // 歷史含稅單價
+  // ── 歷史含稅單價（只讀）──
   const hist = historyList
     .filter(h => h.item === r.item && h.vendor === r.vendor)
     .slice(-5).reverse();
-  const histHtml = hist.length ? `
-    <div class="detail-section-title">📅 歷史含稅單價</div>
-    ${hist.map(h => `<div class="detail-row">
-      <span class="detail-key">${esc(String(h.date||h.month||h._savedAt||''))}</span>
-      <span class="detail-val">$${fmtNum(h.priceTax||h.priceEx||0)}</span>
-    </div>`).join('')}` : '';
 
-  document.getElementById('detailBody').innerHTML = mainRows + histHtml;
+  const histHtml = hist.length ? `
+    <div class="detail-kv">
+      <div class="detail-section-title">📅 歷史含稅單價</div>
+      ${hist.map(h => `<div class="detail-row">
+        <span class="detail-key">${esc(String(h.date||h.month||h._savedAt||''))}</span>
+        <span class="detail-val">$${fmtNum(h.priceTax||h.priceEx||0)}</span>
+      </div>`).join('')}
+    </div>` : '';
+  document.getElementById('detailHistorySection').innerHTML = histHtml;
+
+  // ── 可編輯表單 ──
+  renderEditForm(r);
+
   openDrawer('detail');
 };
 
-// ── Excel 匯入 ──
+function renderEditForm(r) {
+  const cols = allCols();
+  const numKeys = new Set(FIXED_COLS.filter(c => c.type === 'num').map(c => c.key));
+  const monoKeys = new Set(FIXED_COLS.filter(c => c.type === 'mono').map(c => c.key));
+
+  // 分組
+  const groups = [
+    { title: '📦 基本資訊', keys: ['site','vendor','sku','item','query'] },
+    { title: '📅 日期', keys: ['year','month','day','date'] },
+    { title: '📐 規格 / 單位', keys: ['unit','spec','buyUnit'] },
+    { title: '💰 價格 / 數量', keys: ['qty','priceEx','priceTax','amount','tax'] },
+    { title: '📝 備註', keys: ['note','note2','note3','note4','note5'] },
+  ];
+
+  // 自訂欄位加一組
+  const customKeys = customCols.map(c => c.key);
+
+  let html = '';
+
+  groups.forEach(g => {
+    const groupCols = g.keys.map(k => cols.find(c => c.key === k)).filter(Boolean);
+    if (!groupCols.length) return;
+    html += `<div class="edit-section-title">${esc(g.title)}</div>`;
+    groupCols.forEach(col => {
+      const val = r[col.key] ?? '';
+      const isNum = numKeys.has(col.key);
+      const isMono = monoKeys.has(col.key);
+      const isNote = col.key.startsWith('note');
+      html += `<div class="edit-form-row${isNum?' num-row':''}">
+        <label>${esc(col.label)}</label>
+        ${isNote
+          ? `<textarea id="ef-${col.key}" rows="2">${esc(String(val))}</textarea>`
+          : `<input type="${isNum?'number':'text'}" id="ef-${col.key}" value="${esc(String(val))}"${isMono?' style="font-family:\'DM Mono\',monospace"':''}>`
+        }
+      </div>`;
+    });
+  });
+
+  if (customCols.length) {
+    html += `<div class="edit-section-title">✏️ 自訂備註欄位</div>`;
+    customCols.forEach(col => {
+      const val = r[col.key] ?? '';
+      html += `<div class="edit-form-row">
+        <label>${esc(col.label)}</label>
+        <textarea id="ef-${col.key}" rows="2">${esc(String(val))}</textarea>
+      </div>`;
+    });
+  }
+
+  document.getElementById('detailEditForm').innerHTML = html;
+}
+
+window.saveDetail = function() {
+  if (_detailCatIdx === null || _detailCatIdx < 0) return;
+  const r = catalog[_detailCatIdx];
+  if (!r) return;
+
+  allCols().forEach(col => {
+    const el = document.getElementById('ef-' + col.key);
+    if (!el) return;
+    const val = el.value.trim();
+    r[col.key] = val === '' ? null : val;
+  });
+
+  if (autoSave) autoSave();
+  showToast('✅ 已儲存', 'success');
+  renderAll();
+  // 更新 drawer title
+  document.getElementById('detailTitle').textContent = '✏️ ' + (r.item || '編輯資料');
+};
+
+window.deleteDetail = function() {
+  if (_detailCatIdx === null || _detailCatIdx < 0) return;
+  const r = catalog[_detailCatIdx];
+  if (!r) return;
+  const label = r.item || r.vendor || '這筆資料';
+  if (!confirm(`確定刪除「${label}」？此動作無法復原。`)) return;
+  catalog.splice(_detailCatIdx, 1);
+  _detailCatIdx = null;
+  closeDrawers();
+  if (autoSave) autoSave();
+  renderAll();
+  showToast('🗑 已刪除', 'warn');
+};
+
+// ═══════════════════════════════════════════════════════════
+// 備份 JSON
+// ═══════════════════════════════════════════════════════════
+window.doBackup = function() {
+  if (!catalog.length) { showToast('⚠️ 沒有資料可備份', 'warn'); return; }
+  const payload = JSON.stringify({ catalog, history: historyList, customCols, exportedAt: new Date().toISOString() }, null, 2);
+  const blob = new Blob([payload], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const ts   = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  a.href = url; a.download = `price_backup_${ts}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('💾 備份已下載', 'success');
+};
+
+// ═══════════════════════════════════════════════════════════
+// 匯入恢復備份
+// ═══════════════════════════════════════════════════════════
+window.handleRestoreFile = function(file) {
+  if (!file) return;
+  pendingRestore = null;
+  document.getElementById('restoreConfirmBtn').disabled = true;
+  document.getElementById('restoreLog').textContent = '讀取中…';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data.catalog)) throw new Error('格式錯誤：找不到 catalog 陣列');
+      pendingRestore = data;
+      const ts = data.exportedAt ? `\n備份時間：${data.exportedAt}` : '';
+      document.getElementById('restoreLog').textContent =
+        `✅ 讀取成功\n資料筆數：${data.catalog.length} 筆${ts}\n` +
+        `歷史記錄：${Array.isArray(data.history) ? data.history.length : 0} 筆\n\n` +
+        `⚠️ 確認後將「完全覆蓋」現有 ${catalog.length} 筆資料！`;
+      document.getElementById('restoreConfirmBtn').disabled = false;
+    } catch(err) {
+      document.getElementById('restoreLog').textContent = '❌ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+};
+
+window.confirmRestore = function() {
+  if (!pendingRestore) return;
+  catalog     = pendingRestore.catalog || [];
+  historyList = Array.isArray(pendingRestore.history) ? pendingRestore.history : [];
+  if (Array.isArray(pendingRestore.customCols)) {
+    customCols = pendingRestore.customCols;
+    customCols.forEach(c => visibleCols.add(c.key));
+    savePrefs();
+    buildColToggleUI();
+  }
+  pendingRestore = null;
+  document.getElementById('restoreConfirmBtn').disabled = true;
+  document.getElementById('restoreLog').textContent = '尚未選擇檔案';
+  document.getElementById('restoreFileInput').value = '';
+  closeDrawers();
+  if (autoSave) autoSave();
+  renderAll();
+  showToast(`✅ 恢復完成，共 ${catalog.length} 筆`, 'success');
+};
+
+// ═══════════════════════════════════════════════════════════
+// 清除全部資料
+// ═══════════════════════════════════════════════════════════
+window.doClearAll = function() {
+  if (!catalog.length) { showToast('⚠️ 沒有資料', 'warn'); return; }
+  if (!confirm(`確定清除全部 ${catalog.length} 筆資料？\n此動作無法復原，建議先備份！`)) return;
+  catalog = [];
+  historyList = [];
+  if (autoSave) autoSave();
+  renderAll();
+  showToast('🗑 已清除全部資料', 'warn');
+};
+
+// ═══════════════════════════════════════════════════════════
+// Excel 匯入
+// ═══════════════════════════════════════════════════════════
 window.handleFile = function(file) {
   if (!file) return;
   document.getElementById('importLog').textContent = '讀取中…';
   document.getElementById('importConfirmBtn').disabled = true;
-
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const wb  = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const wb  = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
       const ws  = wb.Sheets[wb.SheetNames[0]];
-      const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      const raw = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
       if (!raw.length) { document.getElementById('importLog').textContent = '⚠️ 試算表是空的'; return; }
+
+      function excelDateToStr(val) {
+        if (val === '' || val == null) return null;
+        if (typeof val === 'number' || (typeof val === 'string' && /^\d{5}$/.test(val.trim()))) {
+          const n = Number(val);
+          if (n > 40000 && n < 60000) {
+            const d = XLSX.SSF.parse_date_code(n);
+            return `${d.y}/${String(d.m).padStart(2,'0')}/${String(d.d).padStart(2,'0')}`;
+          }
+        }
+        if (val instanceof Date) {
+          return `${val.getFullYear()}/${String(val.getMonth()+1).padStart(2,'0')}/${String(val.getDate()).padStart(2,'0')}`;
+        }
+        if (typeof val === 'string') {
+          const m = val.match(/(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+          if (m) return `${m[1]}/${m[2].padStart(2,'0')}/${m[3].padStart(2,'0')}`;
+        }
+        return val;
+      }
 
       pendingData = raw.map(row => {
         const rec = {};
         Object.entries(row).forEach(([excelKey, val]) => {
           const ourKey = EXCEL_COL_MAP[excelKey];
-          if (ourKey !== undefined) rec[ourKey] = (val === '' ? null : val);
+          if (ourKey === undefined) return;
+          if (ourKey === 'date') {
+            rec[ourKey] = excelDateToStr(val);
+          } else {
+            rec[ourKey] = (val === '' ? null : val);
+          }
         });
         return rec;
       }).filter(r => r.item || r.vendor);
 
-      const excelCols     = Object.keys(raw[0] || {});
-      const recognized    = excelCols.filter(k => EXCEL_COL_MAP[k] !== undefined);
-      const unrecognized  = excelCols.filter(k => EXCEL_COL_MAP[k] === undefined);
+      const excelCols    = Object.keys(raw[0] || {});
+      const recognized   = excelCols.filter(k => EXCEL_COL_MAP[k] !== undefined);
+      const unrecognized = excelCols.filter(k => EXCEL_COL_MAP[k] === undefined);
 
       document.getElementById('importLog').innerHTML =
         `✅ 讀取 <strong>${pendingData.length}</strong> 筆\n` +
@@ -578,18 +954,25 @@ window.handleFile = function(file) {
 window.confirmImport = function() {
   if (!pendingData) return;
 
+  function recKey(r) {
+    const datePart = [r.year, r.month, r.day, r.date].filter(v => v != null && v !== '').join('-');
+    return [r.vendor||'', r.item||'', datePart, r.qty??'', r.priceTax??''].join('|||');
+  }
+
+  const existingKeys = new Set(catalog.map(recKey));
+  let added = 0, skipped = 0;
+
   pendingData.forEach(newRec => {
-    const existing = catalog.find(c => c.item === newRec.item && c.vendor === newRec.vendor);
-    if (existing) {
-      Object.assign(existing, newRec);
+    const k = recKey(newRec);
+    if (existingKeys.has(k)) {
+      skipped++;
     } else {
       catalog.push(newRec);
-    }
-    if (newRec.priceTax || newRec.priceEx) {
-      historyList.push({ ...newRec, _savedAt: new Date().toLocaleDateString('zh-TW') });
+      existingKeys.add(k);
+      added++;
     }
   });
-  if (historyList.length > 2000) historyList = historyList.slice(-2000);
+  if (catalog.length > 50000) catalog = catalog.slice(-50000);
 
   pendingData = null;
   document.getElementById('importConfirmBtn').disabled = true;
@@ -599,8 +982,96 @@ window.confirmImport = function() {
   closeDrawers();
   renderAll();
   if (autoSave) autoSave();
-  showToast('✅ 匯入完成，雲端同步中…', 'success');
+  showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : ''), 'success');
 };
+
+// ═══════════════════════════════════════════════════════════
+// 品項 Popover
+// ═══════════════════════════════════════════════════════════
+(function() {
+  const pop = document.getElementById('item-popover');
+  let _hideTimer = null;
+
+  function calcStats(vendor, item, buyUnit) {
+    const matches = catalog.filter(r =>
+      r.vendor === vendor && r.item === item && (r.buyUnit || '') === (buyUnit || '')
+    );
+    if (!matches.length) return null;
+    const priced = matches.map(r => {
+      const p = Number(r.priceTax);
+      let dateStr = r.date || '';
+      if (!dateStr && r.year && r.month) {
+        dateStr = `${r.year}/${String(r.month).padStart(2,'0')}` +
+                  (r.day ? `/${String(r.day).padStart(2,'0')}` : '');
+      }
+      return { price: p, dateStr };
+    }).filter(x => !isNaN(x.price) && x.price > 0);
+    if (!priced.length) return null;
+    const latest  = priced[priced.length - 1];
+    const maxItem = priced.reduce((a, b) => a.price >= b.price ? a : b);
+    const now     = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+    const recent  = priced.filter(x => {
+      if (!x.dateStr) return false;
+      const parts = x.dateStr.split(/[\/\-]/);
+      if (parts.length < 2) return false;
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2] || 1));
+      return d >= sixMonthsAgo;
+    });
+    const avg6 = recent.length ? recent.reduce((s, x) => s + x.price, 0) / recent.length : null;
+    return { latest, maxItem, avg6, recentCount: recent.length };
+  }
+
+  window._showItemPopover = function(e, vendor, item, buyUnit) {
+    clearTimeout(_hideTimer);
+    const stats = calcStats(vendor, item, buyUnit);
+    if (!stats) {
+      pop.innerHTML = `<div class="pop-title">${esc(item)}</div><div class="pop-no-data">無價格資料</div>`;
+    } else {
+      const unitLabel = buyUnit ? ` <span class="pop-sub">/ ${esc(buyUnit)}</span>` : '';
+      pop.innerHTML = `
+        <div class="pop-title">${esc(item)}${unitLabel}</div>
+        <div class="pop-row">
+          <span class="pop-label">最新價格</span>
+          <span class="pop-val">$${fmtNum(stats.latest.price)}</span>
+        </div>
+        <div class="pop-row">
+          <span class="pop-label">最高價格</span>
+          <span>
+            <span class="pop-val hi">$${fmtNum(stats.maxItem.price)}</span>
+            ${stats.maxItem.dateStr ? `<span class="pop-sub">${esc(stats.maxItem.dateStr)}</span>` : ''}
+          </span>
+        </div>
+        <div class="pop-row">
+          <span class="pop-label">近六個月均價</span>
+          <span>
+            ${stats.avg6 !== null
+              ? `<span class="pop-val">$${fmtNum(stats.avg6)}</span><span class="pop-sub">(${stats.recentCount}筆)</span>`
+              : `<span class="pop-sub">無近期資料</span>`}
+          </span>
+        </div>`;
+    }
+    _positionPop(e);
+    pop.classList.add('show');
+  };
+
+  window._hideItemPopover = function() {
+    _hideTimer = setTimeout(() => pop.classList.remove('show'), 120);
+  };
+
+  window._movePop = function(e) {
+    if (pop.classList.contains('show')) _positionPop(e);
+  };
+
+  function _positionPop(e) {
+    const pw = pop.offsetWidth || 240, ph = pop.offsetHeight || 120;
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + pw > window.innerWidth  - 10) x = e.clientX - pw - 10;
+    if (y + ph > window.innerHeight - 10) y = e.clientY - ph - 10;
+    pop.style.left = x + 'px';
+    pop.style.top  = y + 'px';
+  }
+})();
 
 // ── Toast ──
 function showToast(msg, type) {
@@ -610,7 +1081,9 @@ function showToast(msg, type) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── Firebase 初始化（與 items.html 相同） ──
+// ═══════════════════════════════════════════════════════════
+// Firebase 初始化
+// ═══════════════════════════════════════════════════════════
 requireAuth((user) => {
   injectStatusBar('price');
 
@@ -619,8 +1092,7 @@ requireAuth((user) => {
     const h = bar ? bar.offsetHeight : 44;
     document.body.style.paddingTop = (h + 14) + 'px';
     document.querySelectorAll('.side-drawer').forEach(d => {
-      d.style.top = h + 'px';
-      d.style.height = `calc(100vh - ${h}px)`;
+      d.style.top = h + 'px'; d.style.height = `calc(100vh - ${h}px)`;
     });
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) {
@@ -642,14 +1114,30 @@ requireAuth((user) => {
 
   initPresence(user);
 
-  autoSave = makeAutoSave('price', () => ({ catalog, history: historyList }));
+  autoSavePrefs = makeAutoSave('price_prefs', () => ({
+    visibleCols: [...visibleCols],
+    customCols
+  }), 800);
 
+  startSync('price_prefs', user, (content) => {
+    if (content) {
+      if (Array.isArray(content.visibleCols) && content.visibleCols.length) {
+        visibleCols = new Set(content.visibleCols);
+      }
+      if (Array.isArray(content.customCols)) {
+        customCols = content.customCols;
+      }
+    }
+    buildColToggleUI();
+    renderTable();
+  });
+
+  autoSave = makeAutoSave('price', () => ({ catalog, history: historyList }));
   startSync('price', user, (content) => {
     if (content) {
       catalog     = Array.isArray(content.catalog) ? content.catalog : [];
       historyList = Array.isArray(content.history) ? content.history : [];
     }
-    buildColToggleUI();
     renderAll();
   });
 
