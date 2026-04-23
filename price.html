@@ -614,7 +614,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   <div class="drawer-body">
     <p style="font-size:1rem;color:#666;line-height:1.7;margin-bottom:12px;">
       支援 <strong>Excel (.xlsx/.xls)</strong> 或 <strong>PDF</strong> 匯入。<br>
-      欄位對應：廠商、品項、貨號、單位、規格(g/pcs)、<strong>報價單價(含稅)</strong>
+      欄位對應：廠商、品項、貨號、單位、規格、<strong>報價單價(含稅)</strong>
     </p>
     <div class="import-file-zone" onclick="document.getElementById('quoteImportFile').click()" style="border-color:rgba(106,27,154,0.4)">
       <input type="file" id="quoteImportFile" accept=".xlsx,.xls,.pdf" onchange="handleQuoteImportFile(this.files[0])">
@@ -808,7 +808,7 @@ const FIXED_COLS = [
   { key: 'item',     label: '品項',         excelKeys: ['品項'],                            type: 'text', defaultVisible: true  },
   { key: 'query',    label: '查詢欄',       excelKeys: ['查詢欄'],                          type: 'text', defaultVisible: false },
   { key: 'unit',     label: '單位',         excelKeys: ['單位'],                            type: 'text', defaultVisible: false },
-  { key: 'spec',     label: '規格(g/pcs)',  excelKeys: ['規格(g/pcs)','單位規格(g/pcs)'],  type: 'text', defaultVisible: false },
+  { key: 'spec',     label: '規格',  excelKeys: ['規格','單位規格'],  type: 'text', defaultVisible: false },
   { key: 'qty',      label: '進貨數量',     excelKeys: ['進貨數量'],                        type: 'num',  defaultVisible: false },
   { key: 'buyUnit',  label: '進貨單位',     excelKeys: ['進貨單位'],                        type: 'text', defaultVisible: false },
   { key: 'priceEx',  label: '進貨單價',     excelKeys: ['進貨單價'],                        type: 'num',  defaultVisible: false },
@@ -1550,7 +1550,7 @@ const QUOTE_COLS = [
   { key: 'item',       label: '品項',            type: 'text' },
   { key: 'query',      label: '查詢欄',          type: 'text' },
   { key: 'unit',       label: '單位',            type: 'text' },
-  { key: 'spec',       label: '規格(g/pcs)',     type: 'text' },
+  { key: 'spec',       label: '規格',     type: 'text' },
   { key: 'quotePrice', label: '最新價格(含稅)',  type: 'num'  },
   { key: 'note',       label: '備註',            type: 'text' },
   { key: 'updatedAt',  label: '最後更新',        type: 'mono' },
@@ -1560,7 +1560,7 @@ const QUOTE_COLS = [
 const QUOTE_EXCEL_MAP = {
   '廠商': 'vendor', '品項': 'item', '貨號': 'sku',
   '查詢欄': 'query',
-  '單位': 'unit', '規格(g/pcs)': 'spec', '單位規格(g/pcs)': 'spec',
+  '單位': 'unit', '規格': 'spec', '單位規格': 'spec',
   '最新價格(含稅)': 'quotePrice', '報價單價(含稅)': 'quotePrice',
   '含稅單價': 'quotePrice', '進貨單價(含稅)': 'quotePrice', '報價單價': 'quotePrice',
   '備註': 'note',
@@ -1675,7 +1675,7 @@ window.showQuoteDetail = function(filteredIdx) {
     { key:'item',       label:'品項',           type:'text' },
     { key:'query',      label:'查詢欄',         type:'text' },
     { key:'unit',       label:'單位',           type:'text' },
-    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
+    { key:'spec',       label:'規格',    type:'text' },
     { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
     { key:'note',       label:'備註',           type:'text' },
   ];
@@ -1749,7 +1749,7 @@ window.addNewQuote = function() {
     { key:'item',       label:'品項',           type:'text' },
     { key:'query',      label:'查詢欄',         type:'text' },
     { key:'unit',       label:'單位',           type:'text' },
-    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
+    { key:'spec',       label:'規格',    type:'text' },
     { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
     { key:'note',       label:'備註',           type:'text' },
   ];
