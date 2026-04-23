@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -187,10 +186,10 @@ body {
 .vtab-panel.open { right: 50px; pointer-events: auto; }  /* stays left of the tab rail */
 .vtab-panel-head {
   padding: 16px 18px; border-bottom: 2px solid var(--ink);
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 12px;
   background: white; flex-shrink: 0;
 }
-.vtab-panel-head h3 { font-family: 'Kalam','Noto Sans TC',sans-serif; font-size: 1.2rem; }
+.vtab-panel-head h3 { font-family: 'Kalam','Noto Sans TC',sans-serif; font-size: 1.2rem; flex: 1; }
 .vtab-panel-close {
   background: white; border: 2px solid var(--ink); border-radius: 7px;
   padding: 4px 10px; cursor: pointer; font-size: 1rem; font-family: inherit;
@@ -1546,23 +1545,25 @@ window.switchMode = function(mode) {
 // source: 'manual' | 'purchase' | 'excel' | 'pdf'
 
 const QUOTE_COLS = [
-  { key: 'vendor',     label: '廠商',          type: 'text' },
-  { key: 'item',       label: '品項',          type: 'text' },
-  { key: 'sku',        label: '貨號',          type: 'mono' },
-  { key: 'unit',       label: '單位',          type: 'text' },
-  { key: 'spec',       label: '規格(g/pcs)',   type: 'text' },
-  { key: 'buyUnit',    label: '進貨單位',      type: 'text' },
-  { key: 'quotePrice', label: '報價單價(含稅)',type: 'num'  },
-  { key: 'updatedAt',  label: '最後更新',      type: 'mono' },
-  { key: 'source',     label: '更新來源',      type: 'badge'},
+  { key: 'vendor',     label: '廠商',            type: 'text' },
+  { key: 'sku',        label: '貨號',            type: 'mono' },
+  { key: 'item',       label: '品項',            type: 'text' },
+  { key: 'query',      label: '查詢欄',          type: 'text' },
+  { key: 'unit',       label: '單位',            type: 'text' },
+  { key: 'spec',       label: '規格(g/pcs)',     type: 'text' },
+  { key: 'quotePrice', label: '最新價格(含稅)',  type: 'num'  },
+  { key: 'note',       label: '備註',            type: 'text' },
+  { key: 'updatedAt',  label: '最後更新',        type: 'mono' },
+  { key: 'source',     label: '更新來源',        type: 'badge'},
 ];
 
 const QUOTE_EXCEL_MAP = {
   '廠商': 'vendor', '品項': 'item', '貨號': 'sku',
+  '查詢欄': 'query',
   '單位': 'unit', '規格(g/pcs)': 'spec', '單位規格(g/pcs)': 'spec',
-  '進貨單位': 'buyUnit',
-  '報價單價(含稅)': 'quotePrice', '含稅單價': 'quotePrice',
-  '進貨單價(含稅)': 'quotePrice', '報價單價': 'quotePrice',
+  '最新價格(含稅)': 'quotePrice', '報價單價(含稅)': 'quotePrice',
+  '含稅單價': 'quotePrice', '進貨單價(含稅)': 'quotePrice', '報價單價': 'quotePrice',
+  '備註': 'note',
 };
 
 let quoteList  = [];
@@ -1669,13 +1670,14 @@ window.showQuoteDetail = function(filteredIdx) {
   document.getElementById('quoteDetailTitle').textContent = '✏️ ' + (r.item || '編輯報價');
 
   const fields = [
-    { key:'vendor',     label:'廠商',          type:'text' },
-    { key:'item',       label:'品項',          type:'text' },
-    { key:'sku',        label:'貨號',          type:'mono' },
-    { key:'unit',       label:'單位',          type:'text' },
-    { key:'spec',       label:'規格(g/pcs)',   type:'text' },
-    { key:'buyUnit',    label:'進貨單位',      type:'text' },
-    { key:'quotePrice', label:'報價單價(含稅)',type:'num'  },
+    { key:'vendor',     label:'廠商',           type:'text' },
+    { key:'sku',        label:'貨號',           type:'mono' },
+    { key:'item',       label:'品項',           type:'text' },
+    { key:'query',      label:'查詢欄',         type:'text' },
+    { key:'unit',       label:'單位',           type:'text' },
+    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
+    { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
+    { key:'note',       label:'備註',           type:'text' },
   ];
   let html = '';
   fields.forEach(f => {
@@ -1700,7 +1702,7 @@ window.saveQuoteDetail = function() {
   if (_quoteDetailIdx === null || _quoteDetailIdx < 0) return;
   const r = quoteList[_quoteDetailIdx];
   if (!r) return;
-  ['vendor','item','sku','unit','spec','buyUnit','quotePrice','updatedAt'].forEach(k => {
+  ['vendor','sku','item','query','unit','spec','quotePrice','note','updatedAt'].forEach(k => {
     const el = document.getElementById('qf-' + k);
     if (!el) return;
     const v = el.value.trim();
@@ -1732,8 +1734,8 @@ window.deleteQuoteDetail = function() {
 
 // ── Add new blank quote ──
 window.addNewQuote = function() {
-  const blank = { vendor:null, item:null, sku:null, unit:null, spec:null, buyUnit:null,
-    quotePrice:null, updatedAt: todayStr(), source:'manual' };
+  const blank = { vendor:null, sku:null, item:null, query:null, unit:null, spec:null,
+    quotePrice:null, note:null, updatedAt: todayStr(), source:'manual' };
   quoteList.unshift(blank);
   _quoteDetailIdx = 0;
   applyQuoteFilter();
@@ -1742,13 +1744,14 @@ window.addNewQuote = function() {
   // open the edit drawer for this new blank record
   document.getElementById('quoteDetailTitle').textContent = '✏️ 新增報價';
   const fields = [
-    { key:'vendor',     label:'廠商',          type:'text' },
-    { key:'item',       label:'品項',          type:'text' },
-    { key:'sku',        label:'貨號',          type:'mono' },
-    { key:'unit',       label:'單位',          type:'text' },
-    { key:'spec',       label:'規格(g/pcs)',   type:'text' },
-    { key:'buyUnit',    label:'進貨單位',      type:'text' },
-    { key:'quotePrice', label:'報價單價(含稅)',type:'num'  },
+    { key:'vendor',     label:'廠商',           type:'text' },
+    { key:'sku',        label:'貨號',           type:'mono' },
+    { key:'item',       label:'品項',           type:'text' },
+    { key:'query',      label:'查詢欄',         type:'text' },
+    { key:'unit',       label:'單位',           type:'text' },
+    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
+    { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
+    { key:'note',       label:'備註',           type:'text' },
   ];
   let html = '';
   fields.forEach(f => {
@@ -1791,9 +1794,9 @@ window.syncQuoteFromPurchase = function() {
       const dateStr = rec.date || (rec.year && rec.month
         ? `${rec.year}/${String(rec.month).padStart(2,'0')}${rec.day?'/'+String(rec.day).padStart(2,'0'):''}` : todayStr());
       quoteList.push({
-        vendor: rec.vendor||null, item: rec.item||null, sku: rec.sku||null,
-        unit: rec.unit||null, spec: rec.spec||null, buyUnit: rec.buyUnit||null,
-        quotePrice: price, updatedAt: dateStr, source: 'purchase'
+        vendor: rec.vendor||null, sku: rec.sku||null, item: rec.item||null,
+        query: null, unit: rec.unit||null, spec: rec.spec||null,
+        quotePrice: price, note: null, updatedAt: dateStr, source: 'purchase'
       });
       keyMap[k] = quoteList.length - 1;
       added++;
