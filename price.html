@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -371,6 +372,47 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   .sidebar { height: auto; position: static; }
   .col-toggle-grid { grid-template-columns: 1fr 1fr 1fr; max-height: 120px; }
 }
+
+/* ── MODE TABS ── */
+.mode-tabs {
+  display: flex; justify-content: center; gap: 8px;
+  margin-bottom: 14px;
+}
+.mode-tab {
+  padding: 8px 28px; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.95rem;
+  border: 2.5px solid var(--ink); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  background: white; color: var(--ink); transition: all .15s;
+  box-shadow: 3px 3px 0 0 var(--shadow);
+}
+.mode-tab:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 0 var(--shadow); }
+.mode-tab.active-purchase { background: var(--ink); color: white; box-shadow: 3px 3px 0 0 var(--shadow); }
+.mode-tab.active-quote { background: #6a1b9a; color: white; border-color: #6a1b9a; box-shadow: 3px 3px 0 0 #4a0080; }
+
+/* ── QUOTE MODULE ── */
+:root { --purple: #6a1b9a; --purple-light: #f3e5f5; --purple-dark: #4a0080; }
+
+.quote-source-badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 20px; border: 1.5px solid;
+  white-space: nowrap;
+}
+.badge-manual  { background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; }
+.badge-purchase{ background: #e3f2fd; color: #1565c0; border-color: #1565c0; }
+.badge-excel   { background: #fff8e7; color: #b8942a; border-color: #b8942a; }
+.badge-pdf     { background: #fce4ec; color: #c62828; border-color: #c62828; }
+
+.btn-sketchy-purple {
+  width: 100%; padding: 9px; background: var(--purple-light); color: var(--purple);
+  border: 2.5px solid var(--purple); font-weight: 700; cursor: pointer;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 3px 3px 0 0 var(--purple-dark); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.9rem; transition: all .1s;
+}
+.btn-sketchy-purple:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 0 var(--purple-dark); }
+
+thead th.quote-th { background: #ede7f6; }
+td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--purple); }
 </style>
 </head>
 <body>
@@ -380,6 +422,13 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   <div class="header-badge" id="headerBadge">載入中…</div>
 </div>
 
+<div class="mode-tabs">
+  <button class="mode-tab active-purchase" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
+  <button class="mode-tab" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
+</div>
+
+<!-- ══ PURCHASE MODE ══ -->
+<div id="purchaseMode">
 <div class="main">
   <aside class="sidebar sketchy-box">
     <div class="sidebar-section">
@@ -418,6 +467,40 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
     </div>
   </main>
 </div>
+</div><!-- /#purchaseMode -->
+
+<!-- ══ QUOTE MODE ══ -->
+<div id="quoteMode" style="display:none">
+<div class="main">
+  <aside class="sidebar sketchy-box" id="quoteSidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">🔍 搜尋報價</div>
+      <input type="text" id="quoteSearchInput" placeholder="品項、廠商、貨號…" autocomplete="off">
+    </div>
+
+    <div class="vendor-list" id="quoteVendorList"></div>
+
+    <div class="sidebar-footer">
+      <button class="btn-sketchy-purple" onclick="addNewQuote()">➕ 新增報價</button>
+      <button class="btn-sketchy-purple" onclick="openQuoteDrawer('quoteImport')">📥 匯入報價（Excel/PDF）</button>
+      <button class="btn-sketchy-sm btn-backup" onclick="syncQuoteFromPurchase()">🔄 從進貨紀錄更新報價</button>
+      <button class="btn-sketchy-sm btn-backup" onclick="doQuoteBackup()">💾 備份報價 JSON</button>
+      <button class="btn-sketchy-sm btn-restore" onclick="openQuoteDrawer('quoteRestore')">📂 恢復報價備份</button>
+      <button class="btn-sketchy-sm btn-clear" onclick="doClearQuote()">🗑 清除所有報價</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="table-wrap sketchy-box">
+      <table id="quoteTable">
+        <thead><tr id="quoteTableHead"></tr></thead>
+        <tbody id="quoteTableBody"></tbody>
+      </table>
+      <div class="empty-msg" id="quoteEmptyMsg">沒有報價資料，請手動新增或從進貨紀錄同步</div>
+    </div>
+  </main>
+</div>
+</div><!-- /#quoteMode -->
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
 
@@ -471,6 +554,60 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
     </div>
     <div id="restoreLog">尚未選擇檔案</div>
     <button id="restoreConfirmBtn" class="btn-confirm-gold" disabled onclick="confirmRestore()">⚡ 確認恢復（覆蓋現有資料）</button>
+  </div>
+</div>
+
+<!-- ── QUOTE: Edit Drawer ── -->
+<div class="side-drawer" id="drawerQuoteDetail">
+  <div class="drawer-head">
+    <h2 id="quoteDetailTitle">✏️ 編輯報價</h2>
+    <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <div class="edit-form-grid" id="quoteDetailForm"></div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn-save-detail" onclick="saveQuoteDetail()">💾 儲存</button>
+    <button class="btn-delete-detail" onclick="deleteQuoteDetail()">🗑 刪除此筆</button>
+  </div>
+</div>
+
+<!-- ── QUOTE: Import Excel/PDF Drawer ── -->
+<div class="side-drawer" id="drawerQuoteImport">
+  <div class="drawer-head">
+    <h2>📥 匯入報價單</h2>
+    <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <p style="font-size:0.85rem;color:#666;line-height:1.7;margin-bottom:12px;">
+      支援 <strong>Excel (.xlsx/.xls)</strong> 或 <strong>PDF</strong> 匯入。<br>
+      欄位對應：廠商、品項、貨號、單位、規格(g/pcs)、<strong>報價單價(含稅)</strong>
+    </p>
+    <div class="import-file-zone" onclick="document.getElementById('quoteImportFile').click()" style="border-color:rgba(106,27,154,0.4)">
+      <input type="file" id="quoteImportFile" accept=".xlsx,.xls,.pdf" onchange="handleQuoteImportFile(this.files[0])">
+      <div class="import-file-label">點擊選擇檔案<br><strong>.xlsx / .xls / .pdf</strong></div>
+    </div>
+    <div id="quoteImportLog">尚未選擇檔案</div>
+    <button id="quoteImportConfirmBtn" class="btn-confirm" disabled onclick="confirmQuoteImport()" style="background:#6a1b9a;border-color:#4a0080;box-shadow:3px 3px 0 #4a0080;">✅ 確認更新報價</button>
+  </div>
+</div>
+
+<!-- ── QUOTE: Restore Drawer ── -->
+<div class="side-drawer" id="drawerQuoteRestore">
+  <div class="drawer-head">
+    <h2>📂 恢復報價備份</h2>
+    <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <p style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:14px;">
+      選擇先前備份的 <strong>.json</strong> 檔案，將<strong>完全覆蓋</strong>現有報價資料。
+    </p>
+    <div class="restore-file-zone" onclick="document.getElementById('quoteRestoreFile').click()">
+      <input type="file" id="quoteRestoreFile" accept=".json" onchange="handleQuoteRestoreFile(this.files[0])">
+      <div class="restore-file-label">點擊選擇備份檔案<br><strong>.json</strong></div>
+    </div>
+    <div id="quoteRestoreLog">尚未選擇檔案</div>
+    <button id="quoteRestoreConfirmBtn" class="btn-confirm-gold" disabled onclick="confirmQuoteRestore()">⚡ 確認恢復</button>
   </div>
 </div>
 
@@ -955,8 +1092,24 @@ window.confirmImport = function() {
   if (!pendingData) return;
 
   function recKey(r) {
-    const datePart = [r.year, r.month, r.day, r.date].filter(v => v != null && v !== '').join('-');
-    return [r.vendor||'', r.item||'', datePart, r.qty??'', r.priceTax??''].join('|||');
+    return [
+      r.site      ?? '',
+      r.vendor    ?? '',
+      r.year      ?? '',
+      r.month     ?? '',
+      r.day       ?? '',
+      r.date      ?? '',
+      r.sku       ?? '',
+      r.item      ?? '',
+      r.query     ?? '',
+      r.unit      ?? '',
+      r.spec      ?? '',
+      r.qty       ?? '',
+      r.buyUnit   ?? '',
+      r.priceEx   ?? '',
+      r.priceTax  ?? '',
+      r.amount    ?? ''
+    ].join('|||');
   }
 
   const existingKeys = new Set(catalog.map(recKey));
@@ -1094,11 +1247,10 @@ requireAuth((user) => {
     document.querySelectorAll('.side-drawer').forEach(d => {
       d.style.top = h + 'px'; d.style.height = `calc(100vh - ${h}px)`;
     });
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
+    document.querySelectorAll('.sidebar').forEach(sidebar => {
       sidebar.style.top = (h + 14) + 'px';
       sidebar.style.height = `calc(100vh - ${h + 28}px)`;
-    }
+    });
   }
   requestAnimationFrame(applyBarHeight);
   setTimeout(applyBarHeight, 100);
@@ -1141,6 +1293,17 @@ requireAuth((user) => {
     renderAll();
   });
 
+  // ── Quote Firebase Sync ──
+  autoSaveQuote = makeAutoSave('quote', () => ({ quoteList }));
+  startSync('quote', user, (content) => {
+    if (content) {
+      quoteList = Array.isArray(content.quoteList) ? content.quoteList : [];
+    }
+    applyQuoteFilter();
+    renderQuoteTable();
+    renderQuoteSidebar();
+  });
+
   document.getElementById('searchInput').addEventListener('input', e => {
     state.search = e.target.value;
     state.page = 1;
@@ -1148,9 +1311,475 @@ requireAuth((user) => {
     renderTable();
   });
 
+  document.getElementById('quoteSearchInput').addEventListener('input', e => {
+    quoteState.search = e.target.value;
+    quoteState.vendor = 'all';
+    applyQuoteFilter();
+    renderQuoteTable();
+  });
+
   buildColToggleUI();
   renderAll();
 });
+
+// ═══════════════════════════════════════════════════════════
+// MODE SWITCHING
+// ═══════════════════════════════════════════════════════════
+let currentMode = 'purchase';
+
+window.switchMode = function(mode) {
+  currentMode = mode;
+  document.getElementById('purchaseMode').style.display = mode === 'purchase' ? '' : 'none';
+  document.getElementById('quoteMode').style.display    = mode === 'quote'    ? '' : 'none';
+  const tP = document.getElementById('tabPurchase');
+  const tQ = document.getElementById('tabQuote');
+  tP.className = 'mode-tab' + (mode === 'purchase' ? ' active-purchase' : '');
+  tQ.className = 'mode-tab' + (mode === 'quote'    ? ' active-quote'    : '');
+  if (mode === 'quote') { applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar(); }
+};
+
+// ═══════════════════════════════════════════════════════════
+// 報價單 (Quote) 模組
+// ═══════════════════════════════════════════════════════════
+// 資料結構: { vendor, item, sku, unit, spec, buyUnit, quotePrice, updatedAt, source }
+// source: 'manual' | 'purchase' | 'excel' | 'pdf'
+
+const QUOTE_COLS = [
+  { key: 'vendor',     label: '廠商',          type: 'text' },
+  { key: 'item',       label: '品項',          type: 'text' },
+  { key: 'sku',        label: '貨號',          type: 'mono' },
+  { key: 'unit',       label: '單位',          type: 'text' },
+  { key: 'spec',       label: '規格(g/pcs)',   type: 'text' },
+  { key: 'buyUnit',    label: '進貨單位',      type: 'text' },
+  { key: 'quotePrice', label: '報價單價(含稅)',type: 'num'  },
+  { key: 'updatedAt',  label: '最後更新',      type: 'mono' },
+  { key: 'source',     label: '更新來源',      type: 'badge'},
+];
+
+const QUOTE_EXCEL_MAP = {
+  '廠商': 'vendor', '品項': 'item', '貨號': 'sku',
+  '單位': 'unit', '規格(g/pcs)': 'spec', '單位規格(g/pcs)': 'spec',
+  '進貨單位': 'buyUnit',
+  '報價單價(含稅)': 'quotePrice', '含稅單價': 'quotePrice',
+  '進貨單價(含稅)': 'quotePrice', '報價單價': 'quotePrice',
+};
+
+let quoteList  = [];
+let quoteState = { search: '', vendor: 'all', filtered: [] };
+let autoSaveQuote;
+let _quoteDetailIdx = null;
+let pendingQuoteData = null;
+let pendingQuoteRestore = null;
+
+// ── quote key for dedup ──
+function quoteKey(r) {
+  return [r.vendor||'', r.item||'', r.sku||'', r.buyUnit||'', r.unit||'', r.spec||''].join('|||');
+}
+
+// ── today string ──
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── open quote-specific drawers ──
+window.openQuoteDrawer = function(id) {
+  closeDrawers();
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('drawer' + id.charAt(0).toUpperCase() + id.slice(1)).classList.add('open');
+};
+
+// ── render quote sidebar (vendor list) ──
+function renderQuoteSidebar() {
+  const counts = {};
+  quoteList.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
+  const vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const vList = document.getElementById('quoteVendorList');
+  vList.innerHTML = `<button class="vendor-btn ${quoteState.vendor==='all'?'active':''}" onclick="setQuoteVendor('all')">全部 <span>${quoteList.length}</span></button>`;
+  vendors.forEach(([v,c]) => {
+    const safe = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    vList.innerHTML += `<button class="vendor-btn ${quoteState.vendor===v?'active':''}" onclick="setQuoteVendor('${safe}')">${esc(v)} <span>${c}</span></button>`;
+  });
+}
+window.setQuoteVendor = function(v) { quoteState.vendor = v; applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar(); };
+
+function applyQuoteFilter() {
+  const q = quoteState.search.toLowerCase();
+  quoteState.filtered = quoteList.filter(r => {
+    if (quoteState.vendor !== 'all' && r.vendor !== quoteState.vendor) return false;
+    if (!q) return true;
+    return QUOTE_COLS.some(col => String(r[col.key]||'').toLowerCase().includes(q));
+  });
+}
+
+function sourceBadgeHtml(src) {
+  const map = { manual:'手動', purchase:'進貨', excel:'Excel', pdf:'PDF' };
+  const cls = { manual:'badge-manual', purchase:'badge-purchase', excel:'badge-excel', pdf:'badge-pdf' };
+  const label = map[src] || src || '—';
+  const c = cls[src] || 'badge-manual';
+  return `<span class="quote-source-badge ${c}">${label}</span>`;
+}
+
+function renderQuoteTable() {
+  const head = document.getElementById('quoteTableHead');
+  const body = document.getElementById('quoteTableBody');
+  const empty = document.getElementById('quoteEmptyMsg');
+  const q  = quoteState.search.toLowerCase();
+  const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
+
+  head.innerHTML = QUOTE_COLS.map(c =>
+    `<th class="${c.type==='num'?'num':''} quote-th">${esc(c.label)}</th>`
+  ).join('');
+
+  if (!quoteState.filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = quoteList.length ? '沒有符合的報價資料' : '沒有報價資料，請手動新增或從進貨紀錄同步';
+    document.getElementById('headerBadge').innerHTML = `共 <span>${quoteList.length}</span> 筆報價`;
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = quoteState.filtered.map((r, idx) => {
+    const cells = QUOTE_COLS.map(col => {
+      const raw = r[col.key];
+      if (col.key === 'source') return `<td>${sourceBadgeHtml(raw)}</td>`;
+      if (raw === null || raw === undefined || raw === '') return `<td></td>`;
+      if (col.type === 'num' && !isNaN(Number(raw))) return `<td class="quote-price">${fmtNum(raw)}</td>`;
+      let val = esc(String(raw));
+      if (re) val = val.replace(re, '<mark>$1</mark>');
+      const cls = col.type === 'mono' ? 'mono' : '';
+      return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
+    }).join('');
+    return `<tr onclick="showQuoteDetail(${idx})">${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('headerBadge').innerHTML =
+    quoteState.filtered.length < quoteList.length
+      ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
+      : `共 <span>${quoteList.length}</span> 筆報價`;
+}
+
+// ── Show/edit quote detail ──
+window.showQuoteDetail = function(filteredIdx) {
+  const r = quoteState.filtered[filteredIdx];
+  if (!r) return;
+  _quoteDetailIdx = quoteList.indexOf(r);
+  document.getElementById('quoteDetailTitle').textContent = '✏️ ' + (r.item || '編輯報價');
+
+  const fields = [
+    { key:'vendor',     label:'廠商',          type:'text' },
+    { key:'item',       label:'品項',          type:'text' },
+    { key:'sku',        label:'貨號',          type:'mono' },
+    { key:'unit',       label:'單位',          type:'text' },
+    { key:'spec',       label:'規格(g/pcs)',   type:'text' },
+    { key:'buyUnit',    label:'進貨單位',      type:'text' },
+    { key:'quotePrice', label:'報價單價(含稅)',type:'num'  },
+  ];
+  let html = '';
+  fields.forEach(f => {
+    const val = r[f.key] ?? '';
+    const isNum = f.type === 'num';
+    html += `<div class="edit-form-row${isNum?' num-row':''}">
+      <label>${esc(f.label)}</label>
+      <input type="${isNum?'number':'text'}" id="qf-${f.key}" value="${esc(String(val))}"
+        ${f.type==='mono'?'style="font-family:\'DM Mono\',monospace"':''}>
+    </div>`;
+  });
+  // source & date (read-only info)
+  html += `<div class="edit-section-title">📅 更新資訊</div>
+    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:0.88rem">${sourceBadgeHtml(r.source)}</div></div>
+    <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${esc(r.updatedAt||'')}"></div>`;
+
+  document.getElementById('quoteDetailForm').innerHTML = html;
+  openQuoteDrawer('quoteDetail');
+};
+
+window.saveQuoteDetail = function() {
+  if (_quoteDetailIdx === null || _quoteDetailIdx < 0) return;
+  const r = quoteList[_quoteDetailIdx];
+  if (!r) return;
+  ['vendor','item','sku','unit','spec','buyUnit','quotePrice','updatedAt'].forEach(k => {
+    const el = document.getElementById('qf-' + k);
+    if (!el) return;
+    const v = el.value.trim();
+    r[k] = v === '' ? null : v;
+  });
+  r.source = 'manual';
+  r.updatedAt = todayStr();
+  if (autoSaveQuote) autoSaveQuote();
+  closeDrawers();
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  showToast('✅ 報價已儲存', 'success');
+};
+
+window.deleteQuoteDetail = function() {
+  if (_quoteDetailIdx === null || _quoteDetailIdx < 0) return;
+  const r = quoteList[_quoteDetailIdx];
+  if (!confirm(`確定刪除「${r.item||r.vendor||'此筆報價'}」？`)) return;
+  quoteList.splice(_quoteDetailIdx, 1);
+  _quoteDetailIdx = null;
+  closeDrawers();
+  if (autoSaveQuote) autoSaveQuote();
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  showToast('🗑 已刪除', 'warn');
+};
+
+// ── Add new blank quote ──
+window.addNewQuote = function() {
+  const blank = { vendor:null, item:null, sku:null, unit:null, spec:null, buyUnit:null,
+    quotePrice:null, updatedAt: todayStr(), source:'manual' };
+  quoteList.unshift(blank);
+  _quoteDetailIdx = 0;
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  // open the edit drawer for this new blank record
+  document.getElementById('quoteDetailTitle').textContent = '✏️ 新增報價';
+  const fields = [
+    { key:'vendor',     label:'廠商',          type:'text' },
+    { key:'item',       label:'品項',          type:'text' },
+    { key:'sku',        label:'貨號',          type:'mono' },
+    { key:'unit',       label:'單位',          type:'text' },
+    { key:'spec',       label:'規格(g/pcs)',   type:'text' },
+    { key:'buyUnit',    label:'進貨單位',      type:'text' },
+    { key:'quotePrice', label:'報價單價(含稅)',type:'num'  },
+  ];
+  let html = '';
+  fields.forEach(f => {
+    const isNum = f.type === 'num';
+    html += `<div class="edit-form-row${isNum?' num-row':''}">
+      <label>${esc(f.label)}</label>
+      <input type="${isNum?'number':'text'}" id="qf-${f.key}" value=""
+        ${f.type==='mono'?'style="font-family:\'DM Mono\',monospace"':''}>
+    </div>`;
+  });
+  html += `<div class="edit-section-title">📅 更新資訊</div>
+    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:0.88rem">${sourceBadgeHtml('manual')}</div></div>
+    <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${todayStr()}"></div>`;
+  document.getElementById('quoteDetailForm').innerHTML = html;
+  openQuoteDrawer('quoteDetail');
+};
+
+// ── Sync from purchase catalog ──
+window.syncQuoteFromPurchase = function() {
+  if (!catalog.length) { showToast('⚠️ 進貨紀錄是空的', 'warn'); return; }
+  let added = 0, updated = 0;
+  const keyMap = {};
+  quoteList.forEach((r, i) => { keyMap[quoteKey(r)] = i; });
+
+  catalog.forEach(rec => {
+    if (!rec.priceTax && !rec.priceEx) return;
+    const price = rec.priceTax || rec.priceEx;
+    const k = quoteKey(rec);
+    if (keyMap[k] !== undefined) {
+      // update if newer or price changed
+      const existing = quoteList[keyMap[k]];
+      if (String(existing.quotePrice) !== String(price)) {
+        existing.quotePrice = price;
+        existing.updatedAt  = rec.date || (rec.year && rec.month
+          ? `${rec.year}/${String(rec.month).padStart(2,'0')}${rec.day?'/'+String(rec.day).padStart(2,'0'):''}` : todayStr());
+        existing.source = 'purchase';
+        updated++;
+      }
+    } else {
+      const dateStr = rec.date || (rec.year && rec.month
+        ? `${rec.year}/${String(rec.month).padStart(2,'0')}${rec.day?'/'+String(rec.day).padStart(2,'0'):''}` : todayStr());
+      quoteList.push({
+        vendor: rec.vendor||null, item: rec.item||null, sku: rec.sku||null,
+        unit: rec.unit||null, spec: rec.spec||null, buyUnit: rec.buyUnit||null,
+        quotePrice: price, updatedAt: dateStr, source: 'purchase'
+      });
+      keyMap[k] = quoteList.length - 1;
+      added++;
+    }
+  });
+  if (autoSaveQuote) autoSaveQuote();
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  showToast(`🔄 新增 ${added} 筆，更新 ${updated} 筆報價`, 'success');
+};
+
+// ── Quote Import: Excel / PDF ──
+window.handleQuoteImportFile = function(file) {
+  if (!file) return;
+  pendingQuoteData = null;
+  document.getElementById('quoteImportConfirmBtn').disabled = true;
+  document.getElementById('quoteImportLog').textContent = '讀取中…';
+
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'pdf') {
+    // PDF: read as text via FileReader and parse table-like content
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        // Use PDF.js if available, else try raw text extraction
+        const bytes = new Uint8Array(e.target.result);
+        // Try to extract text by looking for common patterns
+        const text = new TextDecoder('utf-8', {fatal:false}).decode(bytes);
+        // Extract lines that look like data rows
+        const lines = text.split(/[\r\n]+/).map(l => l.trim()).filter(Boolean);
+        // Heuristic: find header row then parse
+        const parsed = parsePdfTextToQuotes(lines);
+        if (!parsed.length) throw new Error('無法從 PDF 中解析出報價資料，請改用 Excel 匯入');
+        pendingQuoteData = parsed;
+        document.getElementById('quoteImportLog').textContent = `✅ 從 PDF 解析出 ${parsed.length} 筆報價\n⚠️ PDF 解析為近似值，請確認資料正確後再確認`;
+        document.getElementById('quoteImportConfirmBtn').disabled = false;
+      } catch(err) {
+        document.getElementById('quoteImportLog').textContent = '❌ PDF 解析失敗：' + err.message;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
+  // Excel
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb  = XLSX.read(new Uint8Array(e.target.result), { type:'array', cellDates:true });
+      const ws  = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
+      if (!raw.length) { document.getElementById('quoteImportLog').textContent = '⚠️ 試算表是空的'; return; }
+
+      pendingQuoteData = raw.map(row => {
+        const rec = {};
+        Object.entries(row).forEach(([k, v]) => {
+          const ourKey = QUOTE_EXCEL_MAP[k];
+          if (ourKey) rec[ourKey] = (v === '' ? null : v);
+        });
+        return rec;
+      }).filter(r => r.item || r.vendor);
+
+      const excelCols = Object.keys(raw[0]||{});
+      const recognized   = excelCols.filter(k => QUOTE_EXCEL_MAP[k]);
+      const unrecognized = excelCols.filter(k => !QUOTE_EXCEL_MAP[k]);
+      document.getElementById('quoteImportLog').innerHTML =
+        `✅ 讀取 <strong>${pendingQuoteData.length}</strong> 筆\n辨識欄位（${recognized.length}）：${recognized.join('、')||'無'}` +
+        (unrecognized.length ? `\n⚠️ 略過（${unrecognized.length}）：${unrecognized.join('、')}` : '');
+      document.getElementById('quoteImportConfirmBtn').disabled = false;
+    } catch(err) {
+      document.getElementById('quoteImportLog').textContent = '❌ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+function parsePdfTextToQuotes(lines) {
+  // Best-effort: look for lines with numeric price at end
+  const results = [];
+  lines.forEach(line => {
+    // Try splitting by multiple spaces / tabs
+    const parts = line.split(/\s{2,}|\t/).map(p => p.trim()).filter(Boolean);
+    if (parts.length < 2) return;
+    const lastPart = parts[parts.length - 1].replace(/,/g,'');
+    const price = parseFloat(lastPart);
+    if (!isNaN(price) && price > 0 && price < 1000000) {
+      results.push({
+        item: parts[0] || null,
+        vendor: parts[1] || null,
+        quotePrice: String(price),
+        source: 'pdf',
+        updatedAt: todayStr()
+      });
+    }
+  });
+  return results;
+}
+
+window.confirmQuoteImport = function() {
+  if (!pendingQuoteData) return;
+  const keyMap = {};
+  quoteList.forEach((r, i) => { keyMap[quoteKey(r)] = i; });
+  let added = 0, updated = 0;
+  pendingQuoteData.forEach(rec => {
+    rec.source = rec.source || 'excel';
+    rec.updatedAt = rec.updatedAt || todayStr();
+    const k = quoteKey(rec);
+    if (keyMap[k] !== undefined) {
+      const ex = quoteList[keyMap[k]];
+      if (rec.quotePrice != null) { ex.quotePrice = rec.quotePrice; ex.source = rec.source; ex.updatedAt = rec.updatedAt; updated++; }
+    } else {
+      quoteList.push(rec);
+      keyMap[k] = quoteList.length - 1;
+      added++;
+    }
+  });
+  pendingQuoteData = null;
+  document.getElementById('quoteImportConfirmBtn').disabled = true;
+  document.getElementById('quoteImportLog').textContent = '尚未選擇檔案';
+  document.getElementById('quoteImportFile').value = '';
+  closeDrawers();
+  if (autoSaveQuote) autoSaveQuote();
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  showToast(`✅ 新增 ${added} 筆，更新 ${updated} 筆報價`, 'success');
+};
+
+// ── Quote Backup / Restore ──
+window.doQuoteBackup = function() {
+  if (!quoteList.length) { showToast('⚠️ 沒有報價資料', 'warn'); return; }
+  const blob = new Blob([JSON.stringify({ quoteList, exportedAt: new Date().toISOString() }, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quote_backup_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('💾 報價備份已下載', 'success');
+};
+
+window.handleQuoteRestoreFile = function(file) {
+  if (!file) return;
+  pendingQuoteRestore = null;
+  document.getElementById('quoteRestoreConfirmBtn').disabled = true;
+  document.getElementById('quoteRestoreLog').textContent = '讀取中…';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data.quoteList)) throw new Error('格式錯誤：找不到 quoteList');
+      pendingQuoteRestore = data;
+      document.getElementById('quoteRestoreLog').textContent =
+        `✅ 讀取成功\n報價筆數：${data.quoteList.length} 筆\n備份時間：${data.exportedAt||'—'}\n\n⚠️ 確認後將覆蓋現有 ${quoteList.length} 筆報價`;
+      document.getElementById('quoteRestoreConfirmBtn').disabled = false;
+    } catch(err) {
+      document.getElementById('quoteRestoreLog').textContent = '❌ 讀取失敗：' + err.message;
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+};
+
+window.confirmQuoteRestore = function() {
+  if (!pendingQuoteRestore) return;
+  quoteList = pendingQuoteRestore.quoteList || [];
+  pendingQuoteRestore = null;
+  document.getElementById('quoteRestoreConfirmBtn').disabled = true;
+  document.getElementById('quoteRestoreLog').textContent = '尚未選擇檔案';
+  document.getElementById('quoteRestoreFile').value = '';
+  closeDrawers();
+  if (autoSaveQuote) autoSaveQuote();
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  showToast(`✅ 恢復完成，共 ${quoteList.length} 筆報價`, 'success');
+};
+
+window.doClearQuote = function() {
+  if (!quoteList.length) { showToast('⚠️ 沒有報價資料', 'warn'); return; }
+  if (!confirm(`確定清除全部 ${quoteList.length} 筆報價？`)) return;
+  quoteList = [];
+  if (autoSaveQuote) autoSaveQuote();
+  applyQuoteFilter();
+  renderQuoteTable();
+  renderQuoteSidebar();
+  showToast('🗑 已清除所有報價', 'warn');
+};
 </script>
 </body>
 </html>
