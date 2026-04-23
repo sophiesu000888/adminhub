@@ -470,6 +470,26 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 thead th.quote-th { background: #ede7f6; }
 td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--purple); }
 
+/* ── QUOTE COL TOGGLE / REORDER ── */
+.q-col-list { display: flex; flex-direction: column; gap: 0; }
+.q-col-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 0; border-bottom: 1px dashed rgba(45,45,45,0.08);
+}
+.q-col-item:last-child { border-bottom: none; }
+.q-col-reorder { display: flex; gap: 3px; flex-shrink: 0; }
+.q-col-reorder-btn {
+  background: none; border: 1.5px solid #ddd; border-radius: 4px;
+  cursor: pointer; color: #999; padding: 0 6px; font-size: 1rem; line-height: 1.6;
+}
+.q-col-reorder-btn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); }
+.q-col-reorder-btn:disabled { opacity: 0.2; cursor: default; }
+.q-col-item input[type=checkbox] { width: 17px; height: 17px; cursor: pointer; accent-color: var(--purple); flex-shrink: 0; }
+.q-col-label { flex: 1; font-size: 1rem; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-col-label.custom { color: var(--purple); font-weight: 700; }
+.q-col-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; padding: 0 3px; flex-shrink: 0; line-height: 1; }
+.q-col-del:hover { color: var(--red); }
+
 /* ── COLUMN MAPPING SETTINGS ── */
 .col-map-settings {
   background: #f8f5ff; border: 1.5px solid rgba(106,27,154,0.25);
@@ -714,19 +734,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <div class="vtab-rail" id="vtabRailPurchase">
   <button class="vtab-btn vt-blue" id="vtab-cols" onclick="toggleVtab('vtab-cols','vtpanel-cols')">
     <span class="vtab-icon">📋</span>
-    <span class="vtab-label">類別</span>
-  </button>
-  <button class="vtab-btn vt-blue" id="vtab-color" onclick="toggleVtab('vtab-color','vtpanel-color')">
-    <span class="vtab-icon">🎨</span>
-    <span class="vtab-label">顏色</span>
-  </button>
-  <button class="vtab-btn vt-green" id="vtab-export" onclick="toggleVtab('vtab-export','vtpanel-export')">
-    <span class="vtab-icon">📤</span>
-    <span class="vtab-label">匯出</span>
-  </button>
-  <button class="vtab-btn vt-gold" id="vtab-history" onclick="toggleVtab('vtab-history','vtpanel-history')">
-    <span class="vtab-icon">📚</span>
-    <span class="vtab-label">歷史</span>
+    <span class="vtab-label">欄位設定</span>
   </button>
   <button class="vtab-btn vt-red" id="vtab-manage" onclick="toggleVtab('vtab-manage','vtpanel-manage')">
     <span class="vtab-icon">⚙️</span>
@@ -734,10 +742,10 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </button>
 </div>
 
-<!-- vtab: 欄位顯示 -->
+<!-- vtab: 欄位設定 -->
 <div class="vtab-panel" id="vtpanel-cols">
   <div class="vtab-panel-head">
-    <h3>📋 顯示欄位</h3>
+    <h3>📋 欄位設定</h3>
     <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
   </div>
   <div class="vtab-panel-body">
@@ -749,41 +757,6 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
 </div>
 
-<!-- vtab: 顏色（預留） -->
-<div class="vtab-panel" id="vtpanel-color">
-  <div class="vtab-panel-head">
-    <h3>🎨 顏色標記</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
-  </div>
-  <div class="vtab-panel-body">
-    <p style="color:#aaa;font-size:1rem;line-height:1.7;">顏色標記功能開發中…</p>
-  </div>
-</div>
-
-<!-- vtab: 匯出 / 匯入 -->
-<div class="vtab-panel" id="vtpanel-export">
-  <div class="vtab-panel-head">
-    <h3>📤 匯入 / 匯出</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
-  </div>
-  <div class="vtab-panel-body">
-    <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
-      <span class="vta-icon">📥</span><span class="vta-text">匯入 Excel</span>
-    </button>
-  </div>
-</div>
-
-<!-- vtab: 歷史（預留） -->
-<div class="vtab-panel" id="vtpanel-history">
-  <div class="vtab-panel-head">
-    <h3>📚 歷史紀錄</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
-  </div>
-  <div class="vtab-panel-body">
-    <p style="color:#aaa;font-size:1rem;line-height:1.7;">歷史功能開發中…</p>
-  </div>
-</div>
-
 <!-- vtab: 管理 -->
 <div class="vtab-panel" id="vtpanel-manage">
   <div class="vtab-panel-head">
@@ -791,6 +764,9 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
   </div>
   <div class="vtab-panel-body">
+    <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
+      <span class="vta-icon">📥</span><span class="vta-text">匯入 Excel</span>
+    </button>
     <button class="vt-action-btn vta-green" onclick="closeVtabs();doBackup()">
       <span class="vta-icon">💾</span><span class="vta-text">備份 JSON</span>
     </button>
@@ -809,6 +785,10 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <span class="vtab-icon">➕</span>
     <span class="vtab-label">新增</span>
   </button>
+  <button class="vtab-btn vt-blue" id="vtab-q-cols" onclick="toggleVtab('vtab-q-cols','vtpanel-q-cols')">
+    <span class="vtab-icon">📋</span>
+    <span class="vtab-label">欄位設定</span>
+  </button>
   <button class="vtab-btn vt-blue" id="vtab-q-import" onclick="toggleVtab('vtab-q-import','vtpanel-q-manage')">
     <span class="vtab-icon">📥</span>
     <span class="vtab-label">匯入</span>
@@ -825,6 +805,21 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <span class="vtab-icon">⚙️</span>
     <span class="vtab-label">管理</span>
   </button>
+</div>
+
+<!-- vtab quote: 欄位設定 -->
+<div class="vtab-panel" id="vtpanel-q-cols">
+  <div class="vtab-panel-head">
+    <h3>📋 欄位設定</h3>
+    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+  </div>
+  <div class="vtab-panel-body">
+    <div class="q-col-list" id="quoteColToggleList"></div>
+    <div class="col-toggle-actions">
+      <button class="col-toggle-reset" onclick="resetQuoteCols()">還原預設</button>
+      <button class="col-add-btn" onclick="addQuoteCustomCol()" style="color:var(--purple);border-color:var(--purple)">＋ 新增欄位</button>
+    </div>
+  </div>
 </div>
 
 <!-- vtab quote: 匯入相關 -->
@@ -1549,6 +1544,22 @@ requireAuth((user) => {
     renderQuoteSidebar();
   });
 
+  autoSaveQuotePrefs = makeAutoSave('quote_prefs', () => ({
+    visibleCols: [...quoteVisibleCols],
+    customCols:  quoteCustomCols,
+    colOrder:    quoteColOrder
+  }), 800);
+  startSync('quote_prefs', user, (content) => {
+    if (content) {
+      if (Array.isArray(content.visibleCols)) quoteVisibleCols = new Set(content.visibleCols);
+      if (Array.isArray(content.customCols))  quoteCustomCols  = content.customCols;
+      if (Array.isArray(content.colOrder))    quoteColOrder    = content.colOrder;
+    }
+    buildQuoteColToggleUI();
+    applyQuoteFilter();
+    renderQuoteTable();
+  });
+
   autoSaveQuoteMap = makeAutoSave('quote_col_map', () => customQuoteMap, 800);
   startSync('quote_col_map', user, (content) => {
     if (content && typeof content === 'object') {
@@ -1644,10 +1655,103 @@ const QUOTE_EXCEL_MAP = {
 
 let quoteList  = [];
 let quoteState = { search: '', vendor: 'all', filtered: [] };
-let autoSaveQuote;
+let autoSaveQuote, autoSaveQuotePrefs;
 let _quoteDetailIdx = null;
 let pendingQuoteData = null;
 let pendingQuoteRestore = null;
+
+// ── quote col state ──
+let quoteCustomCols  = [];   // [{ key, label }]
+let quoteVisibleCols = new Set(QUOTE_COLS.map(c => c.key));
+let quoteColOrder    = QUOTE_COLS.map(c => c.key);
+
+function allQuoteCols() {
+  const base = [
+    ...QUOTE_COLS,
+    ...quoteCustomCols.map(c => ({ key: c.key, label: c.label, type: 'text', isCustom: true }))
+  ];
+  const baseMap = Object.fromEntries(base.map(c => [c.key, c]));
+  // ordered list
+  const ordered = quoteColOrder.map(k => baseMap[k]).filter(Boolean);
+  // append anything not yet in order (e.g. new custom col)
+  base.forEach(c => { if (!quoteColOrder.includes(c.key)) ordered.push(c); });
+  return ordered;
+}
+
+function saveQuotePrefs() { if (autoSaveQuotePrefs) autoSaveQuotePrefs(); }
+
+function buildQuoteColToggleUI() {
+  const list = document.getElementById('quoteColToggleList');
+  if (!list) return;
+  const cols = allQuoteCols();
+  list.innerHTML = cols.map((col, idx) => {
+    const checked  = quoteVisibleCols.has(col.key) ? 'checked' : '';
+    const isFirst  = idx === 0, isLast = idx === cols.length - 1;
+    return `<div class="q-col-item">
+      <div class="q-col-reorder">
+        <button class="q-col-reorder-btn" ${isFirst  ? 'disabled' : ''} onclick="moveQuoteCol('${col.key}',-1)">←</button>
+        <button class="q-col-reorder-btn" ${isLast   ? 'disabled' : ''} onclick="moveQuoteCol('${col.key}',1)">→</button>
+      </div>
+      <input type="checkbox" ${checked} onchange="toggleQuoteCol('${col.key}',this.checked)">
+      <span class="q-col-label${col.isCustom?' custom':''}"
+            onclick="this.previousElementSibling.click()">${esc(col.label)}</span>
+      ${col.isCustom ? `<button class="q-col-del" onclick="deleteQuoteCustomCol('${col.key}')">✕</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+window.toggleQuoteCol = function(key, checked) {
+  if (checked) quoteVisibleCols.add(key); else quoteVisibleCols.delete(key);
+  saveQuotePrefs();
+  renderQuoteTable();
+};
+
+window.moveQuoteCol = function(key, dir) {
+  const idx = quoteColOrder.indexOf(key);
+  if (idx < 0) return;
+  const nIdx = idx + dir;
+  if (nIdx < 0 || nIdx >= quoteColOrder.length) return;
+  [quoteColOrder[idx], quoteColOrder[nIdx]] = [quoteColOrder[nIdx], quoteColOrder[idx]];
+  saveQuotePrefs();
+  buildQuoteColToggleUI();
+  renderQuoteTable();
+};
+
+window.addQuoteCustomCol = function() {
+  const name = prompt('新欄位名稱');
+  if (!name || !name.trim()) return;
+  const label = name.trim();
+  if (allQuoteCols().find(c => c.label === label)) { alert(`「${label}」已存在`); return; }
+  const key = 'qcustom_' + Date.now();
+  quoteCustomCols.push({ key, label });
+  quoteColOrder.push(key);
+  quoteVisibleCols.add(key);
+  saveQuotePrefs();
+  buildQuoteColToggleUI();
+  renderQuoteTable();
+};
+
+window.deleteQuoteCustomCol = function(key) {
+  const col = quoteCustomCols.find(c => c.key === key);
+  if (!col) return;
+  if (!confirm(`刪除欄位「${col.label}」？（此欄位填入的資料也會消失）`)) return;
+  quoteCustomCols = quoteCustomCols.filter(c => c.key !== key);
+  quoteColOrder   = quoteColOrder.filter(k => k !== key);
+  quoteVisibleCols.delete(key);
+  quoteList.forEach(r => { delete r[key]; });
+  saveQuotePrefs();
+  if (autoSaveQuote) autoSaveQuote();
+  buildQuoteColToggleUI();
+  renderQuoteTable();
+};
+
+window.resetQuoteCols = function() {
+  quoteColOrder    = QUOTE_COLS.map(c => c.key).concat(quoteCustomCols.map(c => c.key));
+  quoteVisibleCols = new Set(quoteColOrder);
+  saveQuotePrefs();
+  buildQuoteColToggleUI();
+  renderQuoteTable();
+};
 
 // ── quote key for dedup ──
 function quoteKey(r) {
@@ -1686,7 +1790,7 @@ function applyQuoteFilter() {
   quoteState.filtered = quoteList.filter(r => {
     if (quoteState.vendor !== 'all' && r.vendor !== quoteState.vendor) return false;
     if (!q) return true;
-    return QUOTE_COLS.some(col => String(r[col.key]||'').toLowerCase().includes(q));
+    return allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q));
   });
 }
 
@@ -1705,7 +1809,9 @@ function renderQuoteTable() {
   const q  = quoteState.search.toLowerCase();
   const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
 
-  head.innerHTML = QUOTE_COLS.map(c =>
+  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
+
+  head.innerHTML = visCols.map(c =>
     `<th class="${c.type==='num'?'num':''} quote-th">${esc(c.label)}</th>`
   ).join('');
 
@@ -1719,7 +1825,7 @@ function renderQuoteTable() {
   empty.style.display = 'none';
 
   body.innerHTML = quoteState.filtered.map((r, idx) => {
-    const cells = QUOTE_COLS.map(col => {
+    const cells = visCols.map(col => {
       const raw = r[col.key];
       if (col.key === 'source') return `<td>${sourceBadgeHtml(raw)}</td>`;
       if (raw === null || raw === undefined || raw === '') return `<td></td>`;
@@ -1738,39 +1844,33 @@ function renderQuoteTable() {
       : `共 <span>${quoteList.length}</span> 筆報價`;
 }
 
+// ── shared: build edit form html ──
+function buildQuoteEditFormHtml(r) {
+  const editableCols = allQuoteCols().filter(c => c.key !== 'source' && c.key !== 'updatedAt');
+  let html = editableCols.map(f => {
+    const val = r ? (r[f.key] ?? '') : '';
+    const isNum = f.type === 'num';
+    return `<div class="edit-form-row${isNum?' num-row':''}">
+      <label>${esc(f.label)}</label>
+      <input type="${isNum?'number':'text'}" id="qf-${f.key}" value="${esc(String(val))}"
+        ${f.type==='mono'?'style="font-family:\'DM Mono\',monospace"':''}>
+    </div>`;
+  }).join('');
+  const src = r ? r.source : 'manual';
+  const upd = r ? (r.updatedAt||'') : todayStr();
+  html += `<div class="edit-section-title">📅 更新資訊</div>
+    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:1rem">${sourceBadgeHtml(src)}</div></div>
+    <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${esc(upd)}"></div>`;
+  return html;
+}
+
 // ── Show/edit quote detail ──
 window.showQuoteDetail = function(filteredIdx) {
   const r = quoteState.filtered[filteredIdx];
   if (!r) return;
   _quoteDetailIdx = quoteList.indexOf(r);
   document.getElementById('quoteDetailTitle').textContent = '✏️ ' + (r.item || '編輯報價');
-
-  const fields = [
-    { key:'vendor',     label:'廠商',           type:'text' },
-    { key:'sku',        label:'貨號',           type:'mono' },
-    { key:'item',       label:'品項',           type:'text' },
-    { key:'query',      label:'查詢欄',         type:'text' },
-    { key:'unit',       label:'單位',           type:'text' },
-    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
-    { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
-    { key:'note',       label:'備註',           type:'text' },
-  ];
-  let html = '';
-  fields.forEach(f => {
-    const val = r[f.key] ?? '';
-    const isNum = f.type === 'num';
-    html += `<div class="edit-form-row${isNum?' num-row':''}">
-      <label>${esc(f.label)}</label>
-      <input type="${isNum?'number':'text'}" id="qf-${f.key}" value="${esc(String(val))}"
-        ${f.type==='mono'?'style="font-family:\'DM Mono\',monospace"':''}>
-    </div>`;
-  });
-  // source & date (read-only info)
-  html += `<div class="edit-section-title">📅 更新資訊</div>
-    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:1rem">${sourceBadgeHtml(r.source)}</div></div>
-    <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${esc(r.updatedAt||'')}"></div>`;
-
-  document.getElementById('quoteDetailForm').innerHTML = html;
+  document.getElementById('quoteDetailForm').innerHTML = buildQuoteEditFormHtml(r);
   openQuoteDrawer('quoteDetail');
 };
 
@@ -1778,14 +1878,16 @@ window.saveQuoteDetail = function() {
   if (_quoteDetailIdx === null || _quoteDetailIdx < 0) return;
   const r = quoteList[_quoteDetailIdx];
   if (!r) return;
-  ['vendor','sku','item','query','unit','spec','quotePrice','note','updatedAt'].forEach(k => {
-    const el = document.getElementById('qf-' + k);
+  allQuoteCols().filter(c => c.key !== 'source').forEach(col => {
+    const el = document.getElementById('qf-' + col.key);
     if (!el) return;
     const v = el.value.trim();
-    r[k] = v === '' ? null : v;
+    r[col.key] = v === '' ? null : v;
   });
+  // also save updatedAt input
+  const updEl = document.getElementById('qf-updatedAt');
+  r.updatedAt = updEl ? (updEl.value.trim() || todayStr()) : todayStr();
   r.source = 'manual';
-  r.updatedAt = todayStr();
   if (autoSaveQuote) autoSaveQuote();
   closeDrawers();
   applyQuoteFilter();
@@ -1810,38 +1912,14 @@ window.deleteQuoteDetail = function() {
 
 // ── Add new blank quote ──
 window.addNewQuote = function() {
-  const blank = { vendor:null, sku:null, item:null, query:null, unit:null, spec:null,
-    quotePrice:null, note:null, updatedAt: todayStr(), source:'manual' };
+  const blank = { updatedAt: todayStr(), source: 'manual' };
   quoteList.unshift(blank);
   _quoteDetailIdx = 0;
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  // open the edit drawer for this new blank record
   document.getElementById('quoteDetailTitle').textContent = '✏️ 新增報價';
-  const fields = [
-    { key:'vendor',     label:'廠商',           type:'text' },
-    { key:'sku',        label:'貨號',           type:'mono' },
-    { key:'item',       label:'品項',           type:'text' },
-    { key:'query',      label:'查詢欄',         type:'text' },
-    { key:'unit',       label:'單位',           type:'text' },
-    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
-    { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
-    { key:'note',       label:'備註',           type:'text' },
-  ];
-  let html = '';
-  fields.forEach(f => {
-    const isNum = f.type === 'num';
-    html += `<div class="edit-form-row${isNum?' num-row':''}">
-      <label>${esc(f.label)}</label>
-      <input type="${isNum?'number':'text'}" id="qf-${f.key}" value=""
-        ${f.type==='mono'?'style="font-family:\'DM Mono\',monospace"':''}>
-    </div>`;
-  });
-  html += `<div class="edit-section-title">📅 更新資訊</div>
-    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:1rem">${sourceBadgeHtml('manual')}</div></div>
-    <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${todayStr()}"></div>`;
-  document.getElementById('quoteDetailForm').innerHTML = html;
+  document.getElementById('quoteDetailForm').innerHTML = buildQuoteEditFormHtml(null);
   openQuoteDrawer('quoteDetail');
 };
 
