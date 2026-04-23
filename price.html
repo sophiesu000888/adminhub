@@ -98,7 +98,7 @@ body {
 }
 .vendor-btn:hover { border-color: var(--ink); }
 .vendor-btn.active { background: var(--ink); color: white; box-shadow: 2px 2px 0 0 var(--shadow); }
-.vendor-btn span { font-size: 0.85rem; opacity: 0.7; }
+.vendor-btn span { font-size: 1rem; opacity: 0.7; }
 
 /* ── COLUMN TOGGLE ── */
 .col-toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
@@ -111,7 +111,7 @@ body {
 .col-toggle-item.custom-col label { color: var(--blue); font-weight: 700; }
 .col-toggle-item.custom-col .del-col-btn {
   margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer;
-  color: #ccc; font-size: 0.85rem; padding: 0 2px; line-height: 1;
+  color: #ccc; font-size: 1rem; padding: 0 2px; line-height: 1;
 }
 .col-toggle-item.custom-col .del-col-btn:hover { color: var(--red); }
 .col-toggle-actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -150,7 +150,7 @@ body {
 .vtab-btn:hover { background: #f0f5ff; transform: translateX(-3px); }
 .vtab-btn.vtab-active { background: var(--ink); color: white; }
 .vtab-btn .vtab-icon { font-size: 1.3rem; writing-mode: horizontal-tb; }
-.vtab-btn .vtab-label { font-size: 0.95rem; }
+.vtab-btn .vtab-label { font-size: 1rem; }
 
 /* vtab colours */
 .vtab-btn.vt-blue   { border-color: var(--blue); color: var(--blue); box-shadow: -3px 3px 0 var(--blue); }
@@ -175,7 +175,7 @@ body {
 
 /* vtab panel (slides in from right, doesn't cover main content) */
 .vtab-panel {
-  position: fixed; right: -400px; top: 0; width: 360px; height: 100vh;
+  position: fixed; right: -400px; top: 44px; width: 360px; height: calc(100vh - 44px);
   background: var(--paper); z-index: 1090;
   border-left: 3px solid var(--ink);
   box-shadow: -6px 0 24px rgba(0,0,0,0.10);
@@ -215,7 +215,7 @@ body {
 .vt-action-btn.vta-red    { background: #fff0ee; color: var(--red); border-color: var(--red); box-shadow: 3px 3px 0 var(--red); }
 .vt-action-btn.vta-purple { background: var(--purple-light); color: var(--purple); border-color: var(--purple); box-shadow: 3px 3px 0 var(--purple-dark); }
 .vt-section-title {
-  font-size: 0.82rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 1rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; padding: 14px 0 6px; border-top: 1px dashed rgba(45,45,45,0.12);
   margin-top: 4px;
 }
@@ -246,7 +246,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 
 /* ── DRAWERS ── */
 .side-drawer {
-  position: fixed; top: 0; right: -440px; width: 420px; max-width: 93vw; height: 100vh;
+  position: fixed; top: 44px; right: -440px; width: 420px; max-width: 93vw; height: calc(100vh - 44px);
   background: var(--paper); z-index: 1200; box-shadow: -6px 0 28px rgba(0,0,0,0.12);
   transition: right 0.3s ease; display: flex; flex-direction: column; border-left: 3px solid var(--ink);
 }
@@ -273,14 +273,14 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .edit-form-grid { display: flex; flex-direction: column; gap: 10px; }
 .edit-form-row { display: flex; flex-direction: column; gap: 3px; }
 .edit-form-row label {
-  font-size: 0.78rem; color: #888; font-weight: 600; letter-spacing: 0.5px;
+  font-size: 1rem; color: #888; font-weight: 600; letter-spacing: 0.5px;
 }
 .edit-form-row input,
 .edit-form-row textarea,
 .edit-form-row select {
   width: 100%; background: white; border: 1.5px solid rgba(45,45,45,0.25);
   border-radius: 7px; padding: 7px 10px; font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.88rem; outline: none; transition: border-color .15s;
+  font-size: 1rem; outline: none; transition: border-color .15s;
   color: var(--ink);
 }
 .edit-form-row input:focus,
@@ -290,7 +290,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .edit-form-row textarea { resize: vertical; min-height: 56px; }
 
 .edit-section-title {
-  font-size: 0.78rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 1rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; padding: 10px 0 4px; border-top: 1px dashed rgba(45,45,45,0.12);
   margin-top: 4px;
 }
@@ -304,7 +304,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   flex: 1; padding: 10px; font-weight: 700; cursor: pointer;
   background: var(--blue); color: white;
   border: 2.5px solid #1a3a7a; border-radius: 8px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.92rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   box-shadow: 3px 3px 0 #1a3a7a; transition: all .1s;
 }
 .btn-save-detail:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1a3a7a; }
@@ -313,7 +313,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   padding: 10px 16px; font-weight: 700; cursor: pointer;
   background: #fff0ee; color: var(--red);
   border: 2.5px solid var(--red); border-radius: 8px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.92rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   box-shadow: 3px 3px 0 var(--red); transition: all .1s;
 }
 .btn-delete-detail:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--red); }
@@ -326,10 +326,10 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 }
 .import-file-zone:hover { border-color: var(--blue); background: #eef3ff; }
 .import-file-zone input[type=file] { display: none; }
-.import-file-label { font-size: 0.9rem; color: #666; line-height: 1.6; }
+.import-file-label { font-size: 1rem; color: #666; line-height: 1.6; }
 .import-file-label strong { color: var(--blue); }
 #importLog {
-  font-size: 0.83rem; color: #555; line-height: 1.7;
+  font-size: 1rem; color: #555; line-height: 1.7;
   background: var(--surface-card2); border-radius: 8px; padding: 10px 12px;
   min-height: 50px; margin-bottom: 14px; white-space: pre-wrap;
 }
@@ -337,7 +337,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   width: 100%; padding: 11px; font-weight: 700; cursor: pointer;
   background: var(--green-dark); color: white;
   border: 2.5px solid #1b5e20; border-radius: 8px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.95rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   box-shadow: 3px 3px 0 #1b5e20; transition: all .1s;
 }
 .btn-confirm:hover:not(:disabled) { transform: translate(1px,1px); box-shadow: 2px 2px 0 #1b5e20; }
@@ -345,7 +345,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 
 /* ── RESTORE DRAWER ── */
 #restoreLog {
-  font-size: 0.83rem; color: #555; line-height: 1.7;
+  font-size: 1rem; color: #555; line-height: 1.7;
   background: var(--surface-card2); border-radius: 8px; padding: 10px 12px;
   min-height: 50px; margin-bottom: 14px; white-space: pre-wrap;
 }
@@ -356,13 +356,13 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 }
 .restore-file-zone:hover { border-color: var(--gold); background: #fff8e7; }
 .restore-file-zone input[type=file] { display: none; }
-.restore-file-label { font-size: 0.9rem; color: #666; line-height: 1.6; }
+.restore-file-label { font-size: 1rem; color: #666; line-height: 1.6; }
 .restore-file-label strong { color: var(--gold); }
 .btn-confirm-gold {
   width: 100%; padding: 11px; font-weight: 700; cursor: pointer;
   background: var(--gold); color: white;
   border: 2.5px solid #8a6e1a; border-radius: 8px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.95rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   box-shadow: 3px 3px 0 #8a6e1a; transition: all .1s;
 }
 .btn-confirm-gold:hover:not(:disabled) { transform: translate(1px,1px); box-shadow: 2px 2px 0 #8a6e1a; }
@@ -373,7 +373,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
   border-radius: 10px; background: var(--ink); color: white;
   font-weight: 700; opacity: 0; transition: 0.3s; z-index: 9999;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.9rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
 }
 .toast.show { opacity: 1; }
 .toast.success { background: #f0fdf4; color: #1b5e20; border: 2px solid #2e7d32; }
@@ -387,13 +387,13 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   border-radius: 10px 3px 9px 3px / 3px 9px 3px 10px;
   box-shadow: 4px 4px 0 var(--shadow);
   padding: 12px 16px; min-width: 200px; max-width: 280px;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.82rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   opacity: 0; transition: opacity .12s;
 }
 #item-popover.show { opacity: 1; }
 .pop-title {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;
+  font-size: 1rem; font-weight: 700; margin-bottom: 8px;
   color: var(--ink); border-bottom: 1.5px dashed rgba(45,45,45,0.2);
   padding-bottom: 6px; word-break: break-all;
 }
@@ -402,11 +402,11 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   padding: 4px 0; gap: 10px;
 }
 .pop-row:not(:last-child) { border-bottom: 1px dashed rgba(45,45,45,0.08); }
-.pop-label { color: #888; font-size: 0.78rem; white-space: nowrap; }
+.pop-label { color: #888; font-size: 1rem; white-space: nowrap; }
 .pop-val { font-weight: 700; font-family: 'DM Mono', monospace; color: var(--green-dark); }
 .pop-val.hi { color: var(--red); }
-.pop-sub { font-size: 0.72rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
-.pop-no-data { color: #bbb; font-size: 0.8rem; text-align: center; padding: 4px 0; }
+.pop-sub { font-size: 1rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
+.pop-no-data { color: #bbb; font-size: 1rem; text-align: center; padding: 4px 0; }
 
 /* ── DETAIL READ-ONLY section (history) ── */
 .detail-kv { display: flex; flex-direction: column; }
@@ -415,10 +415,10 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   padding: 8px 0; border-bottom: 1px dashed rgba(45,45,45,0.12); gap: 16px;
 }
 .detail-row:last-child { border-bottom: none; }
-.detail-key { font-size: 0.78rem; color: #888; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
-.detail-val { font-size: 0.88rem; font-weight: 700; text-align: right; word-break: break-all; }
+.detail-key { font-size: 1rem; color: #888; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.detail-val { font-size: 1rem; font-weight: 700; text-align: right; word-break: break-all; }
 .detail-section-title {
-  font-size: 0.78rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
+  font-size: 1rem; color: #aaa; font-weight: 700; letter-spacing: 1.5px;
   text-transform: uppercase; padding: 14px 0 6px;
 }
 
@@ -436,7 +436,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 }
 .mode-tab {
   padding: 8px 28px; font-weight: 700; cursor: pointer;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.95rem;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   border: 2.5px solid var(--ink); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   background: white; color: var(--ink); transition: all .15s;
   box-shadow: 3px 3px 0 0 var(--shadow);
@@ -449,7 +449,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 :root { --purple: #6a1b9a; --purple-light: #f3e5f5; --purple-dark: #4a0080; }
 
 .quote-source-badge {
-  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  display: inline-block; font-size: 1rem; font-weight: 700;
   padding: 1px 7px; border-radius: 20px; border: 1.5px solid;
   white-space: nowrap;
 }
@@ -463,7 +463,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
   border: 2.5px solid var(--purple); font-weight: 700; cursor: pointer;
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   box-shadow: 3px 3px 0 0 var(--purple-dark); font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.9rem; transition: all .1s;
+  font-size: 1rem; transition: all .1s;
 }
 .btn-sketchy-purple:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 0 var(--purple-dark); }
 
@@ -578,7 +578,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
-    <p style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:14px;">
+    <p style="font-size:1rem;color:#888;line-height:1.6;margin-bottom:14px;">
       選擇先前備份的 <strong>.json</strong> 檔案，資料將<strong>完全覆蓋</strong>現有雲端資料。
     </p>
     <div class="restore-file-zone" onclick="document.getElementById('restoreFileInput').click()">
@@ -612,7 +612,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
-    <p style="font-size:0.85rem;color:#666;line-height:1.7;margin-bottom:12px;">
+    <p style="font-size:1rem;color:#666;line-height:1.7;margin-bottom:12px;">
       支援 <strong>Excel (.xlsx/.xls)</strong> 或 <strong>PDF</strong> 匯入。<br>
       欄位對應：廠商、品項、貨號、單位、規格(g/pcs)、<strong>報價單價(含稅)</strong>
     </p>
@@ -632,7 +632,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
-    <p style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:14px;">
+    <p style="font-size:1rem;color:#888;line-height:1.6;margin-bottom:14px;">
       選擇先前備份的 <strong>.json</strong> 檔案，將<strong>完全覆蓋</strong>現有報價資料。
     </p>
     <div class="restore-file-zone" onclick="document.getElementById('quoteRestoreFile').click()">
@@ -690,7 +690,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
   </div>
   <div class="vtab-panel-body">
-    <p style="color:#aaa;font-size:0.9rem;line-height:1.7;">顏色標記功能開發中…</p>
+    <p style="color:#aaa;font-size:1rem;line-height:1.7;">顏色標記功能開發中…</p>
   </div>
 </div>
 
@@ -714,7 +714,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
   </div>
   <div class="vtab-panel-body">
-    <p style="color:#aaa;font-size:0.9rem;line-height:1.7;">歷史功能開發中…</p>
+    <p style="color:#aaa;font-size:1rem;line-height:1.7;">歷史功能開發中…</p>
   </div>
 </div>
 
@@ -1691,7 +1691,7 @@ window.showQuoteDetail = function(filteredIdx) {
   });
   // source & date (read-only info)
   html += `<div class="edit-section-title">📅 更新資訊</div>
-    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:0.88rem">${sourceBadgeHtml(r.source)}</div></div>
+    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:1rem">${sourceBadgeHtml(r.source)}</div></div>
     <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${esc(r.updatedAt||'')}"></div>`;
 
   document.getElementById('quoteDetailForm').innerHTML = html;
@@ -1763,7 +1763,7 @@ window.addNewQuote = function() {
     </div>`;
   });
   html += `<div class="edit-section-title">📅 更新資訊</div>
-    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:0.88rem">${sourceBadgeHtml('manual')}</div></div>
+    <div class="edit-form-row"><label>更新來源</label><div style="padding:7px 10px;font-size:1rem">${sourceBadgeHtml('manual')}</div></div>
     <div class="edit-form-row"><label>最後更新</label><input type="text" id="qf-updatedAt" value="${todayStr()}"></div>`;
   document.getElementById('quoteDetailForm').innerHTML = html;
   openQuoteDrawer('quoteDetail');
