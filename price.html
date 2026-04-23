@@ -469,6 +469,53 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 
 thead th.quote-th { background: #ede7f6; }
 td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--purple); }
+
+/* ── COLUMN MAPPING SETTINGS ── */
+.col-map-settings {
+  background: #f8f5ff; border: 1.5px solid rgba(106,27,154,0.25);
+  border-radius: 8px; margin-bottom: 14px; overflow: hidden;
+}
+.col-map-toggle {
+  width: 100%; background: none; border: none; padding: 10px 14px;
+  text-align: left; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 1rem; font-weight: 700; color: var(--purple);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.col-map-toggle:hover { background: rgba(106,27,154,0.05); }
+#colMapSettingsBody { padding: 0 14px 14px; }
+.col-map-builtin { color: #aaa; font-size: 1rem; margin-bottom: 10px; line-height: 1.9; }
+.col-map-row {
+  display: flex; gap: 6px; align-items: center; margin-bottom: 6px;
+}
+.col-map-row input, .col-map-row select, .col-map-dyn-row select {
+  flex: 1; border: 1.5px solid #ddd; border-radius: 6px;
+  padding: 5px 8px; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
+}
+.col-map-row input:focus, .col-map-row select:focus { border-color: var(--purple); outline: none; }
+.col-map-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; padding: 0 4px; flex-shrink: 0; }
+.col-map-del:hover { color: var(--red); }
+.col-map-add-btn {
+  width: 100%; margin-top: 6px; padding: 6px; background: none; cursor: pointer;
+  border: 1.5px dashed rgba(106,27,154,0.4); border-radius: 6px;
+  color: var(--purple); font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; font-weight: 700;
+}
+.col-map-add-btn:hover { background: rgba(106,27,154,0.06); }
+
+/* ── DYNAMIC MAPPING (during import) ── */
+#quoteDynMap {
+  background: #fff8e7; border: 1.5px solid var(--gold);
+  border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
+}
+.col-map-dyn-title { font-weight: 700; color: #7a5a00; margin-bottom: 10px; font-size: 1rem; }
+.col-map-dyn-row { display: flex; gap: 8px; align-items: center; margin-bottom: 7px; }
+.col-map-dyn-name {
+  flex: 1; font-family: 'DM Mono', monospace; color: var(--ink);
+  font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.col-map-save-label {
+  display: flex; align-items: center; gap: 7px; margin-top: 10px;
+  cursor: pointer; font-size: 1rem; color: #7a5a00; font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -612,15 +659,34 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
-    <p style="font-size:1rem;color:#666;line-height:1.7;margin-bottom:12px;">
-      支援 <strong>Excel (.xlsx/.xls)</strong> 或 <strong>PDF</strong> 匯入。<br>
-      欄位對應：廠商、品項、貨號、單位、規格、<strong>報價單價(含稅)</strong>
-    </p>
+    <!-- 欄位對應設定 (collapsible) -->
+    <div class="col-map-settings">
+      <button class="col-map-toggle" onclick="toggleColMapSettings()">
+        ⚙️ 欄位對應設定
+        <span id="colMapToggleIcon">▸</span>
+      </button>
+      <div id="colMapSettingsBody" style="display:none">
+        <div class="col-map-builtin" id="colMapBuiltinInfo"></div>
+        <div id="colMapList"></div>
+        <button class="col-map-add-btn" onclick="addColMapRow()">＋ 新增自訂對應</button>
+      </div>
+    </div>
+
     <div class="import-file-zone" onclick="document.getElementById('quoteImportFile').click()" style="border-color:rgba(106,27,154,0.4)">
       <input type="file" id="quoteImportFile" accept=".xlsx,.xls,.pdf" onchange="handleQuoteImportFile(this.files[0])">
       <div class="import-file-label">點擊選擇檔案<br><strong>.xlsx / .xls / .pdf</strong></div>
     </div>
     <div id="quoteImportLog">尚未選擇檔案</div>
+
+    <!-- 動態欄位對應（匯入時出現） -->
+    <div id="quoteDynMap" style="display:none">
+      <div class="col-map-dyn-title">⚠️ 以下欄位未識別，請手動指定對應：</div>
+      <div id="quoteDynMapRows"></div>
+      <label class="col-map-save-label">
+        <input type="checkbox" id="colMapSaveCheck"> 記住這些對應設定
+      </label>
+    </div>
+
     <button id="quoteImportConfirmBtn" class="btn-confirm" disabled onclick="confirmQuoteImport()" style="background:#6a1b9a;border-color:#4a0080;box-shadow:3px 3px 0 #4a0080;">✅ 確認更新報價</button>
   </div>
 </div>
@@ -808,7 +874,7 @@ const FIXED_COLS = [
   { key: 'item',     label: '品項',         excelKeys: ['品項'],                            type: 'text', defaultVisible: true  },
   { key: 'query',    label: '查詢欄',       excelKeys: ['查詢欄'],                          type: 'text', defaultVisible: false },
   { key: 'unit',     label: '單位',         excelKeys: ['單位'],                            type: 'text', defaultVisible: false },
-  { key: 'spec',     label: '規格',  excelKeys: ['規格','單位規格'],  type: 'text', defaultVisible: false },
+  { key: 'spec',     label: '規格(g/pcs)',  excelKeys: ['規格(g/pcs)','單位規格(g/pcs)'],  type: 'text', defaultVisible: false },
   { key: 'qty',      label: '進貨數量',     excelKeys: ['進貨數量'],                        type: 'num',  defaultVisible: false },
   { key: 'buyUnit',  label: '進貨單位',     excelKeys: ['進貨單位'],                        type: 'text', defaultVisible: false },
   { key: 'priceEx',  label: '進貨單價',     excelKeys: ['進貨單價'],                        type: 'num',  defaultVisible: false },
@@ -834,7 +900,7 @@ let customCols   = [];
 let state        = { search: '', vendor: 'all', page: 1, pageSize: 150, filtered: [] };
 let pendingData  = null;
 let pendingRestore = null;
-let autoSave, autoSavePrefs;
+let autoSave, autoSavePrefs, autoSaveQuoteMap;
 let visibleCols  = new Set(DEFAULT_VISIBLE);
 let _detailCatIdx = null; // catalog index of open detail row
 
@@ -1483,6 +1549,16 @@ requireAuth((user) => {
     renderQuoteSidebar();
   });
 
+  autoSaveQuoteMap = makeAutoSave('quote_col_map', () => customQuoteMap, 800);
+  startSync('quote_col_map', user, (content) => {
+    if (content && typeof content === 'object') {
+      customQuoteMap = content;
+      if (document.getElementById('colMapSettingsBody').style.display !== 'none') {
+        renderColMapSettings();
+      }
+    }
+  });
+
   document.getElementById('searchInput').addEventListener('input', e => {
     state.search = e.target.value;
     state.page = 1;
@@ -1550,7 +1626,7 @@ const QUOTE_COLS = [
   { key: 'item',       label: '品項',            type: 'text' },
   { key: 'query',      label: '查詢欄',          type: 'text' },
   { key: 'unit',       label: '單位',            type: 'text' },
-  { key: 'spec',       label: '規格',     type: 'text' },
+  { key: 'spec',       label: '規格(g/pcs)',     type: 'text' },
   { key: 'quotePrice', label: '最新價格(含稅)',  type: 'num'  },
   { key: 'note',       label: '備註',            type: 'text' },
   { key: 'updatedAt',  label: '最後更新',        type: 'mono' },
@@ -1560,7 +1636,7 @@ const QUOTE_COLS = [
 const QUOTE_EXCEL_MAP = {
   '廠商': 'vendor', '品項': 'item', '貨號': 'sku',
   '查詢欄': 'query',
-  '單位': 'unit', '規格': 'spec', '單位規格': 'spec',
+  '單位': 'unit', '規格(g/pcs)': 'spec', '單位規格(g/pcs)': 'spec',
   '最新價格(含稅)': 'quotePrice', '報價單價(含稅)': 'quotePrice',
   '含稅單價': 'quotePrice', '進貨單價(含稅)': 'quotePrice', '報價單價': 'quotePrice',
   '備註': 'note',
@@ -1675,7 +1751,7 @@ window.showQuoteDetail = function(filteredIdx) {
     { key:'item',       label:'品項',           type:'text' },
     { key:'query',      label:'查詢欄',         type:'text' },
     { key:'unit',       label:'單位',           type:'text' },
-    { key:'spec',       label:'規格',    type:'text' },
+    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
     { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
     { key:'note',       label:'備註',           type:'text' },
   ];
@@ -1749,7 +1825,7 @@ window.addNewQuote = function() {
     { key:'item',       label:'品項',           type:'text' },
     { key:'query',      label:'查詢欄',         type:'text' },
     { key:'unit',       label:'單位',           type:'text' },
-    { key:'spec',       label:'規格',    type:'text' },
+    { key:'spec',       label:'規格(g/pcs)',    type:'text' },
     { key:'quotePrice', label:'最新價格(含稅)', type:'num'  },
     { key:'note',       label:'備註',           type:'text' },
   ];
@@ -1809,6 +1885,130 @@ window.syncQuoteFromPurchase = function() {
   showToast(`🔄 新增 ${added} 筆，更新 ${updated} 筆報價`, 'success');
 };
 
+// ══ 自訂欄位對應 ══════════════════════════════════════════════
+
+const QUOTE_FIELD_OPTS = [
+  { value: '',           label: '— 略過 —' },
+  { value: 'vendor',     label: '廠商' },
+  { value: 'sku',        label: '貨號' },
+  { value: 'item',       label: '品項' },
+  { value: 'query',      label: '查詢欄' },
+  { value: 'unit',       label: '單位' },
+  { value: 'spec',       label: '規格' },
+  { value: 'quotePrice', label: '最新價格(含稅)' },
+  { value: 'note',       label: '備註' },
+];
+
+let customQuoteMap = {};
+
+function saveCustomQuoteMap() {
+  if (autoSaveQuoteMap) autoSaveQuoteMap();
+}
+
+function getEffectiveQuoteMap() {
+  return { ...QUOTE_EXCEL_MAP, ...customQuoteMap };
+}
+
+function fieldOptsHtml(selected) {
+  return QUOTE_FIELD_OPTS.map(o =>
+    `<option value="${o.value}"${o.value === selected ? ' selected' : ''}>${esc(o.label)}</option>`
+  ).join('');
+}
+
+// ── 設定面板 ──
+window.toggleColMapSettings = function() {
+  const body = document.getElementById('colMapSettingsBody');
+  const icon = document.getElementById('colMapToggleIcon');
+  const opening = body.style.display === 'none';
+  body.style.display = opening ? 'block' : 'none';
+  icon.textContent = opening ? '▾' : '▸';
+  if (opening) renderColMapSettings();
+};
+
+function renderColMapSettings() {
+  const builtinKeys = Object.keys(QUOTE_EXCEL_MAP);
+  document.getElementById('colMapBuiltinInfo').innerHTML =
+    `內建對應（唯讀）：<br>` +
+    builtinKeys.map(k => `<span style="font-family:'DM Mono',monospace">${esc(k)}</span>`).join('、');
+
+  const list = document.getElementById('colMapList');
+  list.innerHTML = Object.entries(customQuoteMap).map(([alias, field]) => `
+    <div class="col-map-row">
+      <input type="text" value="${esc(alias)}" placeholder="Excel欄位名" data-role="alias">
+      <span style="color:#aaa;flex-shrink:0">→</span>
+      <select data-role="field">${fieldOptsHtml(field)}</select>
+      <button class="col-map-del" onclick="deleteColMapRow(this)">✕</button>
+    </div>`).join('');
+
+  list.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', rebuildCustomMapFromSettings);
+    el.addEventListener('input',  rebuildCustomMapFromSettings);
+  });
+}
+
+window.addColMapRow = function() {
+  const list = document.getElementById('colMapList');
+  const div = document.createElement('div');
+  div.className = 'col-map-row';
+  div.innerHTML = `
+    <input type="text" value="" placeholder="Excel欄位名" data-role="alias">
+    <span style="color:#aaa;flex-shrink:0">→</span>
+    <select data-role="field">${fieldOptsHtml('')}</select>
+    <button class="col-map-del" onclick="deleteColMapRow(this)">✕</button>`;
+  list.appendChild(div);
+  div.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', rebuildCustomMapFromSettings);
+    el.addEventListener('input',  rebuildCustomMapFromSettings);
+  });
+  div.querySelector('input').focus();
+};
+
+window.deleteColMapRow = function(btn) {
+  btn.closest('.col-map-row').remove();
+  rebuildCustomMapFromSettings();
+};
+
+function rebuildCustomMapFromSettings() {
+  customQuoteMap = {};
+  document.querySelectorAll('#colMapList .col-map-row').forEach(row => {
+    const alias = row.querySelector('[data-role=alias]').value.trim();
+    const field = row.querySelector('[data-role=field]').value;
+    if (alias && field) customQuoteMap[alias] = field;
+  });
+  saveCustomQuoteMap();
+}
+
+// ── 動態對應（匯入時） ──
+let _rawExcelRows = null;
+
+function showDynMapping(unrecognized) {
+  const wrap = document.getElementById('quoteDynMap');
+  if (!unrecognized.length) { wrap.style.display = 'none'; return; }
+  document.getElementById('quoteDynMapRows').innerHTML = unrecognized.map(col => `
+    <div class="col-map-dyn-row">
+      <span class="col-map-dyn-name" title="${esc(col)}">${esc(col)}</span>
+      <span style="color:#aaa;flex-shrink:0">→</span>
+      <select data-col="${esc(col)}" onchange="applyDynMapping()">${fieldOptsHtml('')}</select>
+    </div>`).join('');
+  wrap.style.display = 'block';
+}
+
+window.applyDynMapping = function() {
+  if (!_rawExcelRows) return;
+  const map = getEffectiveQuoteMap();
+  document.querySelectorAll('#quoteDynMapRows select').forEach(sel => {
+    if (sel.value) map[sel.dataset.col] = sel.value;
+  });
+  pendingQuoteData = _rawExcelRows.map(row => {
+    const rec = {};
+    Object.entries(row).forEach(([k, v]) => {
+      const key = map[k];
+      if (key) rec[key] = (v === '' ? null : v);
+    });
+    return rec;
+  }).filter(r => r.item || r.vendor);
+};
+
 // ── Quote Import: Excel / PDF ──
 window.handleQuoteImportFile = function(file) {
   if (!file) return;
@@ -1852,21 +2052,25 @@ window.handleQuoteImportFile = function(file) {
       const raw = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
       if (!raw.length) { document.getElementById('quoteImportLog').textContent = '⚠️ 試算表是空的'; return; }
 
+      _rawExcelRows = raw;
+      const effectiveMap = getEffectiveQuoteMap();
       pendingQuoteData = raw.map(row => {
         const rec = {};
         Object.entries(row).forEach(([k, v]) => {
-          const ourKey = QUOTE_EXCEL_MAP[k];
+          const ourKey = effectiveMap[k];
           if (ourKey) rec[ourKey] = (v === '' ? null : v);
         });
         return rec;
       }).filter(r => r.item || r.vendor);
 
       const excelCols = Object.keys(raw[0]||{});
-      const recognized   = excelCols.filter(k => QUOTE_EXCEL_MAP[k]);
-      const unrecognized = excelCols.filter(k => !QUOTE_EXCEL_MAP[k]);
+      const recognized   = excelCols.filter(k => effectiveMap[k]);
+      const unrecognized = excelCols.filter(k => !effectiveMap[k]);
       document.getElementById('quoteImportLog').innerHTML =
         `✅ 讀取 <strong>${pendingQuoteData.length}</strong> 筆\n辨識欄位（${recognized.length}）：${recognized.join('、')||'無'}` +
-        (unrecognized.length ? `\n⚠️ 略過（${unrecognized.length}）：${unrecognized.join('、')}` : '');
+        (unrecognized.length ? `\n⚠️ 未識別（${unrecognized.length}）：${unrecognized.join('、')}` : '');
+      document.getElementById('colMapSaveCheck').checked = false;
+      showDynMapping(unrecognized);
       document.getElementById('quoteImportConfirmBtn').disabled = false;
     } catch(err) {
       document.getElementById('quoteImportLog').textContent = '❌ 讀取失敗：' + err.message;
@@ -1899,6 +2103,16 @@ function parsePdfTextToQuotes(lines) {
 
 window.confirmQuoteImport = function() {
   if (!pendingQuoteData) return;
+
+  // 儲存動態對應設定
+  if (document.getElementById('colMapSaveCheck').checked) {
+    document.querySelectorAll('#quoteDynMapRows select').forEach(sel => {
+      if (sel.value) customQuoteMap[sel.dataset.col] = sel.value;
+    });
+    saveCustomQuoteMap();
+    if (document.getElementById('colMapSettingsBody').style.display !== 'none') renderColMapSettings();
+  }
+
   const keyMap = {};
   quoteList.forEach((r, i) => { keyMap[quoteKey(r)] = i; });
   let added = 0, updated = 0;
@@ -1916,9 +2130,11 @@ window.confirmQuoteImport = function() {
     }
   });
   pendingQuoteData = null;
+  _rawExcelRows = null;
   document.getElementById('quoteImportConfirmBtn').disabled = true;
   document.getElementById('quoteImportLog').textContent = '尚未選擇檔案';
   document.getElementById('quoteImportFile').value = '';
+  document.getElementById('quoteDynMap').style.display = 'none';
   closeDrawers();
   if (autoSaveQuote) autoSaveQuote();
   applyQuoteFilter();
