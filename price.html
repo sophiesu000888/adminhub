@@ -1545,8 +1545,14 @@ window.setSortCol = function(key, mode, e) {
   }
 
   _applySort(mode);
-  if (mode === 'quote') renderQuoteTable();
-  else _renderTableBody(), _syncBadge();
+  if (mode === 'quote') {
+    _rebuildQuoteThead();
+    _rebuildQuoteTbody();
+  } else {
+    _rebuildPurchaseThead();
+    _renderTableBody();
+    _syncBadge();
+  }
 };
 
 function _syncBadge() {
@@ -1711,6 +1717,26 @@ function _renderTableBody() {
   }
   emptyMsg.style.display = 'none';
   tbody.innerHTML = rows.map((r, idx) => _buildRowCells(cols, r, idx, re)).join('');
+}
+
+function _rebuildPurchaseThead() {
+  const cols = allCols().filter(c => visibleCols.has(c.key));
+  const labelRow = cols.map(c =>
+    `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','purchase',event)">${esc(c.label)}${_sortIcon(c.key,'purchase')}</th>`
+  ).join('');
+  const filterRow = cols.map(c => {
+    const val = esc(colFilters[c.key] || '');
+    return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
+      <div class="col-filter-wrap">
+        <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
+          data-filterkey="${c.key}" data-mode="purchase"
+          onclick="event.stopPropagation()" autocomplete="off">
+      </div>
+    </th>`;
+  }).join('');
+  document.getElementById('tableHead').innerHTML = `<tr>${labelRow}</tr><tr class="filter-row">${filterRow}</tr>`;
+  attachColFilterListeners();
+  requestAnimationFrame(() => _initColResize('mainTable'));
 }
 
 function renderTable() {
@@ -2919,6 +2945,48 @@ window.setQuoteColFilter = function(key, val) {
       ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
       : `共 <span>${quoteList.length}</span> 筆報價`;
 };
+
+function _rebuildQuoteThead() {
+  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
+  const labelRow = visCols.map(c =>
+    `<th class="${c.type==='num'?'num':''} quote-th" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','quote',event)">${esc(c.label)}${_sortIcon(c.key,'quote')}</th>`
+  ).join('');
+  const filterRow = visCols.map(c =>
+    `<th class="col-filter-th quote-th">
+      <div class="col-filter-wrap">
+        <input class="quote-filter-input col-filter-input" type="text" placeholder="篩選"
+          value="${esc(quoteColFilters[c.key]||'')}"
+          data-filterkey="${c.key}" data-mode="quote"
+          onclick="event.stopPropagation()" autocomplete="off">
+      </div>
+    </th>`
+  ).join('');
+  document.getElementById('quoteTableHead').innerHTML = `<tr>${labelRow}</tr><tr class="filter-row">${filterRow}</tr>`;
+  attachQuoteColFilterListeners();
+  requestAnimationFrame(() => _initColResize('quoteTable'));
+}
+
+function _rebuildQuoteTbody() {
+  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
+  const q  = quoteState.search.toLowerCase();
+  const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
+  const body  = document.getElementById('quoteTableBody');
+  const empty = document.getElementById('quoteEmptyMsg');
+  if (!quoteState.filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = quoteList.length ? '沒有符合的報價資料' : '沒有報價資料';
+  } else {
+    empty.style.display = 'none';
+    body.innerHTML = _buildQuoteBodyHtml(visCols, re);
+    _setupQuoteScrollLoad();
+    _bindQuoteTbodyEvents();
+  }
+  document.getElementById('headerBadge').innerHTML =
+    quoteState.filtered.length < quoteList.length
+      ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
+      : `共 <span>${quoteList.length}</span> 筆報價`;
+}
 
 function renderQuoteTable() {
   const head  = document.getElementById('quoteTableHead');
