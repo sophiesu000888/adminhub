@@ -660,9 +660,8 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <div class="mode-tabs">
   <button class="mode-tab active-purchase" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
-  <button class="btn-star-filter" id="purchaseFavTabBtn" onclick="toggleFavFilter()" title="常用廠商篩選">⭐ 常用</button>
   <button class="mode-tab" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
-  <button class="btn-star-filter" id="quoteFavTabBtn" style="display:none" onclick="toggleFavQuoteFilter()" title="常用廠商篩選">⭐ 常用</button>
+  <button class="btn-star-filter" id="favTabBtn" onclick="toggleCurrentFav()" title="常用廠商篩選">⭐ 常用</button>
 </div>
 
 <!-- ══ PURCHASE MODE ══ -->
@@ -1262,7 +1261,17 @@ window.openFavDrawer = function(mode) {
   }
 };
 
-// ── 切換 ⭐ 篩選 ──
+window.toggleCurrentFav = function() {
+  if (currentMode === 'quote') toggleFavQuoteFilter();
+  else toggleFavFilter();
+};
+
+function syncFavBtn() {
+  const btn = document.getElementById('favTabBtn');
+  if (!btn) return;
+  const active = currentMode === 'quote' ? filterFavQuote : filterFav;
+  btn.classList.toggle('active', active);
+}
 window.toggleFavFilter = function() {
   filterFav = !filterFav;
   if (filterFav && favVendors.size === 0) {
@@ -1272,8 +1281,7 @@ window.toggleFavFilter = function() {
     return;
   }
   if (filterFav) { state.vendor = 'all'; state.page = 1; }
-  const btn = document.getElementById('purchaseFavTabBtn');
-  if (btn) btn.classList.toggle('active', filterFav);
+  syncFavBtn();
   renderAll();
 };
 window.toggleFavQuoteFilter = function() {
@@ -1285,8 +1293,7 @@ window.toggleFavQuoteFilter = function() {
     return;
   }
   if (filterFavQuote) { quoteState.vendor = 'all'; }
-  const btn = document.getElementById('quoteFavTabBtn');
-  if (btn) btn.classList.toggle('active', filterFavQuote);
+  syncFavBtn();
   applyQuoteFilter(); renderQuoteTable();
 };
 
@@ -2405,15 +2412,10 @@ window.switchMode = function(mode) {
   document.getElementById('vtabRailPurchase').style.display = mode === 'purchase' ? '' : 'none';
   document.getElementById('vtabRailQuote').style.display    = mode === 'quote'    ? '' : 'none';
   const pFavBtn = document.getElementById('purchaseFavTabBtn');
-  if (pFavBtn) {
-    pFavBtn.style.display = mode === 'purchase' ? '' : 'none';
-    pFavBtn.classList.toggle('active', filterFav);
-  }
+  if (pFavBtn) pFavBtn.classList.toggle('active', filterFav);
   const qFavBtn = document.getElementById('quoteFavTabBtn');
-  if (qFavBtn) {
-    qFavBtn.style.display = mode === 'quote' ? '' : 'none';
-    qFavBtn.classList.toggle('active', filterFavQuote);
-  }
+  if (qFavBtn) qFavBtn.classList.toggle('active', filterFavQuote);
+  syncFavBtn();
   const tP = document.getElementById('tabPurchase');
   const tQ = document.getElementById('tabQuote');
   tP.className = 'mode-tab' + (mode === 'purchase' ? ' active-purchase' : '');
@@ -2683,7 +2685,7 @@ function _buildQuoteBodyHtml(visCols, re) {
       if (col.key === 'item') {
         const v  = esc(r.vendor  || '');
         const it = esc(r.item    || '');
-        const bu = esc(r.buyUnit || '');
+        const bu = esc(r.buyUnit || r.unit || '');
         const qk = esc(r.query  || '');
         return `<td class="${cls}" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','text')" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
       }
