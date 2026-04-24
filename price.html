@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -255,6 +256,19 @@ td.num { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700;
 td.mono { font-family: 'DM Mono', monospace; }
 td.custom-td { color: var(--blue); font-style: italic; }
 mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
+/* ── 欄位篩選列 ── */
+tr.filter-row th.col-filter-th {
+  background: #eef2ff; padding: 3px 6px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.col-filter-input {
+  width: 100%; min-width: 48px; max-width: 160px;
+  border: 1.5px solid rgba(45,45,45,0.2); border-radius: 5px;
+  padding: 2px 6px; font-size: 0.85rem; font-family: 'Noto Sans TC', sans-serif;
+  background: white; outline: none; box-sizing: border-box;
+}
+.col-filter-input:focus { border-color: var(--blue); background: #f0f5ff; }
+.col-filter-input::placeholder { color: #bbb; font-size: 0.8rem; }
 .empty-msg { text-align: center; padding: 40px; color: #aaa; font-size: 1rem; }
 
 /* ── 報價單表格：欄位自動寬度，不撐滿視窗 ── */
@@ -585,7 +599,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   <main class="content">
     <div class="table-wrap sketchy-box">
       <table id="mainTable">
-        <thead><tr id="tableHead"></tr></thead>
+        <thead id="tableHead"></thead>
         <tbody id="tableBody"></tbody>
       </table>
       <div class="empty-msg" id="emptyMsg">沒有資料，請先匯入 Excel</div>
@@ -903,7 +917,7 @@ const FIXED_COLS = [
   { key: 'year',     label: '年',           excelKeys: ['年'],                              type: 'mono', defaultVisible: false },
   { key: 'month',    label: '月',           excelKeys: ['月'],                              type: 'mono', defaultVisible: false },
   { key: 'day',      label: '日',           excelKeys: ['日'],                              type: 'mono', defaultVisible: false },
-  { key: 'date',     label: '日期',         excelKeys: ['日期'],                            type: 'mono', defaultVisible: false },
+  { key: 'date',     label: '日期',         excelKeys: ['日期'],                            type: 'mono', defaultVisible: true  },
   { key: 'sku',      label: '貨號',         excelKeys: ['貨號'],                            type: 'mono', defaultVisible: false },
   { key: 'item',     label: '品項',         excelKeys: ['品項'],                            type: 'text', defaultVisible: true  },
   { key: 'query',    label: '查詢欄',       excelKeys: ['查詢欄'],                          type: 'text', defaultVisible: false },
@@ -938,6 +952,7 @@ let autoSave, autoSavePrefs, autoSaveQuoteMap, autoSavePurchaseMap;
 let visibleCols = new Set(DEFAULT_VISIBLE);
 let colOrder    = FIXED_COLS.map(c => c.key);  // 欄位顯示順序
 let _detailCatIdx = null; // catalog index of open detail row
+let colFilters  = {};  // { colKey: filterValue } for per-column filters
 
 // ── 合併欄位（固定 + 自訂，依 colOrder）──
 function allCols() {
@@ -1094,6 +1109,19 @@ function renderSidebar() {
 }
 window.setVendor = function(v) { state.vendor = v; state.page = 1; renderAll(); };
 
+window.setColFilter = function(key, val) {
+  if (val) colFilters[key] = val; else delete colFilters[key];
+  applyFilter();
+  renderTable();
+  // Restore focus after re-render
+  const inp = document.querySelector(`.col-filter-input[data-filterkey="${key}"]`);
+  if (inp) { inp.focus(); const len = inp.value.length; inp.setSelectionRange(len,len); }
+  document.getElementById('headerBadge').innerHTML =
+    state.filtered.length < catalog.length
+      ? `篩選 <span>${state.filtered.length}</span> / ${catalog.length} 筆`
+      : `共 <span>${catalog.length}</span> 筆`;
+};
+
 // ── 主渲染 ──
 function renderAll() { renderSidebar(); applyFilter(); renderTable(); }
 
@@ -1101,8 +1129,20 @@ function applyFilter() {
   const q = state.search.toLowerCase();
   state.filtered = catalog.filter(r => {
     if (state.vendor !== 'all' && r.vendor !== state.vendor) return false;
-    if (!q) return true;
-    return allCols().some(col => String(r[col.key]||'').toLowerCase().includes(q));
+    if (q && !allCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
+    for (const [key, val] of Object.entries(colFilters)) {
+      if (!val) continue;
+      const cellVal = key === 'date' ? fmtDate(r) : String(r[key]||'');
+      if (!cellVal.toLowerCase().includes(val.toLowerCase())) return false;
+    }
+    return true;
+  });
+  state.filtered.sort((a, b) => {
+    const da = fmtDate(a) || '';
+    const db = fmtDate(b) || '';
+    if (da > db) return -1;
+    if (da < db) return  1;
+    return 0;
   });
 }
 
@@ -1131,9 +1171,24 @@ function renderTable() {
   const q    = state.search.toLowerCase();
   const re   = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
 
-  document.getElementById('tableHead').innerHTML = cols.map(c =>
+  // Header row 1: labels
+  const labelRow = cols.map(c =>
     `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}">${esc(c.label)}</th>`
   ).join('');
+
+  // Header row 2: filter inputs (compact)
+  const filterRow = cols.map(c => {
+    const val = esc(colFilters[c.key] || '');
+    return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
+      <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
+        data-filterkey="${c.key}"
+        oninput="setColFilter('${c.key}',this.value)"
+        onclick="event.stopPropagation()">
+    </th>`;
+  }).join('');
+
+  const thead = document.getElementById('tableHead');
+  thead.innerHTML = `<tr>${labelRow}</tr><tr class="filter-row">${filterRow}</tr>`;
 
   const rows = state.filtered.slice(0, state.pageSize);
   const tbody = document.getElementById('tableBody');
@@ -2305,43 +2360,69 @@ window.addNewQuote = function() {
 };
 
 // ── Sync from purchase catalog ──
+// 核對 key：查詢欄(query) + 進貨單位(buyUnit)，每個組合只保留日期最新的含稅單價
 window.syncQuoteFromPurchase = function() {
   if (!catalog.length) { showToast('⚠️ 進貨紀錄是空的', 'warn'); return; }
-  let added = 0, updated = 0;
-  const keyMap = {};
-  quoteList.forEach((r, i) => { keyMap[quoteKey(r)] = i; });
+
+  // Step 1: 從進貨紀錄中，依「查詢欄 + 進貨單位」分組，只保留日期最新的那一筆
+  const syncKeyFn = rec => [rec.query||'', rec.buyUnit||''].join('|||');
+  const bestMap = {}; // syncKey → 最新的進貨紀錄
 
   catalog.forEach(rec => {
     if (!rec.priceTax && !rec.priceEx) return;
-    const price = rec.priceTax || rec.priceEx;
-    const k = quoteKey(rec);
-    if (keyMap[k] !== undefined) {
-      // update if newer or price changed
-      const existing = quoteList[keyMap[k]];
-      if (String(existing.quotePrice) !== String(price)) {
-        existing.quotePrice = price;
-        existing.updatedAt  = rec.date || (rec.year && rec.month
-          ? `${rec.year}/${String(rec.month).padStart(2,'0')}${rec.day?'/'+String(rec.day).padStart(2,'0'):''}` : todayStr());
-        existing.source = 'purchase';
-        updated++;
-      }
+    // 查詢欄空白的跳過（無法建立有意義的 key）
+    if (!rec.query && !rec.buyUnit) return;
+    const k = syncKeyFn(rec);
+    const recDate = fmtDate(rec) || '';
+    if (!bestMap[k] || recDate > (fmtDate(bestMap[k]) || '')) {
+      bestMap[k] = rec;
+    }
+  });
+
+  if (!Object.keys(bestMap).length) {
+    showToast('⚠️ 進貨紀錄中找不到含「查詢欄」資料可供同步', 'warn');
+    return;
+  }
+
+  // Step 2: 以 syncKey 對應至報價單（同樣用 query+buyUnit 當 key）
+  const quoteKeyMap = {}; // syncKey → quoteList index
+  quoteList.forEach((r, i) => { quoteKeyMap[syncKeyFn(r)] = i; });
+
+  let added = 0, updated = 0;
+
+  Object.entries(bestMap).forEach(([k, rec]) => {
+    const price   = rec.priceTax || rec.priceEx;
+    const dateStr = fmtDate(rec) || todayStr();
+
+    if (quoteKeyMap[k] !== undefined) {
+      // 已存在 → 更新含稅單價與日期
+      const existing = quoteList[quoteKeyMap[k]];
+      existing.quotePrice = price;
+      existing.updatedAt  = dateStr;
+      existing.source     = 'purchase';
+      // 補齊其他欄位（若原本是空的）
+      if (!existing.vendor) existing.vendor = rec.vendor||null;
+      if (!existing.item)   existing.item   = rec.item||null;
+      if (!existing.unit)   existing.unit   = rec.unit||null;
+      if (!existing.spec)   existing.spec   = rec.spec||null;
+      updated++;
     } else {
-      const dateStr = rec.date || (rec.year && rec.month
-        ? `${rec.year}/${String(rec.month).padStart(2,'0')}${rec.day?'/'+String(rec.day).padStart(2,'0'):''}` : todayStr());
       quoteList.push({
         vendor: rec.vendor||null, sku: rec.sku||null, item: rec.item||null,
-        query: null, unit: rec.unit||null, spec: rec.spec||null,
+        query: rec.query||null, unit: rec.unit||null, spec: rec.spec||null,
+        buyUnit: rec.buyUnit||null,
         quotePrice: price, note: null, updatedAt: dateStr, source: 'purchase'
       });
-      keyMap[k] = quoteList.length - 1;
+      quoteKeyMap[k] = quoteList.length - 1;
       added++;
     }
   });
+
   if (autoSaveQuote) autoSaveQuote();
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  showToast(`🔄 新增 ${added} 筆，更新 ${updated} 筆報價`, 'success');
+  showToast(`🔄 同步完成：新增 ${added} 筆，更新 ${updated} 筆（每組合僅取最新日期）`, 'success');
 };
 
 // ══ 自訂欄位對應 ══════════════════════════════════════════════
