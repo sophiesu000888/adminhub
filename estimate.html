@@ -403,7 +403,7 @@ select.ds {
 
 /* ── SIDE DRAWER ── */
 .side-drawer {
-  position: fixed; top: 44px; right: -55vw; width: 50vw; max-width: 95vw;
+  position: fixed; top: 44px; right: -45vw; width: 40vw; max-width: 95vw;
   height: calc(100vh - 44px); background: var(--paper); z-index: 600;
   border-left: 2.5px solid var(--border); box-shadow: -4px 0 20px rgba(0,0,0,.15);
   transition: right .25s ease; display: flex; flex-direction: column;
@@ -426,10 +426,9 @@ select.ds {
 }
 .drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
 .drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
-/* ── 抽屜內字體統一 18px（.sec-title 標題除外） ── */
-.drawer-body *:not(.sec-title):not(.sec-title *) { font-size: 18px !important; }
-.drawer-body .sec-title { font-size: 44px !important; }
-.drawer-body .sec-title::before { font-size: 40px !important; }
+/* ── 抽屜內字體統一 18px ── */
+.drawer-body * { font-size: 18px !important; }
+.drawer-header h2 { font-size: 18px !important; }
 #drawer-config .drawer-header { background: #f3e5f5; border-bottom-color: #7b1fa2; }
 #drawer-stock  .drawer-header { background: #e8f5e9; border-bottom-color: #2e7d32; }
 
