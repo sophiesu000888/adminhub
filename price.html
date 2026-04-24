@@ -1558,7 +1558,7 @@ window.confirmImport = function() {
 
   closeDrawers();
   renderAll();
-  if (autoSave) autoSave();
+  if (autoSave) autoSave.now ? autoSave.now() : autoSave();
   showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : ''), 'success');
 };
 
@@ -2410,7 +2410,7 @@ window.confirmQuoteImport = function() {
   document.getElementById('quoteImportFile').value = '';
   document.getElementById('quoteDynMap').style.display = 'none';
   closeDrawers();
-  if (autoSaveQuote) autoSaveQuote();
+  if (autoSaveQuote) autoSaveQuote.now ? autoSaveQuote.now() : autoSaveQuote();
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
