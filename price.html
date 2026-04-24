@@ -19,6 +19,7 @@
 
 <style>
 :root {
+  font-size: 18px; /* 讓 1rem = 18px，全局生效 */
   --paper: #f5f3ee;
   --ink: #2d2d2d;
   --blue: #2d5da1;
@@ -34,7 +35,6 @@
 
 body {
   font-family: 'Noto Sans TC', sans-serif;
-  font-size: 18px;
   background-color: var(--paper);
   background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
   background-size: 22px 22px;
@@ -48,7 +48,7 @@ body {
 .header { text-align: center; margin-bottom: 16px; position: relative; }
 .header h1 {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
-  font-size: 3rem; font-weight: 700; color: var(--ink);
+  font-size: 3rem; font-weight: 700; color: var(--ink); /* 3rem = 54px */
   letter-spacing: 2px; -webkit-text-stroke: 1px rgba(45,45,45,0.2);
   transform: rotate(-1deg); display: inline-block; margin-bottom: 4px;
 }
@@ -192,7 +192,7 @@ body {
   padding: 20px 24px 17px; display: flex; align-items: center; gap: 15px;
   flex-shrink: 0; border-bottom: 2.5px solid var(--ink); background: white; color: var(--ink);
 }
-.drawer-header h2 { font-size: 1.5rem; font-weight: 700; margin: 0; flex: 1; font-family: 'Kalam','Noto Sans TC',sans-serif; }
+.drawer-header h2 { font-size: 2rem; font-weight: 700; margin: 0; flex: 1; font-family: 'Kalam','Noto Sans TC',sans-serif; }
 .drawer-close {
   background: white; border: 2px solid var(--ink); color: var(--ink);
   border-radius: 8px; padding: 6px 15px; font-size: 1.1rem;
@@ -323,7 +323,7 @@ tr.filter-row th.col-filter-th {
   display: flex; justify-content: space-between; align-items: center;
   background: white; flex-shrink: 0;
 }
-.drawer-head h2 { font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 1.3rem; }
+.drawer-head h2 { font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 2rem; }
 .drawer-close {
   background: white; border: 2px solid var(--ink); border-radius: 7px;
   padding: 4px 12px; cursor: pointer; font-size: 1rem; font-family: inherit;
