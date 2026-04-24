@@ -586,6 +586,18 @@ thead th.quote-th { background: #ede7f6; }
 td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--purple); }
 #quoteTable tbody td[ondblclick] { cursor: text; }
 #quoteTable tbody td[ondblclick]:hover { background: rgba(106,27,154,0.04); }
+#mainTable tbody td.p-editable { cursor: text; }
+#mainTable tbody td.p-editable:hover { background: rgba(45,93,161,0.06); }
+#mainTable tbody td.p-editing {
+  padding: 0 !important;
+}
+#mainTable tbody td.p-editing input {
+  width: 100%; height: 100%; min-height: 32px;
+  border: 2px solid var(--blue); border-radius: 4px;
+  padding: 4px 7px; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 1rem; background: #fff; outline: none;
+  box-shadow: 0 0 0 3px rgba(45,93,161,0.15);
+}
 
 /* ── QUOTE COL TOGGLE / REORDER ── */
 .q-col-list { display: flex; flex-direction: column; gap: 0; }
@@ -1679,9 +1691,13 @@ function _buildRowCells(cols, r, idx, re) {
       let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
       return `<td class="mono">${val}</td>`;
     }
+    const PURCHASE_EDITABLE = new Set(['item','unit','spec','buyUnit']);
     const raw = r[col.key];
     if (raw === null || raw === undefined || raw === '') {
-      return `<td class="${col.isCustom?'custom-td':''}"></td>`;
+      if (PURCHASE_EDITABLE.has(col.key)) {
+        return `<td class="${col.isCustom?'custom-td':''} p-editable" data-pkey="${col.key}" data-pidx="${idx}"></td>`;
+      }
+      return `<td class="${col.isCustom?'custom-td':''}" ></td>`;
     }
     if (col.type === 'num' && !isNaN(Number(raw))) {
       return `<td class="num">${fmtNum(raw)}</td>`;
@@ -1694,7 +1710,10 @@ function _buildRowCells(cols, r, idx, re) {
       const it = esc(r.item    || '');
       const bu = esc(r.buyUnit || '');
       const qk = esc(r.query  || '');
-      return `<td class="${cls}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
+      return `<td class="${cls} p-editable" data-pkey="item" data-pidx="${idx}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
+    }
+    if (PURCHASE_EDITABLE.has(col.key)) {
+      return `<td class="${cls} p-editable" data-pkey="${col.key}" data-pidx="${idx}" title="${esc(String(raw))}">${val}</td>`;
     }
     return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
   }).join('');
@@ -1788,6 +1807,69 @@ function renderTable() {
   attachColFilterListeners();
   requestAnimationFrame(() => _initColResize('mainTable'));
 }
+
+// ══ 進貨表格：雙擊直接編輯 item / unit / spec / buyUnit ══════
+(function() {
+  const EDITABLE_LABELS = { item: '品項', unit: '單位', spec: '規格', buyUnit: '進貨單位' };
+
+  function commitEdit(td, filteredIdx, key, newVal) {
+    const row = state.filtered[filteredIdx];
+    if (!row) return;
+    const trimmed = newVal.trim();
+    row[key] = trimmed === '' ? null : trimmed;
+    // 若是 buyUnit 或 item 變更，同步更新 query（query = item + buyUnit 組合，
+    // 若原本就有 query 欄位則保留；若無則不強制建立）
+    if (autoSave) autoSave();
+    applyFilter();
+    _renderTableBody();
+    showToast(`✏️ 已更新「${EDITABLE_LABELS[key]}」`, 'success');
+  }
+
+  document.addEventListener('dblclick', function(e) {
+    const td = e.target.closest('#mainTable tbody td.p-editable');
+    if (!td) return;
+
+    // 避免觸發 showDetail
+    e.stopPropagation();
+
+    const key = td.dataset.pkey;
+    const idx = parseInt(td.dataset.pidx, 10);
+    const row = state.filtered[idx];
+    if (!row || !key) return;
+
+    const currentVal = row[key] != null ? String(row[key]) : '';
+
+    // 換成 input
+    td.classList.add('p-editing');
+    td.innerHTML = '';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentVal;
+    input.placeholder = EDITABLE_LABELS[key] || key;
+    td.appendChild(input);
+    input.focus();
+    input.select();
+
+    let committed = false;
+    function doCommit() {
+      if (committed) return;
+      committed = true;
+      commitEdit(td, idx, key, input.value);
+    }
+
+    input.addEventListener('blur', doCommit);
+    input.addEventListener('keydown', function(ev) {
+      if (ev.key === 'Enter')  { ev.preventDefault(); doCommit(); }
+      if (ev.key === 'Escape') { committed = true; applyFilter(); _renderTableBody(); }
+    });
+  });
+
+  // 單擊 editable cell → 不要觸發 showDetail
+  document.addEventListener('click', function(e) {
+    const td = e.target.closest('#mainTable tbody td.p-editable');
+    if (td) e.stopPropagation();
+  }, true);
+})();
 
 // ═══════════════════════════════════════════════════════════
 // Detail / Edit Drawer（完整可編輯）
