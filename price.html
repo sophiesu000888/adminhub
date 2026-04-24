@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -129,81 +130,86 @@ body {
 .col-add-btn:hover { background: #eef3ff; }
 
 /* ── VERTICAL TAB DRAWER ── */
+/* vtab-rail & vtab-btn styles moved to side-tab block above */
+
+/* ══ SIDE-TAB RAIL（menu 同款） ══ */
 .vtab-rail {
   position: fixed; right: 0; top: 50%; transform: translateY(-50%);
   display: flex; flex-direction: column; gap: 4px;
-  z-index: 1100; padding-right: 0;
-  pointer-events: none;
+  z-index: 1100; pointer-events: none;
   max-height: calc(100vh - 60px); overflow: visible;
 }
-.vtab-btn {
+.side-tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  width: 48px; padding: 15px 0;
+  border-radius: 12px 0 0 12px; cursor: pointer; user-select: none;
+  box-shadow: -3px 0 8px rgba(0,0,0,0.12);
+  transition: width 0.15s, box-shadow 0.15s;
+  border-top: 1.5px solid rgba(45,45,45,0.18);
+  border-bottom: 1.5px solid rgba(45,45,45,0.18);
+  border-left: 3px solid rgba(45,45,45,0.18);
   pointer-events: auto;
 }
-.vtab-btn {
+.side-tab:hover { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,0.2); }
+.side-tab.open  { width: 54px; box-shadow: -4px 0 12px rgba(0,0,0,0.25); }
+.side-tab .st-icon  { font-size: 1.38rem; line-height: 1; }
+.side-tab .st-label {
   writing-mode: vertical-rl; text-orientation: mixed;
-  background: white; border: 2px solid var(--ink);
-  border-right: none; border-radius: 10px 0 0 10px;
-  padding: 10px 5px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.82rem; font-weight: 700; color: var(--ink);
-  box-shadow: -3px 3px 0 var(--shadow);
-  transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  width: var(--vtab-w); box-sizing: border-box;
-  overflow: visible;           /* 允許文字完整顯示 */
-  clip-path: none;
+  font-size: 0.87rem; font-weight: 700; letter-spacing: 2px;
+  opacity: 0.9; line-height: 1; font-family: 'Kalam','Noto Sans TC',sans-serif;
 }
-.vtab-btn:hover { background: #f0f5ff; transform: translateX(-3px); }
-.vtab-btn.vtab-active { background: var(--ink); color: white; }
-.vtab-btn .vtab-icon { font-size: 1.1rem; writing-mode: horizontal-tb; flex-shrink: 0; }
-.vtab-btn .vtab-label { font-size: 0.78rem; white-space: nowrap; overflow: visible; letter-spacing: 0.05em; }
+/* 各按鈕配色 */
+#stab-p-cols   { background: #e7eeff; color: var(--blue);       border-left: 3px solid var(--blue); }
+#stab-p-manage { background: #fff0ee; color: var(--red);        border-left: 3px solid var(--red); }
+#stab-q-add    { background: var(--purple-light); color: var(--purple); border-left: 3px solid var(--purple); }
+#stab-q-cols   { background: #e7eeff; color: var(--blue);       border-left: 3px solid var(--blue); }
+#stab-q-sync   { background: #f0fff4; color: var(--green-dark); border-left: 3px solid var(--green-dark); }
+#stab-q-manage { background: #fff0ee; color: var(--red);        border-left: 3px solid var(--red); }
 
-/* vtab colours */
-.vtab-btn.vt-blue   { border-color: var(--blue); color: var(--blue); box-shadow: -3px 3px 0 var(--blue); }
-.vtab-btn.vt-blue:hover   { background: #e7eeff; }
-.vtab-btn.vt-blue.vtab-active  { background: var(--blue); color: white; }
-
-.vtab-btn.vt-green  { border-color: var(--green-dark); color: var(--green-dark); box-shadow: -3px 3px 0 var(--green-dark); }
-.vtab-btn.vt-green:hover  { background: #f0fff4; }
-.vtab-btn.vt-green.vtab-active { background: var(--green-dark); color: white; }
-
-.vtab-btn.vt-gold   { border-color: var(--gold); color: var(--gold); box-shadow: -3px 3px 0 var(--gold); }
-.vtab-btn.vt-gold:hover   { background: #fffdf0; }
-.vtab-btn.vt-gold.vtab-active  { background: var(--gold); color: white; }
-
-.vtab-btn.vt-red    { border-color: var(--red); color: var(--red); box-shadow: -3px 3px 0 var(--red); }
-.vtab-btn.vt-red:hover    { background: #fff0ee; }
-.vtab-btn.vt-red.vtab-active   { background: var(--red); color: white; }
-
-.vtab-btn.vt-purple { border-color: var(--purple); color: var(--purple); box-shadow: -3px 3px 0 var(--purple-dark); }
-.vtab-btn.vt-purple:hover { background: var(--purple-light); }
-.vtab-btn.vt-purple.vtab-active{ background: var(--purple); color: white; }
-
-/* vtab panel (slides in from right, doesn't cover main content) */
-.vtab-panel {
-  position: fixed; right: -440px; top: 44px; width: 360px; height: calc(100vh - 44px);
-  background: var(--paper); z-index: 1080; /* 低於 vtab-rail(1100)，確保按鈕永遠在上層 */
-  border-left: 3px solid var(--ink);
-  box-shadow: -6px 0 24px rgba(0,0,0,0.10);
-  transition: right 0.28s ease;
+/* ══ SIDE-DRAWER（menu 同款） ══ */
+.side-drawer {
+  position: fixed; top: 44px; right: -53vw;
+  width: 52vw; max-width: 500px; height: calc(100vh - 44px);
+  background-color: #f5f3ee;
+  background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
+  background-size: 22px 22px;
+  z-index: 1200;
+  box-shadow: -6px 0 28px rgba(0,0,0,0.18);
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
   display: flex; flex-direction: column; overflow: hidden;
-  pointer-events: none;
+  border-left: 3px solid var(--ink);
 }
-/* open 時：panel 右邊緊貼 vtab rail 左側，不遮住按鈕 */
-.vtab-panel.open { right: var(--vtab-w); pointer-events: auto; }
-.vtab-panel-head {
-  padding: 16px 18px; border-bottom: 2px solid var(--ink);
-  display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 12px;
-  background: white; flex-shrink: 0;
+.side-drawer.open { right: 0; }
+.drawer-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(45,45,45,0.25); z-index: 1150;
+  backdrop-filter: blur(2px);
 }
-.vtab-panel-head h3 { font-family: 'Kalam','Noto Sans TC',sans-serif; font-size: 1.2rem; flex: 1; }
-.vtab-panel-close {
-  background: white; border: 2px solid var(--ink); border-radius: 7px;
-  padding: 4px 10px; cursor: pointer; font-size: 1rem; font-family: inherit;
-  box-shadow: 2px 2px 0 var(--ink); transition: all .1s;
+.drawer-overlay.show { display: block; }
+/* 抽屜標頭 */
+.drawer-header {
+  padding: 20px 24px 17px; display: flex; align-items: center; gap: 15px;
+  flex-shrink: 0; border-bottom: 2.5px solid var(--ink); background: white; color: var(--ink);
 }
-.vtab-panel-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
-.vtab-panel-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+.drawer-header h2 { font-size: 1.5rem; font-weight: 700; margin: 0; flex: 1; font-family: 'Kalam','Noto Sans TC',sans-serif; }
+.drawer-close {
+  background: white; border: 2px solid var(--ink); color: var(--ink);
+  border-radius: 8px; padding: 6px 15px; font-size: 1.1rem;
+  cursor: pointer; font-family: inherit; font-weight: 700;
+  transition: all 0.1s; box-shadow: 2px 2px 0 0 var(--shadow);
+}
+.drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--shadow); }
+/* 抽屜配色 header */
+#sdrawer-p-cols   .drawer-header { background: #e7eeff; border-bottom-color: var(--blue); }
+#sdrawer-p-manage .drawer-header { background: #fff0ee; border-bottom-color: var(--red); }
+#sdrawer-q-add    .drawer-header { background: var(--purple-light); border-bottom-color: var(--purple); }
+#sdrawer-q-cols   .drawer-header { background: #e7eeff; border-bottom-color: var(--blue); }
+#sdrawer-q-sync   .drawer-header { background: #f0fff4; border-bottom-color: var(--green-dark); }
+#sdrawer-q-manage .drawer-header { background: #fff0ee; border-bottom-color: var(--red); }
+/* 抽屜正文 */
+.drawer-body { flex: 1; overflow-y: auto; padding: 14px 16px 20px; -webkit-overflow-scrolling: touch; }
 
-/* Action buttons inside vtab panel */
+/* Action buttons inside drawer */
 .vt-action-btn {
   display: flex; align-items: center; gap: 12px;
   width: 100%; padding: 13px 16px; margin-bottom: 8px;
@@ -766,25 +772,48 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
 </div>
 
-<!-- ══ VTAB RAIL (purchase mode) ══ -->
+<!-- ══ SIDE-TAB RAIL（進貨紀錄模式） ══ -->
 <div class="vtab-rail" id="vtabRailPurchase">
-  <button class="vtab-btn vt-blue" id="vtab-cols" onclick="toggleVtab('vtab-cols','vtpanel-cols')">
-    <span class="vtab-icon">📋</span>
-    <span class="vtab-label">欄位設定</span>
-  </button>
-  <button class="vtab-btn vt-red" id="vtab-manage" onclick="toggleVtab('vtab-manage','vtpanel-manage')">
-    <span class="vtab-icon">⚙️</span>
-    <span class="vtab-label">管理</span>
-  </button>
+  <div class="side-tab" id="stab-p-cols"   onclick="openVtab('p-cols')"   title="欄位設定">
+    <span class="st-icon">📋</span>
+    <span class="st-label">欄位設定</span>
+  </div>
+  <div class="side-tab" id="stab-p-manage" onclick="openVtab('p-manage')" title="資料管理">
+    <span class="st-icon">⚙️</span>
+    <span class="st-label">管理</span>
+  </div>
 </div>
 
-<!-- vtab: 欄位設定 -->
-<div class="vtab-panel" id="vtpanel-cols">
-  <div class="vtab-panel-head">
-    <h3>📋 欄位設定</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+<!-- ══ SIDE-TAB RAIL（報價單模式） ══ -->
+<div class="vtab-rail" id="vtabRailQuote" style="display:none">
+  <div class="side-tab" id="stab-q-add"    onclick="closeVtabs();addNewQuote()" title="新增報價">
+    <span class="st-icon">➕</span>
+    <span class="st-label">新增</span>
   </div>
-  <div class="vtab-panel-body">
+  <div class="side-tab" id="stab-q-cols"   onclick="openVtab('q-cols')"   title="欄位設定">
+    <span class="st-icon">📋</span>
+    <span class="st-label">欄位設定</span>
+  </div>
+  <div class="side-tab" id="stab-q-sync"   onclick="closeVtabs();syncQuoteFromPurchase()" title="從進貨同步">
+    <span class="st-icon">🔄</span>
+    <span class="st-label">同步</span>
+  </div>
+  <div class="side-tab" id="stab-q-manage" onclick="openVtab('q-manage')" title="資料管理">
+    <span class="st-icon">⚙️</span>
+    <span class="st-label">管理</span>
+  </div>
+</div>
+
+<!-- 共用遮罩 -->
+
+
+<!-- ① 進貨：欄位設定抽屜 -->
+<div class="side-drawer" id="sdrawer-p-cols">
+  <div class="drawer-header">
+    <span>📋</span><h2>欄位設定</h2>
+    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
     <div class="q-col-list" id="colToggleList"></div>
     <div class="col-toggle-actions">
       <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
@@ -793,13 +822,13 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
 </div>
 
-<!-- vtab: 管理 -->
-<div class="vtab-panel" id="vtpanel-manage">
-  <div class="vtab-panel-head">
-    <h3>⚙️ 資料管理</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+<!-- ② 進貨：資料管理抽屜 -->
+<div class="side-drawer" id="sdrawer-p-manage">
+  <div class="drawer-header">
+    <span>⚙️</span><h2>資料管理</h2>
+    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
-  <div class="vtab-panel-body">
+  <div class="drawer-body">
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
       <span class="vta-icon">📥</span><span class="vta-text">匯入進貨紀錄</span>
     </button>
@@ -815,33 +844,13 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
 </div>
 
-<!-- ══ VTAB RAIL (quote mode) ══ -->
-<div class="vtab-rail" id="vtabRailQuote" style="display:none">
-  <button class="vtab-btn vt-purple" id="vtab-q-add" onclick="closeVtabs();addNewQuote()">
-    <span class="vtab-icon">➕</span>
-    <span class="vtab-label">新增</span>
-  </button>
-  <button class="vtab-btn vt-blue" id="vtab-q-cols" onclick="toggleVtab('vtab-q-cols','vtpanel-q-cols')">
-    <span class="vtab-icon">📋</span>
-    <span class="vtab-label">欄位設定</span>
-  </button>
-  <button class="vtab-btn vt-green" id="vtab-q-sync" onclick="closeVtabs();syncQuoteFromPurchase()">
-    <span class="vtab-icon">🔄</span>
-    <span class="vtab-label">同步</span>
-  </button>
-  <button class="vtab-btn vt-red" id="vtab-q-manage" onclick="toggleVtab('vtab-q-manage','vtpanel-q-danger')">
-    <span class="vtab-icon">⚙️</span>
-    <span class="vtab-label">管理</span>
-  </button>
-</div>
-
-<!-- vtab quote: 欄位設定 -->
-<div class="vtab-panel" id="vtpanel-q-cols">
-  <div class="vtab-panel-head">
-    <h3>📋 欄位設定</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+<!-- ③ 報價：欄位設定抽屜 -->
+<div class="side-drawer" id="sdrawer-q-cols">
+  <div class="drawer-header">
+    <span>📋</span><h2>欄位設定</h2>
+    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
-  <div class="vtab-panel-body">
+  <div class="drawer-body">
     <div class="q-col-list" id="quoteColToggleList"></div>
     <div class="col-toggle-actions">
       <button class="col-toggle-reset" onclick="resetQuoteCols()">還原預設</button>
@@ -850,16 +859,13 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
 </div>
 
-<!-- vtab quote: 匯入相關（已整合進管理，保留空殼供舊呼叫相容） -->
-<div class="vtab-panel" id="vtpanel-q-manage" style="display:none"></div>
-
-<!-- vtab quote: 管理（含匯入/匯出/備份/恢復/清除） -->
-<div class="vtab-panel" id="vtpanel-q-danger">
-  <div class="vtab-panel-head">
-    <h3>⚙️ 管理</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
+<!-- ④ 報價：管理抽屜 -->
+<div class="side-drawer" id="sdrawer-q-manage">
+  <div class="drawer-header">
+    <span>⚙️</span><h2>報價管理</h2>
+    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
-  <div class="vtab-panel-body">
+  <div class="drawer-body">
     <div class="vt-section-title">匯入 / 匯出</div>
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openQuoteDrawer('quoteImport')">
       <span class="vta-icon">📥</span><span class="vta-text">匯入報價單 Excel</span>
@@ -880,6 +886,9 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     </button>
   </div>
 </div>
+
+<!-- 相容舊呼叫的空殼 -->
+<div id="vtpanel-q-manage" style="display:none"></div>
 
 <div class="toast" id="toast"></div>
 <div id="item-popover"></div>
@@ -1876,23 +1885,40 @@ requireAuth((user) => {
 let currentMode = 'purchase';
 
 // ── Vtab Rail ──
+const VTAB_IDS = ['p-cols','p-manage','q-cols','q-manage'];
+
 function closeVtabs() {
-  document.querySelectorAll('.vtab-panel').forEach(p => p.classList.remove('open'));
-  document.querySelectorAll('.vtab-btn').forEach(b => b.classList.remove('vtab-active'));
+  VTAB_IDS.forEach(id => {
+    document.getElementById('sdrawer-' + id)?.classList.remove('open');
+    document.getElementById('stab-' + id)?.classList.remove('open');
+  });
   document.getElementById('vtabOverlay').classList.remove('show');
 }
 window.closeVtabs = closeVtabs;
 
-window.toggleVtab = function(btnId, panelId) {
-  const panel = document.getElementById(panelId);
-  const btn   = document.getElementById(btnId);
-  const wasOpen = panel && panel.classList.contains('open');
+window.openVtab = function(id) {
+  const drawer = document.getElementById('sdrawer-' + id);
+  const tab    = document.getElementById('stab-' + id);
+  const wasOpen = drawer && drawer.classList.contains('open');
   closeVtabs();
-  if (!wasOpen && panel) {
-    panel.classList.add('open');
-    if (btn) btn.classList.add('vtab-active');
+  if (!wasOpen && drawer) {
+    drawer.classList.add('open');
+    if (tab) tab.classList.add('open');
     document.getElementById('vtabOverlay').classList.add('show');
   }
+};
+
+// 相容舊呼叫 toggleVtab（部分按鈕仍用舊名）
+window.toggleVtab = function(btnId, panelId) {
+  // 對應 panelId → 新 drawer id
+  const map = {
+    'vtpanel-cols':     'p-cols',
+    'vtpanel-manage':   'p-manage',
+    'vtpanel-q-cols':   'q-cols',
+    'vtpanel-q-danger': 'q-manage',
+  };
+  const newId = map[panelId];
+  if (newId) window.openVtab(newId);
 };
 
 window.switchMode = function(mode) {
@@ -1900,6 +1926,7 @@ window.switchMode = function(mode) {
   closeVtabs();
   document.getElementById('purchaseMode').style.display = mode === 'purchase' ? '' : 'none';
   document.getElementById('quoteMode').style.display    = mode === 'quote'    ? '' : 'none';
+  closeVtabs();
   document.getElementById('vtabRailPurchase').style.display = mode === 'purchase' ? '' : 'none';
   document.getElementById('vtabRailQuote').style.display    = mode === 'quote'    ? '' : 'none';
   const tP = document.getElementById('tabPurchase');
