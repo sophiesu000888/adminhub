@@ -665,13 +665,13 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 </div>
 
 <div class="mode-tabs">
-  <button class="mode-tab active-purchase" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
-  <button class="mode-tab" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
+  <button class="mode-tab" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
+  <button class="mode-tab active-quote" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
   <button class="btn-star-filter" id="favTabBtn" onclick="toggleCurrentFav()" title="常用廠商篩選">⭐ 常用</button>
 </div>
 
 <!-- ══ PURCHASE MODE ══ -->
-<div id="purchaseMode">
+<div id="purchaseMode" style="display:none">
 <div class="main" style="grid-template-columns:1fr">
 
   <main class="content">
@@ -687,7 +687,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 </div><!-- /#purchaseMode -->
 
 <!-- ══ QUOTE MODE ══ -->
-<div id="quoteMode" style="display:none">
+<div id="quoteMode">
 <div class="main" style="grid-template-columns:1fr">
 
   <main class="content">
@@ -848,7 +848,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 </div>
 
 <!-- ══ SIDE-TAB RAIL（進貨紀錄模式） ══ -->
-<div class="vtab-rail" id="vtabRailPurchase">
+<div class="vtab-rail" id="vtabRailPurchase" style="display:none">
   <div class="side-tab" id="stab-p-fav"    onclick="openVtab('p-fav')"    title="常用廠商">
     <span class="st-icon">⭐</span>
     <span class="st-label">常用</span>
@@ -864,7 +864,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 </div>
 
 <!-- ══ SIDE-TAB RAIL（報價單模式） ══ -->
-<div class="vtab-rail" id="vtabRailQuote" style="display:none">
+<div class="vtab-rail" id="vtabRailQuote">
   <div class="side-tab" id="stab-q-fav"    onclick="openVtab('q-fav')"    title="常用廠商">
     <span class="st-icon">⭐</span>
     <span class="st-label">常用</span>
@@ -2518,7 +2518,7 @@ requireAuth((user) => {
 // ═══════════════════════════════════════════════════════════
 // MODE SWITCHING
 // ═══════════════════════════════════════════════════════════
-let currentMode = 'purchase';
+let currentMode = 'quote';
 
 // ── Vtab Rail ──
 const VTAB_IDS = ['p-fav','p-cols','p-manage','q-fav','q-cols','q-manage'];
