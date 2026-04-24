@@ -1443,8 +1443,14 @@ window.setColFilter = function(key, val) {
       else if (e.key === 'Escape') { removeDropdown(); }
     });
     inp.addEventListener('focus', () => {
+      // 第一下點擊（focus）：直接顯示全部下拉選項
       const q = inp.value;
-      if (q) showDropdown(inp, mode, key, q, suggest(mode, key, q));
+      showDropdown(inp, mode, key, q, suggest(mode, key, q));
+    });
+    inp.addEventListener('click', () => {
+      // 已聚焦再點一下：也顯示下拉（不重複打開時 showDropdown 本身會更新）
+      const q = inp.value;
+      showDropdown(inp, mode, key, q, suggest(mode, key, q));
     });
     inp.addEventListener('blur', () => {
       // 延遲讓 mousedown 先觸發
