@@ -203,45 +203,60 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
 
   // 本機測試模式：存到 localStorage
   if (_testUser()) {
-    return function triggerSave() {
+    const localSave = () => {
+      localStorage.setItem('adminhub_data_' + moduleName, JSON.stringify(getDataFn()));
+      const tu = _testUser();
+      const el = document.getElementById('sb-last');
+      if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}（本機）`;
+      setSyncStatus('✓ 已儲存', 'saved');
+    };
+    function triggerSave() {
       setSyncStatus('儲存中…', 'saving');
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        localStorage.setItem('adminhub_data_' + moduleName, JSON.stringify(getDataFn()));
-        const tu = _testUser();
-        const el = document.getElementById('sb-last');
-        if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}（本機）`;
-        setSyncStatus('✓ 已儲存', 'saved');
-      }, debounceMs);
+      timer = setTimeout(localSave, debounceMs);
+    }
+    triggerSave.now = function() {
+      setSyncStatus('儲存中…', 'saving');
+      clearTimeout(timer);
+      localSave();
     };
+    return triggerSave;
   }
 
   const { db, auth } = initFirebase();
 
-  return function triggerSave() {
+  const doSave = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    const payload = {
+      content: sanitizeForFirestore(getDataFn()),
+      lastSaved: {
+        uid: user.uid,
+        displayName: _getDisplayName(user),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }
+    };
+    try {
+      await db.collection('modules').doc(moduleName).set(payload);
+      setSyncStatus('✓ 已儲存', 'saved');
+      recordActivity(user, 'save', moduleName);
+    } catch (e) {
+      console.error(e);
+      setSyncStatus('✗ 儲存失敗', 'err');
+    }
+  };
+
+  function triggerSave() {
     setSyncStatus('儲存中…', 'saving');
     clearTimeout(timer);
-    timer = setTimeout(async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      const payload = {
-        content: sanitizeForFirestore(getDataFn()),
-        lastSaved: {
-          uid: user.uid,
-          displayName: _getDisplayName(user),
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }
-      };
-      try {
-        await db.collection('modules').doc(moduleName).set(payload);
-        setSyncStatus('✓ 已儲存', 'saved');
-        recordActivity(user, 'save', moduleName);
-      } catch (e) {
-        console.error(e);
-        setSyncStatus('✗ 儲存失敗', 'err');
-      }
-    }, debounceMs);
+    timer = setTimeout(doSave, debounceMs);
+  }
+  triggerSave.now = async function() {
+    setSyncStatus('儲存中…', 'saving');
+    clearTimeout(timer);
+    await doSave();
   };
+  return triggerSave;
 }
 
 // ── 即時同步監聽 ───────────────────────────────────────────────
