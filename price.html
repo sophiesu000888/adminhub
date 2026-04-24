@@ -887,6 +887,9 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();doQuoteExportExcel()">
       <span class="vta-icon">📤</span><span class="vta-text">匯出報價單 Excel</span>
     </button>
+    <button class="vt-action-btn vta-green" onclick="closeVtabs();doQuoteSyncExportExcel()">
+      <span class="vta-icon">📤</span><span class="vta-text">匯出同步更新項目</span>
+    </button>
     <div class="vt-section-title">備份 / 恢復</div>
     <button class="vt-action-btn vta-gold" onclick="closeVtabs();doQuoteBackup()">
       <span class="vta-icon">💾</span><span class="vta-text">備份報價（JSON）</span>
@@ -2744,6 +2747,24 @@ window.doQuoteExportExcel = function() {
   const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,16);
   XLSX.writeFile(wb, `報價單_${ts}.xlsx`);
   showToast(`📊 已匯出 ${quoteList.length} 筆報價`, 'success');
+};
+
+// ── 匯出同步更新項目（source = purchase）──
+window.doQuoteSyncExportExcel = function() {
+  const syncedRows = quoteList.filter(r => r.source === 'purchase');
+  if (!syncedRows.length) { showToast('⚠️ 沒有同步更新的項目', 'warn'); return; }
+  const cols = allQuoteCols().filter(c => c.key !== 'source'); // 來源欄不需要
+  const header = cols.map(c => c.label);
+  const data = syncedRows.map(r => cols.map(c => {
+    const v = r[c.key];
+    return (v === null || v === undefined) ? '' : v;
+  }));
+  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '同步更新報價');
+  const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,16);
+  XLSX.writeFile(wb, `同步更新報價_${ts}.xlsx`);
+  showToast(`📊 已匯出 ${syncedRows.length} 筆同步更新項目`, 'success');
 };
 
 // ── Quote Backup / Restore ──
