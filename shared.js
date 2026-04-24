@@ -198,6 +198,9 @@ function restoreFromFirestore(val) {
 }
 
 // ── 自動儲存（含 debounce）─────────────────────────────────────
+// _savingModules：記錄哪些 module 正在儲存中，startSync 會跳過這段期間的遠端推播
+const _savingModules = new Set();
+
 function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
   let timer = null;
 
@@ -236,6 +239,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }
     };
+    _savingModules.add(moduleName);
     try {
       await db.collection('modules').doc(moduleName).set(payload);
       setSyncStatus('✓ 已儲存', 'saved');
@@ -243,6 +247,9 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
     } catch (e) {
       console.error(e);
       setSyncStatus('✗ 儲存失敗', 'err');
+    } finally {
+      // 給 onSnapshot 一點時間先收到我們剛寫的資料，再解除 guard
+      setTimeout(() => _savingModules.delete(moduleName), 3000);
     }
   };
 
@@ -272,6 +279,10 @@ function startSync(moduleName, currentUser, onRemoteUpdate) {
   const { db } = initFirebase();
 
   return db.collection('modules').doc(moduleName).onSnapshot((snap) => {
+    // 如果這個 module 正在儲存中（.now() 還沒完成），跳過遠端推播
+    // 避免 Firestore 把舊資料推回來蓋掉剛匯入但尚未寫完的本地資料
+    if (_savingModules.has(moduleName)) return;
+
     if (!snap.exists) {
       setSyncStatus('✓ 已儲存', 'saved');
       onRemoteUpdate(null);

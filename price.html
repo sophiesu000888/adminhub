@@ -1558,8 +1558,19 @@ window.confirmImport = function() {
 
   closeDrawers();
   renderAll();
-  if (autoSave) autoSave.now ? autoSave.now() : autoSave();
-  showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : ''), 'success');
+
+  // 立即強制寫入 Firestore，完成前防止使用者重新整理導致資料遺失
+  const _beforeUnloadGuard = (e) => { e.preventDefault(); e.returnValue = ''; };
+  window.addEventListener('beforeunload', _beforeUnloadGuard);
+  showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : '') + '　儲存中…', 'success');
+  if (autoSave) {
+    Promise.resolve(autoSave.now ? autoSave.now() : autoSave()).finally(() => {
+      window.removeEventListener('beforeunload', _beforeUnloadGuard);
+      showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : '') + '　已儲存', 'success');
+    });
+  } else {
+    window.removeEventListener('beforeunload', _beforeUnloadGuard);
+  }
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -2410,11 +2421,22 @@ window.confirmQuoteImport = function() {
   document.getElementById('quoteImportFile').value = '';
   document.getElementById('quoteDynMap').style.display = 'none';
   closeDrawers();
-  if (autoSaveQuote) autoSaveQuote.now ? autoSaveQuote.now() : autoSaveQuote();
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  showToast(`✅ 新增 ${added} 筆，更新 ${updated} 筆報價`, 'success');
+
+  // 立即強制寫入 Firestore，完成前防止使用者重新整理導致資料遺失
+  const _beforeUnloadGuard = (e) => { e.preventDefault(); e.returnValue = ''; };
+  window.addEventListener('beforeunload', _beforeUnloadGuard);
+  showToast(`✅ 新增 ${added} 筆，更新 ${updated} 筆報價　儲存中…`, 'success');
+  if (autoSaveQuote) {
+    Promise.resolve(autoSaveQuote.now ? autoSaveQuote.now() : autoSaveQuote()).finally(() => {
+      window.removeEventListener('beforeunload', _beforeUnloadGuard);
+      showToast(`✅ 新增 ${added} 筆，更新 ${updated} 筆報價　已儲存`, 'success');
+    });
+  } else {
+    window.removeEventListener('beforeunload', _beforeUnloadGuard);
+  }
 };
 
 // ── Quote Backup / Restore ──
