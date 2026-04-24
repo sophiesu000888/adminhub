@@ -2428,42 +2428,32 @@ window.syncQuoteFromPurchase = function() {
   const manualKeyMap = {};
   keptManual.forEach((r, i) => { manualKeyMap[syncKeyFn(r)] = i; });
 
-  let added = 0, updated = 0;
-  const newPurchaseRows = [];
+  let updated = 0;
 
   Object.entries(bestMap).forEach(([k, rec]) => {
     const price   = rec.priceTax || rec.priceEx;
     const dateStr = fmtDate(rec) || todayStr();
 
     if (manualKeyMap[k] !== undefined) {
-      // 手動資料有同 key → 更新價格與日期，保留其餘手動欄位
+      // 報價單已有此 key → 更新價格與日期，保留其餘欄位
       const existing = keptManual[manualKeyMap[k]];
       existing.quotePrice = price;
       existing.updatedAt  = dateStr;
       existing.source     = 'purchase';
       updated++;
-    } else {
-      // 沒有手動資料 → 新增一筆 purchase 來源
-      newPurchaseRows.push({
-        vendor: rec.vendor||null, sku: rec.sku||null, item: rec.item||null,
-        query: rec.query||null, unit: rec.unit||null, spec: rec.spec||null,
-        buyUnit: rec.buyUnit||null,
-        quotePrice: price, note: null, updatedAt: dateStr, source: 'purchase'
-      });
-      added++;
     }
+    // 報價單沒有此 key → 略過，不新增
   });
 
-  // 重建報價單 = 手動資料（已更新） + 新 purchase 筆
+  // 重建報價單 = 手動資料（price 已更新）
   quoteList.length = 0;
   keptManual.forEach(r => quoteList.push(r));
-  newPurchaseRows.forEach(r => quoteList.push(r));
 
   if (autoSaveQuote) autoSaveQuote();
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  showToast(`🔄 同步完成：新增 ${added} 筆，更新 ${updated} 筆，清除舊進貨資料 ${removedCount} 筆`, 'success');
+  showToast(`🔄 同步完成：更新 ${updated} 筆`, 'success');
 };
 
 // ══ 自訂欄位對應 ══════════════════════════════════════════════
