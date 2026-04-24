@@ -143,17 +143,18 @@ body {
   writing-mode: vertical-rl; text-orientation: mixed;
   background: white; border: 2px solid var(--ink);
   border-right: none; border-radius: 10px 0 0 10px;
-  padding: 12px 6px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.85rem; font-weight: 700; color: var(--ink);
+  padding: 10px 5px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.82rem; font-weight: 700; color: var(--ink);
   box-shadow: -3px 3px 0 var(--shadow);
-  transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 3px;
   width: var(--vtab-w); box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;           /* 允許文字完整顯示 */
+  clip-path: none;
 }
 .vtab-btn:hover { background: #f0f5ff; transform: translateX(-3px); }
 .vtab-btn.vtab-active { background: var(--ink); color: white; }
-.vtab-btn .vtab-icon { font-size: 1.15rem; writing-mode: horizontal-tb; flex-shrink: 0; }
-.vtab-btn .vtab-label { font-size: 0.8rem; white-space: nowrap; overflow: hidden; }
+.vtab-btn .vtab-icon { font-size: 1.1rem; writing-mode: horizontal-tb; flex-shrink: 0; }
+.vtab-btn .vtab-label { font-size: 0.78rem; white-space: nowrap; overflow: visible; letter-spacing: 0.05em; }
 
 /* vtab colours */
 .vtab-btn.vt-blue   { border-color: var(--blue); color: var(--blue); box-shadow: -3px 3px 0 var(--blue); }
@@ -178,15 +179,16 @@ body {
 
 /* vtab panel (slides in from right, doesn't cover main content) */
 .vtab-panel {
-  position: fixed; right: -420px; top: 44px; width: 360px; height: calc(100vh - 44px);
-  background: var(--paper); z-index: 1090;
+  position: fixed; right: -440px; top: 44px; width: 360px; height: calc(100vh - 44px);
+  background: var(--paper); z-index: 1080; /* 低於 vtab-rail(1100)，確保按鈕永遠在上層 */
   border-left: 3px solid var(--ink);
   box-shadow: -6px 0 24px rgba(0,0,0,0.10);
   transition: right 0.28s ease;
   display: flex; flex-direction: column; overflow: hidden;
   pointer-events: none;
 }
-.vtab-panel.open { right: var(--vtab-w); pointer-events: auto; } /* 緊貼 tab rail 左側，無縫隙 */
+/* open 時：panel 右邊緊貼 vtab rail 左側，不遮住按鈕 */
+.vtab-panel.open { right: var(--vtab-w); pointer-events: auto; }
 .vtab-panel-head {
   padding: 16px 18px; border-bottom: 2px solid var(--ink);
   display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 12px;
@@ -1612,7 +1614,7 @@ window.confirmImport = function() {
   // 直接全部新增，不去重
   const added = pendingData.length;
   pendingData.forEach(newRec => catalog.push(newRec));
-  if (catalog.length > 50000) catalog = catalog.slice(-50000);
+  // 無筆數上限
 
   pendingData = null;
   _rawPurchaseRows = null;

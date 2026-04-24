@@ -269,7 +269,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
 // ── 分頁儲存（大資料，繞過 Firestore 1MB 限制）────────────────────
 // 資料切成每塊 CHUNK_SIZE 筆，存成 {moduleName}_chunk_0, _chunk_1, …
 // 另存一個 {moduleName}_meta 記錄總塊數、lastSaved 資訊
-const CHUNK_SIZE = 100;
+const CHUNK_SIZE = 500;
 
 function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
   let timer = null;
@@ -324,12 +324,13 @@ function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
     const user = auth.currentUser;
     if (!user) return;
     const arr = sanitizeForFirestore(getArrayFn());
+
     // 切塊
     const chunks = [];
     for (let i = 0; i < arr.length; i += CHUNK_SIZE) {
       chunks.push(arr.slice(i, i + CHUNK_SIZE));
     }
-    if (!chunks.length) chunks.push([]); // 空陣列也要寫
+    if (!chunks.length) chunks.push([]);
 
     _savingModules.add(moduleName);
     try {
@@ -339,29 +340,35 @@ function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // 逐塊寫入，每塊間加短暫延遲避免觸發 write stream 佇列滿
-      for (let i = 0; i < chunks.length; i++) {
-        await _setWithRetry(
-          db.collection('modules').doc(`${moduleName}_chunk_${i}`),
-          { rows: chunks[i] }
-        );
-        if (i < chunks.length - 1) {
-          await new Promise(r => setTimeout(r, 200)); // 每塊間隔 200ms
-        }
+      const total = chunks.length;
+      setSyncStatus(`儲存中… 0/${total}`, 'saving');
+
+      // 並行寫入（每批 PARALLEL 塊同時送出），大幅縮短等待時間
+      const PARALLEL = 5;
+      for (let base = 0; base < total; base += PARALLEL) {
+        const batch = chunks.slice(base, base + PARALLEL);
+        await Promise.all(batch.map((chunkData, j) =>
+          _setWithRetry(
+            db.collection('modules').doc(`${moduleName}_chunk_${base + j}`),
+            { rows: chunkData }
+          )
+        ));
+        setSyncStatus(`儲存中… ${Math.min(base + PARALLEL, total)}/${total}`, 'saving');
       }
-      // meta doc 最後寫，讓 onSnapshot 統一觸發
+
+      // meta doc 最後寫，觸發 onSnapshot
       await _setWithRetry(
         db.collection('modules').doc(`${moduleName}_meta`),
-        { chunkCount: chunks.length, lastSaved: lastSavedInfo }
+        { chunkCount: total, lastSaved: lastSavedInfo }
       );
+
       setSyncStatus('✓ 已儲存', 'saved');
       recordActivity(user, 'save', moduleName);
     } catch (e) {
       console.error('chunkedSave error', e);
       setSyncStatus('✗ 儲存失敗', 'err');
     } finally {
-      // 延長保護時間（等 onSnapshot 把我們剛寫的資料推回來後才解除）
-      setTimeout(() => _savingModules.delete(moduleName), 8000);
+      setTimeout(() => _savingModules.delete(moduleName), 10000);
     }
   };
 
