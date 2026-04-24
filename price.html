@@ -2469,15 +2469,18 @@ window.addNewQuote = function() {
 window.syncQuoteFromPurchase = function() {
   if (!catalog.length) { showToast('⚠️ 進貨紀錄是空的', 'warn'); return; }
 
-  // Step 1: 從進貨紀錄中，依「查詢欄 + 進貨單位」分組，只保留日期最新的那一筆
-  const syncKeyFn = rec => [rec.query||'', rec.buyUnit||''].join('|||');
-  const bestMap = {}; // syncKey → 最新的進貨紀錄
+  // 進貨紀錄的 key：查詢欄 + 進貨單位(buyUnit)
+  const purchaseKeyFn = rec => [rec.query||'', rec.buyUnit||''].join('|||');
+  // 報價單的 key：查詢欄 + 單位(unit)，因為報價單匯入時是 unit 不是 buyUnit
+  // 同時也試 buyUnit，取非空的那個
+  const quoteKeyFn = rec => [rec.query||'', rec.buyUnit||rec.unit||''].join('|||');
 
+  // Step 1: 進貨紀錄依 key 分組，每組只保留日期最新一筆
+  const bestMap = {}; // purchaseKey → 最新進貨紀錄
   catalog.forEach(rec => {
     if (!rec.priceTax && !rec.priceEx) return;
-    // 查詢欄空白的跳過（無法建立有意義的 key）
-    if (!rec.query && !rec.buyUnit) return;
-    const k = syncKeyFn(rec);
+    if (!rec.query) return; // 查詢欄是核對依據，空白的跳過
+    const k = purchaseKeyFn(rec);
     const recDate = fmtDate(rec) || '';
     if (!bestMap[k] || recDate > (fmtDate(bestMap[k]) || '')) {
       bestMap[k] = rec;
@@ -2489,41 +2492,40 @@ window.syncQuoteFromPurchase = function() {
     return;
   }
 
-  // Step 2: 先把報價單中所有 source='purchase' 的舊資料移除，
-  // 保留手動新增 / Excel 匯入的資料，再統一寫入最新同步結果
-  const keptManual = quoteList.filter(r => r.source !== 'purchase');
-  const removedCount = quoteList.length - keptManual.length;
+  // Step 2: 清除舊的 purchase 來源，保留其他（excel/manual）
+  const keptRows = quoteList.filter(r => r.source !== 'purchase');
 
-  // 以 syncKey 對應手動資料（避免覆蓋手動編輯的同 key 資料）
-  const manualKeyMap = {};
-  keptManual.forEach((r, i) => { manualKeyMap[syncKeyFn(r)] = i; });
+  // 建立報價單 key → index 對應表
+  const quoteKeyMap = {};
+  keptRows.forEach((r, i) => { quoteKeyMap[quoteKeyFn(r)] = i; });
+
+  // debug：印出前幾個 key 讓我們看看
+  console.log('[Sync] bestMap keys:', Object.keys(bestMap).slice(0,5));
+  console.log('[Sync] quoteKeyMap keys:', Object.keys(quoteKeyMap).slice(0,5));
 
   let updated = 0;
-
   Object.entries(bestMap).forEach(([k, rec]) => {
     const price   = rec.priceTax || rec.priceEx;
     const dateStr = fmtDate(rec) || todayStr();
 
-    if (manualKeyMap[k] !== undefined) {
-      // 報價單已有此 key → 更新價格與日期，保留其餘欄位
-      const existing = keptManual[manualKeyMap[k]];
+    if (quoteKeyMap[k] !== undefined) {
+      const existing = keptRows[quoteKeyMap[k]];
       existing.quotePrice = price;
       existing.updatedAt  = dateStr;
       existing.source     = 'purchase';
       updated++;
     }
-    // 報價單沒有此 key → 略過，不新增
+    // 報價單沒有此 key → 略過
   });
 
-  // 重建報價單 = 手動資料（price 已更新）
   quoteList.length = 0;
-  keptManual.forEach(r => quoteList.push(r));
+  keptRows.forEach(r => quoteList.push(r));
 
   if (autoSaveQuote) autoSaveQuote();
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  showToast(`🔄 同步完成：更新 ${updated} 筆`, 'success');
+  showToast(`🔄 同步完成：更新 ${updated} 筆（共比對 ${Object.keys(bestMap).length} 個進貨項目，${keptRows.length} 個報價項目）`, 'success');
 };
 
 // ══ 自訂欄位對應 ══════════════════════════════════════════════
