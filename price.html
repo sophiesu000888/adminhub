@@ -625,7 +625,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   <main class="content">
     <div class="table-wrap sketchy-box">
       <table id="quoteTable">
-        <thead><tr id="quoteTableHead"></tr></thead>
+        <thead id="quoteTableHead"></thead>
         <tbody id="quoteTableBody"></tbody>
       </table>
       <div class="empty-msg" id="quoteEmptyMsg">沒有報價資料，請手動新增或從進貨紀錄同步</div>
@@ -1166,17 +1166,24 @@ function applyFilter() {
 
 // ── 日期欄位格式化 → yyyy/mm/dd ──
 function fmtDate(r) {
-  // 優先用 date 欄位（已是 yyyy/mm/dd 字串）
   if (r.date) {
     const s = String(r.date).trim();
-    // 已是 yyyy/mm/dd 格式
+    // yyyy/mm/dd 或 yyyy-mm-dd
     const m1 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
     if (m1) return `${m1[1]}/${m1[2].padStart(2,'0')}/${m1[3].padStart(2,'0')}`;
+    // m/d/yy 或 m/d/yyyy（如 4/15/26 或 4/15/2026）
+    const m2 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if (m2) {
+      let yy = parseInt(m2[3], 10);
+      if (yy < 100) yy += yy < 50 ? 2000 : 1900; // 26 → 2026
+      return `${yy}/${m2[1].padStart(2,'0')}/${m2[2].padStart(2,'0')}`;
+    }
     return s;
   }
   // 由 year/month/day 組合
   if (r.year && r.month) {
-    const yy = String(r.year).trim();
+    let yy = parseInt(String(r.year).trim(), 10);
+    if (yy < 100) yy += yy < 50 ? 2000 : 1900;
     const mm = String(r.month).trim().padStart(2,'0');
     const dd = r.day ? String(r.day).trim().padStart(2,'0') : '01';
     return `${yy}/${mm}/${dd}`;
@@ -2074,6 +2081,7 @@ let pendingQuoteRestore = null;
 
 // ── quote col state ──
 let quoteCustomCols  = [];   // [{ key, label }]
+let quoteColFilters  = {};   // per-column filter values for quote table
 let quoteVisibleCols = new Set(QUOTE_COLS.map(c => c.key));
 let quoteColOrder    = QUOTE_COLS.map(c => c.key);
 
@@ -2246,10 +2254,14 @@ function applyQuoteFilter() {
   const q = quoteState.search.toLowerCase();
   quoteState.filtered = quoteList.filter(r => {
     if (quoteState.vendor !== 'all' && r.vendor !== quoteState.vendor) return false;
-    if (!q) return true;
-    return allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q));
+    if (q && !allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
+    for (const [key, val] of Object.entries(quoteColFilters)) {
+      if (!val) continue;
+      if (!String(r[key]||'').toLowerCase().includes(val.toLowerCase())) return false;
+    }
+    return true;
   });
-  quoteState.pageSize = 200; // 搜尋/切廠商時重置到第一頁
+  quoteState.pageSize = 200;
 }
 
 function sourceBadgeHtml(src) {
@@ -2260,32 +2272,9 @@ function sourceBadgeHtml(src) {
   return `<span class="quote-source-badge ${c}">${label}</span>`;
 }
 
-function renderQuoteTable() {
-  const head = document.getElementById('quoteTableHead');
-  const body = document.getElementById('quoteTableBody');
-  const empty = document.getElementById('quoteEmptyMsg');
-  const q  = quoteState.search.toLowerCase();
-  const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
-
-  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
-
-  head.innerHTML = visCols.map(c =>
-    `<th class="${c.type==='num'?'num':''} quote-th">${esc(c.label)}</th>`
-  ).join('');
-
-  if (!quoteState.filtered.length) {
-    body.innerHTML = '';
-    empty.style.display = 'block';
-    empty.textContent = quoteList.length ? '沒有符合的報價資料' : '沒有報價資料，請手動新增或從進貨紀錄同步';
-    document.getElementById('headerBadge').innerHTML = `共 <span>${quoteList.length}</span> 筆報價`;
-    return;
-  }
-  empty.style.display = 'none';
-
-  // 分頁：只 render 前 pageSize 筆
+function _buildQuoteBodyHtml(visCols, re) {
   const displayRows = quoteState.filtered.slice(0, quoteState.pageSize);
-
-  body.innerHTML = displayRows.map((r, idx) => {
+  let html = displayRows.map((r, idx) => {
     const cells = visCols.map(col => {
       const raw = r[col.key];
       if (col.key === 'source') return `<td>${sourceBadgeHtml(raw)}</td>`;
@@ -2298,24 +2287,102 @@ function renderQuoteTable() {
     }).join('');
     return `<tr onclick="showQuoteDetail(${idx})">${cells}</tr>`;
   }).join('');
-
-  // 若還有更多，顯示「載入更多」提示列
   const total = quoteState.filtered.length;
   if (displayRows.length < total) {
-    body.innerHTML += `<tr id="quoteLoadMoreRow">
+    html += `<tr id="quoteLoadMoreRow">
       <td colspan="${visCols.length}" style="text-align:center;padding:14px;color:#888;font-size:0.95rem;cursor:pointer"
           onclick="quoteLoadMore()">
         ▼ 顯示中 ${displayRows.length} / ${total} 筆，點擊載入更多
       </td></tr>`;
   }
+  return html;
+}
+
+function attachQuoteColFilterListeners() {
+  document.querySelectorAll('.quote-filter-input').forEach(inp => {
+    if (inp._filterBound) return;
+    inp._filterBound = true;
+    let composing = false;
+    inp.addEventListener('compositionstart', () => { composing = true; });
+    inp.addEventListener('compositionend',   () => {
+      composing = false;
+      setQuoteColFilter(inp.dataset.filterkey, inp.value);
+    });
+    inp.addEventListener('input', () => {
+      if (!composing) setQuoteColFilter(inp.dataset.filterkey, inp.value);
+    });
+  });
+}
+
+window.setQuoteColFilter = function(key, val) {
+  if (val) quoteColFilters[key] = val; else delete quoteColFilters[key];
+  applyQuoteFilter();
+  // Re-render tbody only, keep thead intact so focus survives
+  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
+  const q  = quoteState.search.toLowerCase();
+  const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
+  const body  = document.getElementById('quoteTableBody');
+  const empty = document.getElementById('quoteEmptyMsg');
+  if (!quoteState.filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = quoteList.length ? '沒有符合的報價資料' : '沒有報價資料';
+  } else {
+    empty.style.display = 'none';
+    body.innerHTML = _buildQuoteBodyHtml(visCols, re);
+    _setupQuoteScrollLoad();
+  }
+  document.getElementById('headerBadge').innerHTML =
+    quoteState.filtered.length < quoteList.length
+      ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
+      : `共 <span>${quoteList.length}</span> 筆報價`;
+};
+
+function renderQuoteTable() {
+  const head  = document.getElementById('quoteTableHead');
+  const body  = document.getElementById('quoteTableBody');
+  const empty = document.getElementById('quoteEmptyMsg');
+  const q  = quoteState.search.toLowerCase();
+  const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
+
+  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
+
+  // Header row 1: labels
+  const labelRow = visCols.map(c =>
+    `<th class="${c.type==='num'?'num':''} quote-th">${esc(c.label)}</th>`
+  ).join('');
+
+  // Header row 2: filter inputs (compact, IME-safe)
+  const filterRow = visCols.map(c =>
+    `<th class="col-filter-th quote-th">
+      <input class="quote-filter-input col-filter-input" type="text" placeholder="篩選"
+        value="${esc(quoteColFilters[c.key]||'')}"
+        data-filterkey="${c.key}"
+        onclick="event.stopPropagation()">
+    </th>`
+  ).join('');
+
+  head.innerHTML = `<tr>${labelRow}</tr><tr class="filter-row">${filterRow}</tr>`;
+
+  if (!quoteState.filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = quoteList.length ? '沒有符合的報價資料' : '沒有報價資料，請手動新增或從進貨紀錄同步';
+    document.getElementById('headerBadge').innerHTML = `共 <span>${quoteList.length}</span> 筆報價`;
+    attachQuoteColFilterListeners();
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = _buildQuoteBodyHtml(visCols, re);
 
   document.getElementById('headerBadge').innerHTML =
     quoteState.filtered.length < quoteList.length
       ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
       : `共 <span>${quoteList.length}</span> 筆報價`;
 
-  // 捲到底自動載入
   _setupQuoteScrollLoad();
+  attachQuoteColFilterListeners();
 }
 
 // ── shared: build edit form html ──
