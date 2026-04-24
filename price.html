@@ -298,9 +298,9 @@ body {
 .content { display: flex; flex-direction: column; min-height: 0; }
 .table-wrap { flex: 1; overflow: auto; }
 /* 表格寬度跟著內容走，不強制撐滿 */
-table { width: auto; min-width: 100%; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: auto; }
+table { width: auto; min-width: 0; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: auto; }
 thead th {
-  background: #c5d9f5; padding: 10px 12px; text-align: left;
+  background: #c5d9f5; padding: 10px 10px; text-align: left;
   border-bottom: 2.5px solid var(--ink); position: sticky; top: 0; z-index: 10;
   font-family: 'Noto Sans TC', sans-serif; font-weight: 700; white-space: nowrap;
 }
@@ -309,7 +309,7 @@ thead th.custom-th { background: #ddeeff; color: var(--blue); }
 tbody tr { border-bottom: 1px solid rgba(45,45,45,0.1); cursor: pointer; }
 tbody tr:hover { background: #fff9e6; }
 /* 每格寬度自動、完整顯示，不截斷 */
-td { padding: 10px 12px; white-space: nowrap; }
+td { padding: 10px 10px; white-space: nowrap; }
 td.num { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--green-dark); }
 td.mono { font-family: 'DM Mono', monospace; }
 td.custom-td { color: var(--blue); font-style: italic; }
@@ -330,7 +330,7 @@ tr.filter-row th.col-filter-th {
 .empty-msg { text-align: center; padding: 40px; color: #aaa; font-size: 1rem; }
 
 /* ── 報價單表格：欄位自動寬度，不撐滿視窗 ── */
-#quoteTable { min-width: auto; width: auto; }
+#quoteTable { min-width: 0; width: auto; }
 
 /* ── DRAWERS ── */
 .side-drawer {
@@ -496,7 +496,23 @@ tr.filter-row th.col-filter-th {
 .pop-sub { font-size: 1rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
 .pop-no-data { color: #bbb; font-size: 1rem; text-align: center; padding: 4px 0; }
 
-/* ── DETAIL READ-ONLY section (history) ── */
+/* ── PURCHASE DETAIL HISTORY ── */
+.detail-hist-meta { font-size:0.9rem; color:#aaa; margin-bottom:12px; line-height:1.6; }
+.detail-hist-meta strong { color:var(--ink); }
+.detail-hist-table { width:100%; border-collapse:collapse; font-size:0.95rem; }
+.detail-hist-table th {
+  text-align:left; padding:6px 8px; background:#f0f4ff;
+  border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;
+}
+.detail-hist-table td { padding:7px 8px; border-bottom:1px solid rgba(45,45,45,0.08); white-space:nowrap; }
+.detail-hist-table tr:hover td { background:#fff9e6; }
+.detail-hist-table td.num { text-align:right; font-family:'DM Mono',monospace; font-weight:700; color:var(--green-dark); }
+.detail-hist-chk { width:16px; height:16px; cursor:pointer; accent-color:var(--red); }
+.detail-hist-selall { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:0.95rem; color:#666; cursor:pointer; }
+.detail-hist-selall input { width:16px; height:16px; accent-color:var(--red); cursor:pointer; }
+.detail-no-hist { color:#bbb; text-align:center; padding:24px 0; font-size:1rem; }
+
+
 .detail-kv { display: flex; flex-direction: column; }
 .detail-row {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -638,6 +654,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <div class="mode-tabs">
   <button class="mode-tab active-purchase" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
   <button class="mode-tab" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
+  <button class="btn-star-filter" id="quoteFavTabBtn" style="display:none" onclick="toggleFavQuoteFilter()" title="常用廠商篩選">⭐ 常用</button>
 </div>
 
 <!-- ══ PURCHASE MODE ══ -->
@@ -668,17 +685,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <!-- ══ QUOTE MODE ══ -->
 <div id="quoteMode" style="display:none">
-<div class="main">
-  <aside class="sidebar sketchy-box" id="quoteSidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">🔍 搜尋報價</div>
-      <input type="text" id="quoteSearchInput" placeholder="品項、廠商、貨號…" autocomplete="off">
-    </div>
-
-    <div class="vendor-list" id="quoteVendorList"></div>
-
-
-  </aside>
+<div class="main" style="grid-template-columns:1fr">
 
   <main class="content">
     <div class="table-wrap sketchy-box">
@@ -695,21 +702,15 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
 <div class="drawer-overlay" id="vtabOverlay" onclick="closeVtabs()" style="z-index:1085"></div>
 
-<!-- Detail / Edit Drawer -->
+<!-- Detail / History Drawer -->
 <div class="side-drawer" id="drawerDetail">
   <div class="drawer-head">
-    <h2 id="detailTitle">✏️ 編輯資料</h2>
+    <h2 id="detailTitle">📋 進貨明細</h2>
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
-  <div class="drawer-body">
-    <!-- History section (read-only) -->
-    <div id="detailHistorySection"></div>
-    <!-- Edit form -->
-    <div class="edit-form-grid" id="detailEditForm"></div>
-  </div>
+  <div class="drawer-body" id="detailBody"></div>
   <div class="drawer-foot">
-    <button class="btn-save-detail" onclick="saveDetail()">💾 儲存</button>
-    <button class="btn-delete-detail" onclick="deleteDetail()">🗑 刪除此筆</button>
+    <button class="btn-delete-detail" id="detailDeleteBtn" onclick="deleteSelectedDetail()" style="width:100%">🗑 刪除勾選的筆數</button>
   </div>
 </div>
 
@@ -1147,12 +1148,8 @@ function buildColToggleUI() {
   list.innerHTML = cols.map((col, idx) => {
     const checked  = visibleCols.has(col.key) ? 'checked' : '';
     const isFirst  = idx === 0, isLast = idx === cols.length - 1;
-    // 固定欄位也允許改名，但不允許刪除（避免資料結構損毀）
-    // 自訂欄位允許改名＋刪除
     const renameBtn = `<button class="q-col-del" title="改名" onclick="renameCol('${col.key}')" style="color:#888;font-size:0.9rem">✎</button>`;
-    const deleteBtn = col.isCustom
-      ? `<button class="q-col-del" title="刪除" onclick="deleteCustomCol('${col.key}')">✕</button>`
-      : '';
+    const deleteBtn = `<button class="q-col-del" title="刪除" onclick="deleteCol('${col.key}')">✕</button>`;
     return `<div class="q-col-item">
       <div class="q-col-reorder">
         <button class="q-col-reorder-btn" ${isFirst ? 'disabled' : ''} onclick="moveCol('${col.key}',-1)">←</button>
@@ -1165,6 +1162,25 @@ function buildColToggleUI() {
     </div>`;
   }).join('');
 }
+
+// ── 刪除欄位（固定欄位：從顯示移除；自訂欄位：連資料一起刪）──
+window.deleteCol = function(key) {
+  const col = allCols().find(c => c.key === key);
+  if (!col) return;
+  if (col.isCustom) {
+    if (!confirm(`刪除欄位「${col.label}」？（已填的備註資料也會消失）`)) return;
+    customCols  = customCols.filter(c => c.key !== key);
+    catalog.forEach(r => { delete r[key]; });
+    if (autoSave) autoSave();
+  } else {
+    if (!confirm(`從欄位列表中移除「${col.label}」？（資料本身不受影響，可從「還原預設」找回）`)) return;
+  }
+  colOrder    = colOrder.filter(k => k !== key);
+  visibleCols.delete(key);
+  savePrefs();
+  buildColToggleUI();
+  renderTable();
+};
 
 // ── 改名欄位（固定 + 自訂都支援）──
 window.renameCol = function(key) {
@@ -1270,7 +1286,9 @@ window.toggleFavQuoteFilter = function() {
     return;
   }
   if (filterFavQuote) { quoteState.vendor = 'all'; }
-  applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar();
+  const btn = document.getElementById('quoteFavTabBtn');
+  if (btn) btn.classList.toggle('active', filterFavQuote);
+  applyQuoteFilter(); renderQuoteTable();
 };
 
 // ── 儲存/載入 fav prefs（寫入 price_prefs）──
@@ -1335,9 +1353,10 @@ window.setColFilter = function(key, val) {
   }
 
   function suggest(mode, key, q) {
-    if (!q) return [];
+    const vals = getColValues(mode, key);
+    if (!q) return vals.slice(0, 20);  // 空白時直接顯示前20個選項
     const lower = q.toLowerCase();
-    return getColValues(mode, key)
+    return vals
       .filter(v => v.toLowerCase().includes(lower))
       .sort((a, b) => {
         const ai = a.toLowerCase().indexOf(lower);
@@ -1443,14 +1462,11 @@ window.setColFilter = function(key, val) {
       else if (e.key === 'Escape') { removeDropdown(); }
     });
     inp.addEventListener('focus', () => {
-      // 第一下點擊（focus）：直接顯示全部下拉選項
-      const q = inp.value;
-      showDropdown(inp, mode, key, q, suggest(mode, key, q));
+      // 第一下點擊：只顯示下拉，不套用篩選（等使用者選擇或輸入）
+      showDropdown(inp, mode, key, inp.value, suggest(mode, key, inp.value));
     });
     inp.addEventListener('click', () => {
-      // 已聚焦再點一下：也顯示下拉（不重複打開時 showDropdown 本身會更新）
-      const q = inp.value;
-      showDropdown(inp, mode, key, q, suggest(mode, key, q));
+      showDropdown(inp, mode, key, inp.value, suggest(mode, key, inp.value));
     });
     inp.addEventListener('blur', () => {
       // 延遲讓 mousedown 先觸發
@@ -1634,116 +1650,119 @@ function renderTable() {
 // ═══════════════════════════════════════════════════════════
 // Detail / Edit Drawer（完整可編輯）
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// 進貨明細 Drawer（只讀 + 批次刪除）
+// ═══════════════════════════════════════════════════════════
+let _detailCatIndices = []; // catalog indices shown in drawer
+
 window.showDetail = function(filteredIdx) {
   const r = state.filtered[filteredIdx];
   if (!r) return;
-  _detailCatIdx = catalog.indexOf(r);
-  document.getElementById('detailTitle').textContent = '✏️ ' + (r.item || '編輯資料');
 
-  // ── 歷史含稅單價（只讀）──
-  const hist = historyList
-    .filter(h => h.item === r.item && h.vendor === r.vendor)
-    .slice(-5).reverse();
+  // 取同 query + buyUnit 的近六個月所有進貨紀錄（含全部日期）
+  const query   = r.query   || '';
+  const buyUnit = r.buyUnit || '';
+  const now     = new Date();
+  const sixAgo  = new Date(now.getFullYear(), now.getMonth() - 6, 1);
 
-  const histHtml = hist.length ? `
-    <div class="detail-kv">
-      <div class="detail-section-title">📅 歷史含稅單價</div>
-      ${hist.map(h => `<div class="detail-row">
-        <span class="detail-key">${esc(String(h.date||h.month||h._savedAt||''))}</span>
-        <span class="detail-val">$${fmtNum(h.priceTax||h.priceEx||0)}</span>
-      </div>`).join('')}
-    </div>` : '';
-  document.getElementById('detailHistorySection').innerHTML = histHtml;
+  // 找所有匹配筆數（不限六個月，全顯示，六個月內標記）
+  const matched = catalog
+    .map((rec, ci) => ({ rec, ci }))
+    .filter(({ rec }) =>
+      (rec.query || '') === query && (rec.buyUnit || '') === buyUnit
+    )
+    .sort((a, b) => {
+      const da = fmtDate(a.rec) || '';
+      const db = fmtDate(b.rec) || '';
+      return da > db ? -1 : da < db ? 1 : 0;
+    });
 
-  // ── 可編輯表單 ──
-  renderEditForm(r);
+  _detailCatIndices = matched.map(x => x.ci);
 
+  const itemLabel = r.item || query || '—';
+  const vendorLabel = r.vendor || '—';
+  document.getElementById('detailTitle').textContent = `📋 ${itemLabel}`;
+
+  if (!matched.length) {
+    document.getElementById('detailBody').innerHTML = `<div class="detail-no-hist">無進貨紀錄</div>`;
+    document.getElementById('detailDeleteBtn').disabled = true;
+    openDrawer('detail');
+    return;
+  }
+
+  // 計算近六個月均價
+  const recent = matched.filter(({ rec }) => {
+    const ds = fmtDate(rec);
+    if (!ds) return false;
+    const parts = ds.split('/');
+    const d = new Date(+parts[0], +parts[1]-1, +(parts[2]||1));
+    return d >= sixAgo;
+  });
+  const avg6 = recent.length
+    ? (recent.reduce((s, { rec }) => s + Number(rec.priceTax||rec.priceEx||0), 0) / recent.length)
+    : null;
+
+  const metaHtml = `<div class="detail-hist-meta">
+    廠商：<strong>${esc(vendorLabel)}</strong>　
+    進貨單位：<strong>${esc(buyUnit||'—')}</strong>　
+    共 <strong>${matched.length}</strong> 筆
+    ${avg6 !== null ? `　近六個月均價：<strong style="color:var(--green-dark)">$${fmtNum(avg6)}</strong>（${recent.length}筆）` : ''}
+  </div>`;
+
+  const rows = matched.map(({ rec, ci }, i) => {
+    const ds = fmtDate(rec) || '—';
+    const price = rec.priceTax || rec.priceEx || '';
+    const priceHtml = price ? `$${fmtNum(price)}` : '—';
+    const parts = ds.split('/');
+    const d = new Date(+parts[0], +parts[1]-1, +(parts[2]||1));
+    const isRecent = d >= sixAgo;
+    return `<tr>
+      <td><input class="detail-hist-chk" type="checkbox" data-ci="${ci}"></td>
+      <td class="mono" style="${isRecent?'color:var(--blue);font-weight:700':''}">${esc(ds)}</td>
+      <td>${esc(rec.vendor||'—')}</td>
+      <td class="num">${priceHtml}</td>
+      <td>${esc(rec.qty||'')}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('detailBody').innerHTML = `
+    ${metaHtml}
+    <label class="detail-hist-selall">
+      <input type="checkbox" id="detailSelAll" onchange="toggleDetailSelAll(this.checked)"> 全選
+    </label>
+    <table class="detail-hist-table">
+      <thead><tr>
+        <th></th>
+        <th>日期</th>
+        <th>廠商</th>
+        <th>含稅單價</th>
+        <th>數量</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  document.getElementById('detailDeleteBtn').disabled = false;
   openDrawer('detail');
 };
 
-function renderEditForm(r) {
-  const cols = allCols();
-  const numKeys = new Set(FIXED_COLS.filter(c => c.type === 'num').map(c => c.key));
-  const monoKeys = new Set(FIXED_COLS.filter(c => c.type === 'mono').map(c => c.key));
-
-  // 分組
-  const groups = [
-    { title: '📦 基本資訊', keys: ['site','vendor','sku','item','query'] },
-    { title: '📅 日期', keys: ['year','month','day','date'] },
-    { title: '📐 規格 / 單位', keys: ['unit','spec','buyUnit'] },
-    { title: '💰 價格 / 數量', keys: ['qty','priceEx','priceTax','amount','tax'] },
-    { title: '📝 備註', keys: ['note','note2','note3','note4','note5'] },
-  ];
-
-  // 自訂欄位加一組
-  const customKeys = customCols.map(c => c.key);
-
-  let html = '';
-
-  groups.forEach(g => {
-    const groupCols = g.keys.map(k => cols.find(c => c.key === k)).filter(Boolean);
-    if (!groupCols.length) return;
-    html += `<div class="edit-section-title">${esc(g.title)}</div>`;
-    groupCols.forEach(col => {
-      const val = r[col.key] ?? '';
-      const isNum = numKeys.has(col.key);
-      const isMono = monoKeys.has(col.key);
-      const isNote = col.key.startsWith('note');
-      html += `<div class="edit-form-row${isNum?' num-row':''}">
-        <label>${esc(col.label)}</label>
-        ${isNote
-          ? `<textarea id="ef-${col.key}" rows="2">${esc(String(val))}</textarea>`
-          : `<input type="${isNum?'number':'text'}" id="ef-${col.key}" value="${esc(String(val))}"${isMono?' style="font-family:\'DM Mono\',monospace"':''}>`
-        }
-      </div>`;
-    });
-  });
-
-  if (customCols.length) {
-    html += `<div class="edit-section-title">✏️ 自訂備註欄位</div>`;
-    customCols.forEach(col => {
-      const val = r[col.key] ?? '';
-      html += `<div class="edit-form-row">
-        <label>${esc(col.label)}</label>
-        <textarea id="ef-${col.key}" rows="2">${esc(String(val))}</textarea>
-      </div>`;
-    });
-  }
-
-  document.getElementById('detailEditForm').innerHTML = html;
-}
-
-window.saveDetail = function() {
-  if (_detailCatIdx === null || _detailCatIdx < 0) return;
-  const r = catalog[_detailCatIdx];
-  if (!r) return;
-
-  allCols().forEach(col => {
-    const el = document.getElementById('ef-' + col.key);
-    if (!el) return;
-    const val = el.value.trim();
-    r[col.key] = val === '' ? null : val;
-  });
-
-  if (autoSave) autoSave();
-  showToast('✅ 已儲存', 'success');
-  renderAll();
-  // 更新 drawer title
-  document.getElementById('detailTitle').textContent = '✏️ ' + (r.item || '編輯資料');
+window.toggleDetailSelAll = function(checked) {
+  document.querySelectorAll('#detailBody .detail-hist-chk').forEach(chk => chk.checked = checked);
 };
 
-window.deleteDetail = function() {
-  if (_detailCatIdx === null || _detailCatIdx < 0) return;
-  const r = catalog[_detailCatIdx];
-  if (!r) return;
-  const label = r.item || r.vendor || '這筆資料';
-  if (!confirm(`確定刪除「${label}」？此動作無法復原。`)) return;
-  catalog.splice(_detailCatIdx, 1);
-  _detailCatIdx = null;
-  closeDrawers();
+window.deleteSelectedDetail = function() {
+  const toDelete = new Set();
+  document.querySelectorAll('#detailBody .detail-hist-chk:checked').forEach(chk => {
+    toDelete.add(Number(chk.dataset.ci));
+  });
+  if (!toDelete.size) { showToast('⚠️ 請先勾選要刪除的筆數', 'warn'); return; }
+  if (!confirm(`確定刪除勾選的 ${toDelete.size} 筆？此動作無法復原。`)) return;
+  // 從大到小刪，避免 index 位移
+  const indices = [...toDelete].sort((a,b) => b - a);
+  indices.forEach(ci => catalog.splice(ci, 1));
   if (autoSave) autoSave();
+  closeDrawers();
   renderAll();
-  showToast('🗑 已刪除', 'warn');
+  showToast(`🗑 已刪除 ${indices.length} 筆`, 'warn');
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -2086,6 +2105,20 @@ window.confirmImport = function() {
   const pop = document.getElementById('item-popover');
   let _hideTimer = null;
 
+  // 將任意日期字串標準化為 yyyy/mm/dd
+  function fmtDateStr(s) {
+    if (!s) return '';
+    const m1 = String(s).match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (m1) return `${m1[1]}/${m1[2].padStart(2,'0')}/${m1[3].padStart(2,'0')}`;
+    const m2 = String(s).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if (m2) {
+      let yy = parseInt(m2[3], 10);
+      if (yy < 100) yy += yy < 50 ? 2000 : 1900;
+      return `${yy}/${m2[1].padStart(2,'0')}/${m2[2].padStart(2,'0')}`;
+    }
+    return s;
+  }
+
   function calcStats(vendor, item, buyUnit, query) {
     // 用查詢欄（query）+ 進貨單位（buyUnit）組合搜尋
     const matches = catalog.filter(r =>
@@ -2134,7 +2167,7 @@ window.confirmImport = function() {
           <span class="pop-label">最高價格</span>
           <span>
             <span class="pop-val hi">$${fmtNum(stats.maxItem.price)}</span>
-            ${stats.maxItem.dateStr ? `<span class="pop-sub">${esc(stats.maxItem.dateStr)}</span>` : ''}
+            ${stats.maxItem.dateStr ? `<span class="pop-sub">${esc(fmtDateStr(stats.maxItem.dateStr))}</span>` : ''}
           </span>
         </div>
         <div class="pop-row">
@@ -2299,7 +2332,8 @@ requireAuth((user) => {
     renderTable();
   });
 
-  document.getElementById('quoteSearchInput').addEventListener('input', e => {
+  const qsi = document.getElementById('quoteSearchInput');
+  if (qsi) qsi.addEventListener('input', e => {
     quoteState.search = e.target.value;
     quoteState.vendor = 'all';
     applyQuoteFilter();
@@ -2363,13 +2397,16 @@ window.switchMode = function(mode) {
   closeVtabs();
   document.getElementById('vtabRailPurchase').style.display = mode === 'purchase' ? '' : 'none';
   document.getElementById('vtabRailQuote').style.display    = mode === 'quote'    ? '' : 'none';
+  const favBtn = document.getElementById('quoteFavTabBtn');
+  if (favBtn) {
+    favBtn.style.display = mode === 'quote' ? '' : 'none';
+    favBtn.classList.toggle('active', filterFavQuote);
+  }
   const tP = document.getElementById('tabPurchase');
   const tQ = document.getElementById('tabQuote');
   tP.className = 'mode-tab' + (mode === 'purchase' ? ' active-purchase' : '');
   tQ.className = 'mode-tab' + (mode === 'quote'    ? ' active-quote'    : '');
   if (mode === 'quote') {
-    // 先讓瀏覽器把 display:'' 的切換畫出來，再開始 render 表格
-    // 避免 layout + JS 同時跑造成 2 秒卡頓
     requestAnimationFrame(() => {
       applyQuoteFilter();
       renderQuoteTable();
@@ -2556,7 +2593,7 @@ function renderQuoteSidebar() {
   const displayVendors = filterFavQuote ? vendors.filter(([v]) => favQuoteVendors.has(v)) : vendors;
 
   const vList = document.getElementById('quoteVendorList');
-  const starBtnActive = filterFavQuote ? 'active' : '';
+  if (!vList) return;
   let html = `<div class="vendor-list-header">
     <button class="btn-star-filter ${starBtnActive}" onclick="toggleFavQuoteFilter()" title="常用廠商篩選">
       ⭐ 常用
@@ -2628,6 +2665,13 @@ function _buildQuoteBodyHtml(visCols, re) {
       let val = esc(String(raw));
       if (re) val = val.replace(re, '<mark>$1</mark>');
       const cls = col.type === 'mono' ? 'mono' : '';
+      if (col.key === 'item') {
+        const v  = esc(r.vendor  || '');
+        const it = esc(r.item    || '');
+        const bu = esc(r.buyUnit || '');
+        const qk = esc(r.query  || '');
+        return `<td class="${cls}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
+      }
       return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
     }).join('');
     return `<tr onclick="showQuoteDetail(${idx})">${cells}</tr>`;
