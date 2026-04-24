@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -289,6 +290,15 @@ tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font
   color: var(--ink); background: white; border: 1.5px solid var(--ink);
   padding: 4px 10px; border-radius: 8px;
 }
+/* 確認進度 pill */
+.acc-header .ah-progress {
+  font-size: 24px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px; border: 2px solid;
+  white-space: nowrap; line-height: 1.3;
+}
+.ah-progress.prog-done  { background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; }
+.ah-progress.prog-part  { background: #fff8e7; color: #b8860b; border-color: #f9a825; }
+.ah-progress.prog-none  { background: #fff0f0; color: var(--red); border-color: var(--red); }
 .acc-header .ah-arrow { font-size: 24px; color: var(--ink); transition: transform .2s; flex-shrink: 0; }
 .acc-header.open .ah-arrow { transform: rotate(180deg); }
 .acc-body { padding: 20px; border-top: 2.5px solid var(--ink); }
@@ -392,8 +402,8 @@ select.ds {
 
 /* ── SIDE DRAWER ── */
 .side-drawer {
-  position: fixed; top: 0; right: -55vw; width: 50vw; max-width: 95vw;
-  height: 100vh; background: var(--paper); z-index: 600;
+  position: fixed; top: 44px; right: -55vw; width: 50vw; max-width: 95vw;
+  height: calc(100vh - 44px); background: var(--paper); z-index: 600;
   border-left: 2.5px solid var(--border); box-shadow: -4px 0 20px rgba(0,0,0,.15);
   transition: right .25s ease; display: flex; flex-direction: column;
 }
@@ -1373,10 +1383,12 @@ function renderAccBlock(id, content) {
                '群聯':'主餐'+qlCfg.main+'隻/天 / 雙拼'+qlCfg.dbl+'隻/天','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
                '聯電':'主餐'+lianDianCfg.main+'隻 / 雙拼'+lianDianCfg.dbl+'隻 / 晚餐'+lianDianCfg.dinner+'隻（以日為單位）'}[id]||'';
   var headerCls = 'acc-header' + (open?' open':'');
+  var progress = getSiteConfirmProgress(id);
   var html = '<div class="acc-block">';
   html += '<div class="'+headerCls+'" onclick="toggleAccBlock(&apos;'+id+'&apos;)">';
   html += '<div><div class="ah-name">'+emoji+' '+id+'</div><div class="ah-desc">'+desc+'</div></div>';
   html += '<div class="ah-badge">'+badge+'</div>';
+  html += progress;
   html += '<div class="ah-arrow">▼</div>';
   html += '</div>';
   if(open) html += '<div class="acc-body">'+content+'</div>';
@@ -1387,6 +1399,57 @@ function renderAccBlock(id, content) {
 function toggleAccBlock(id) {
   S.openBlock = (S.openBlock===id) ? null : id;
   renderConfig();
+}
+
+// 計算各廠區確認進度：回傳 HTML pill「confirmed/total」
+function getSiteConfirmProgress(site) {
+  var tmw = twoMonthWeeks();
+  // 只計算「有設定」的週次（該廠區實際有數量的週）
+  var activeWeeks = tmw.filter(function(mon) {
+    return siteHasActiveWeek(site, mon);
+  });
+  var total = activeWeeks.length;
+  if (total === 0) return ''; // 未設定任何週，不顯示
+  var confirmed = activeWeeks.filter(function(mon) {
+    return !!cfgWeekConfirmed[site + '|' + mon];
+  }).length;
+  var cls = confirmed === total ? 'prog-done' : (confirmed > 0 ? 'prog-part' : 'prog-none');
+  var icon = confirmed === total ? '✓ ' : '';
+  return '<span class="ah-progress ' + cls + '">' + icon + confirmed + '/' + total + '</span>';
+}
+
+// 判斷某廠區在某週是否「有設定（非空）」
+function siteHasActiveWeek(site, mon) {
+  if (site === 'F20') {
+    return f20LunchWeeks[mon] === 'on' || !!f20DinnerWeeks[mon];
+  }
+  if (site === 'AP6B') {
+    return true; // AP6B 每週固定有午餐
+  }
+  if (site === 'P8') {
+    return p8Weeks[mon] === 'on';
+  }
+  if (site === '群聯') {
+    var w = qunlianWeeks[mon];
+    return w && (w.main === 'on' || w.double === 'on');
+  }
+  if (site === '央廚') {
+    // 央廚以日為單位，只要該週有任何平日有設定就算
+    var mon2 = mon; // weekMonForDate base
+    var days = [];
+    for (var di = 0; di < 5; di++) {
+      var ds = addDays(mon2, di);
+      if (isWorkday(ds) && yangchuDays[ds] && (yangchuDays[ds].main === 'on' || yangchuDays[ds].double === 'on')) {
+        days.push(ds);
+      }
+    }
+    return days.length > 0;
+  }
+  if (site === '聯電') {
+    var w2 = lianDianWeeks[mon];
+    return w2 && (w2.main === 'on' || w2.double === 'on' || w2.dinner === 'on');
+  }
+  return false;
 }
 
 function getBlockBadge(id) {
