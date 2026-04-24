@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -25,6 +26,7 @@
   --green-dark: #2e7d32;
   --red: #c0392b;
   --surface-card2: #f8f5ef;
+  --vtab-w: 48px; /* tab rail 實際寬度，panel open 時對齊用 */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -38,7 +40,7 @@ body {
   color: var(--ink);
   min-height: 100vh;
   display: flex; flex-direction: column;
-  padding: 14px; padding-top: 70px; padding-right: 62px;
+  padding: 14px; padding-top: 70px; padding-right: calc(var(--vtab-w) + 14px);
 }
 
 /* ── HEADER ── */
@@ -132,20 +134,20 @@ body {
   position: fixed; right: 0; top: 50%; transform: translateY(-50%);
   display: flex; flex-direction: column; gap: 6px;
   z-index: 1100; padding-right: 0;
-  pointer-events: none; /* rail container won't block clicks */
+  pointer-events: none;
 }
 .vtab-btn {
-  pointer-events: auto; /* but buttons themselves are clickable */
+  pointer-events: auto;
 }
 .vtab-btn {
   writing-mode: vertical-rl; text-orientation: mixed;
   background: white; border: 2px solid var(--ink);
   border-right: none; border-radius: 10px 0 0 10px;
-  padding: 14px 8px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  padding: 14px 6px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
   font-size: 1rem; font-weight: 700; color: var(--ink);
   box-shadow: -3px 3px 0 var(--shadow);
   transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  min-height: 80px;
+  min-height: 80px; width: var(--vtab-w); box-sizing: border-box;
 }
 .vtab-btn:hover { background: #f0f5ff; transform: translateX(-3px); }
 .vtab-btn.vtab-active { background: var(--ink); color: white; }
@@ -175,7 +177,7 @@ body {
 
 /* vtab panel (slides in from right, doesn't cover main content) */
 .vtab-panel {
-  position: fixed; right: -400px; top: 44px; width: 360px; height: calc(100vh - 44px);
+  position: fixed; right: -420px; top: 44px; width: 360px; height: calc(100vh - 44px);
   background: var(--paper); z-index: 1090;
   border-left: 3px solid var(--ink);
   box-shadow: -6px 0 24px rgba(0,0,0,0.10);
@@ -183,7 +185,7 @@ body {
   display: flex; flex-direction: column; overflow: hidden;
   pointer-events: none;
 }
-.vtab-panel.open { right: 50px; pointer-events: auto; }  /* stays left of the tab rail */
+.vtab-panel.open { right: var(--vtab-w); pointer-events: auto; } /* 緊貼 tab rail 左側，無縫隙 */
 .vtab-panel-head {
   padding: 16px 18px; border-bottom: 2px solid var(--ink);
   display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 12px;
@@ -245,6 +247,9 @@ td.mono { font-family: 'DM Mono', monospace; }
 td.custom-td { color: var(--blue); font-style: italic; }
 mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 .empty-msg { text-align: center; padding: 40px; color: #aaa; font-size: 1rem; }
+
+/* ── 報價單表格：欄位自動寬度，不撐滿視窗 ── */
+#quoteTable { min-width: auto; width: auto; }
 
 /* ── DRAWERS ── */
 .side-drawer {
@@ -1604,48 +1609,10 @@ window.confirmImport = function() {
       renderPurchaseColMapSettings();
   }
 
-  function recKey(r) {
-    return [
-      r.site      ?? '',
-      r.vendor    ?? '',
-      r.year      ?? '',
-      r.month     ?? '',
-      r.day       ?? '',
-      r.date      ?? '',
-      r.sku       ?? '',
-      r.item      ?? '',
-      r.query     ?? '',
-      r.unit      ?? '',
-      r.spec      ?? '',
-      r.qty       ?? '',
-      r.buyUnit   ?? '',
-      r.priceEx   ?? '',
-      r.priceTax  ?? '',
-      r.amount    ?? ''
-    ].join('|||');
-  }
-
-  const existingKeys = new Set(catalog.map(recKey));
-  let added = 0, skipped = 0;
-  const skippedRows = [];
-
-  pendingData.forEach(newRec => {
-    const k = recKey(newRec);
-    if (existingKeys.has(k)) {
-      skipped++;
-      skippedRows.push(newRec);
-    } else {
-      catalog.push(newRec);
-      existingKeys.add(k);
-      added++;
-    }
-  });
+  // 直接全部新增，不去重
+  const added = pendingData.length;
+  pendingData.forEach(newRec => catalog.push(newRec));
   if (catalog.length > 50000) catalog = catalog.slice(-50000);
-
-  // 去重資料匯出 Excel
-  if (skippedRows.length) {
-    exportSkippedToExcel(skippedRows);
-  }
 
   pendingData = null;
   _rawPurchaseRows = null;
@@ -1660,11 +1627,11 @@ window.confirmImport = function() {
   // 立即強制寫入 Firestore，完成前防止使用者重新整理導致資料遺失
   const _beforeUnloadGuard = (e) => { e.preventDefault(); e.returnValue = ''; };
   window.addEventListener('beforeunload', _beforeUnloadGuard);
-  showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : '') + '　儲存中…', 'success');
+  showToast(`✅ 新增 ${added} 筆　儲存中…`, 'success');
   if (autoSave) {
     Promise.resolve(autoSave.now ? autoSave.now() : autoSave()).finally(() => {
       window.removeEventListener('beforeunload', _beforeUnloadGuard);
-      showToast(`✅ 新增 ${added} 筆` + (skipped ? `，略過重複 ${skipped} 筆` : '') + '　已儲存', 'success');
+      showToast(`✅ 新增 ${added} 筆　已儲存`, 'success');
     });
   } else {
     window.removeEventListener('beforeunload', _beforeUnloadGuard);
