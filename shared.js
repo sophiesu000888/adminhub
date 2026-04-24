@@ -269,7 +269,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
 // ── 分頁儲存（大資料，繞過 Firestore 1MB 限制）────────────────────
 // 資料切成每塊 CHUNK_SIZE 筆，存成 {moduleName}_chunk_0, _chunk_1, …
 // 另存一個 {moduleName}_meta 記錄總塊數、lastSaved 資訊
-const CHUNK_SIZE = 300;
+const CHUNK_SIZE = 100;
 
 function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
   let timer = null;
@@ -318,17 +318,15 @@ function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // 用 batch 寫入所有 chunk（Firestore batch 上限 500 ops，chunk 數量不會到那麼多）
-      const batch = db.batch();
-      chunks.forEach((chunk, i) => {
-        batch.set(db.collection('modules').doc(`${moduleName}_chunk_${i}`), { rows: chunk });
-      });
-      // meta doc：記錄 chunkCount 和 lastSaved
-      batch.set(db.collection('modules').doc(`${moduleName}_meta`), {
+      // 逐塊寫入，避免 batch 總 payload 超過 Firestore 11MB 限制
+      for (let i = 0; i < chunks.length; i++) {
+        await db.collection('modules').doc(`${moduleName}_chunk_${i}`).set({ rows: chunks[i] });
+      }
+      // meta doc 最後寫，讓 onSnapshot 統一觸發
+      await db.collection('modules').doc(`${moduleName}_meta`).set({
         chunkCount: chunks.length,
         lastSaved: lastSavedInfo
       });
-      await batch.commit();
       setSyncStatus('✓ 已儲存', 'saved');
       recordActivity(user, 'save', moduleName);
     } catch (e) {

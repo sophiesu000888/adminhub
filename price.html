@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -132,9 +131,10 @@ body {
 /* ── VERTICAL TAB DRAWER ── */
 .vtab-rail {
   position: fixed; right: 0; top: 50%; transform: translateY(-50%);
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 4px;
   z-index: 1100; padding-right: 0;
   pointer-events: none;
+  max-height: calc(100vh - 60px); overflow: visible;
 }
 .vtab-btn {
   pointer-events: auto;
@@ -147,12 +147,13 @@ body {
   font-size: 1rem; font-weight: 700; color: var(--ink);
   box-shadow: -3px 3px 0 var(--shadow);
   transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  min-height: 80px; width: var(--vtab-w); box-sizing: border-box;
+  min-height: auto; height: auto; width: var(--vtab-w); box-sizing: border-box;
+  overflow: visible;
 }
 .vtab-btn:hover { background: #f0f5ff; transform: translateX(-3px); }
 .vtab-btn.vtab-active { background: var(--ink); color: white; }
-.vtab-btn .vtab-icon { font-size: 1.3rem; writing-mode: horizontal-tb; }
-.vtab-btn .vtab-label { font-size: 1rem; }
+.vtab-btn .vtab-icon { font-size: 1.3rem; writing-mode: horizontal-tb; flex-shrink: 0; }
+.vtab-btn .vtab-label { font-size: 1rem; white-space: nowrap; overflow: visible; }
 
 /* vtab colours */
 .vtab-btn.vt-blue   { border-color: var(--blue); color: var(--blue); box-shadow: -3px 3px 0 var(--blue); }
@@ -1176,8 +1177,7 @@ function renderTable() {
         const v  = esc(r.vendor   || '');
         const it = esc(r.item     || '');
         const bu = esc(r.buyUnit  || '');
-        return `<td class="${cls}" onmouseenter="_showItemPopover(event,'${v.replace(/'/g,"\'")}','${it.replace(/'/g,"\'")}','${bu.replace(/'/g,"\'")}')` +
-               ` onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)">${val}</td>`;
+        return `<td class="${cls}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}">${val}</td>`;
       }
       return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
     }).join('');
@@ -1675,8 +1675,11 @@ window.confirmImport = function() {
     return { latest, maxItem, avg6, recentCount: recent.length };
   }
 
-  window._showItemPopover = function(e, vendor, item, buyUnit) {
+  window._showItemPopover = function(e, td) {
     clearTimeout(_hideTimer);
+    const vendor  = td.dataset.vendor   || '';
+    const item    = td.dataset.item     || '';
+    const buyUnit = td.dataset.buyunit  || '';
     const stats = calcStats(vendor, item, buyUnit);
     if (!stats) {
       pop.innerHTML = `<div class="pop-title">${esc(item)}</div><div class="pop-no-data">無價格資料</div>`;
