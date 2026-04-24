@@ -2798,6 +2798,13 @@ window.addNewQuote = function() {
 
 // ── Sync from purchase catalog ──
 // 核對 key：查詢欄(query) + 進貨單位(buyUnit)，每個組合只保留日期最新的含稅單價
+// ── 有效價格判斷（排除 #NAME? #VALUE? 空白 等非數字）──
+function isValidPrice(v) {
+  if (v === null || v === undefined || v === '') return false;
+  const n = Number(String(v).replace(/,/g, ''));
+  return !isNaN(n) && isFinite(n) && n > 0;
+}
+
 window.syncQuoteFromPurchase = function() {
   if (!catalog.length) { showToast('⚠️ 進貨紀錄是空的', 'warn'); return; }
 
@@ -2810,7 +2817,8 @@ window.syncQuoteFromPurchase = function() {
   // Step 1: 進貨紀錄依 key 分組，每組只保留日期最新一筆
   const bestMap = {}; // purchaseKey → 最新進貨紀錄
   catalog.forEach(rec => {
-    if (!rec.priceTax && !rec.priceEx) return;
+    const price = rec.priceTax || rec.priceEx;
+    if (!isValidPrice(price)) return; // 空白、#NAME?、非數字 → 跳過
     if (!rec.query) return; // 查詢欄是核對依據，空白的跳過
     const k = purchaseKeyFn(rec);
     const recDate = fmtDate(rec) || '';
@@ -2838,6 +2846,7 @@ window.syncQuoteFromPurchase = function() {
   let updated = 0;
   Object.entries(bestMap).forEach(([k, rec]) => {
     const price   = rec.priceTax || rec.priceEx;
+    if (!isValidPrice(price)) return; // 雙重保險
     const dateStr = fmtDate(rec) || todayStr();
 
     if (quoteKeyMap[k] !== undefined) {
@@ -3090,10 +3099,15 @@ window.confirmQuoteImport = function() {
 
   const keyMap = {};
   quoteList.forEach((r, i) => { keyMap[quoteKey(r)] = i; });
-  let added = 0, updated = 0;
+  let added = 0, updated = 0, skipped = 0;
   pendingQuoteData.forEach(rec => {
     rec.source = rec.source || 'excel';
     rec.updatedAt = rec.updatedAt || todayStr();
+    // quotePrice 無效（#NAME?、非數字、空白）→ 清除，不寫入
+    if (rec.quotePrice !== undefined && !isValidPrice(rec.quotePrice)) {
+      delete rec.quotePrice;
+      skipped++;
+    }
     const k = quoteKey(rec);
     if (keyMap[k] !== undefined) {
       const ex = quoteList[keyMap[k]];
@@ -3118,7 +3132,7 @@ window.confirmQuoteImport = function() {
   // 立即強制寫入 Firestore，完成前防止使用者重新整理導致資料遺失
   const _beforeUnloadGuard = (e) => { e.preventDefault(); e.returnValue = ''; };
   window.addEventListener('beforeunload', _beforeUnloadGuard);
-  showToast(`✅ 新增 ${added} 筆，更新 ${updated} 筆報價　儲存中…`, 'success');
+  showToast(`✅ 新增 ${added} 筆，更新 ${updated} 筆報價${skipped ? `，略過 ${skipped} 筆無效價格` : ''}　儲存中…`, 'success');
   if (autoSaveQuote) {
     Promise.resolve(autoSaveQuote.now ? autoSaveQuote.now() : autoSaveQuote()).finally(() => {
       window.removeEventListener('beforeunload', _beforeUnloadGuard);
