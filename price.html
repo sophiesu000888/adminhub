@@ -603,6 +603,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 </div><!-- /#quoteMode -->
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
+<div class="drawer-overlay" id="vtabOverlay" onclick="closeVtabs()" style="z-index:1085"></div>
 
 <!-- Detail / Edit Drawer -->
 <div class="side-drawer" id="drawerDetail">
@@ -1790,6 +1791,7 @@ let currentMode = 'purchase';
 function closeVtabs() {
   document.querySelectorAll('.vtab-panel').forEach(p => p.classList.remove('open'));
   document.querySelectorAll('.vtab-btn').forEach(b => b.classList.remove('vtab-active'));
+  document.getElementById('vtabOverlay').classList.remove('show');
 }
 window.closeVtabs = closeVtabs;
 
@@ -1801,6 +1803,7 @@ window.toggleVtab = function(btnId, panelId) {
   if (!wasOpen && panel) {
     panel.classList.add('open');
     if (btn) btn.classList.add('vtab-active');
+    document.getElementById('vtabOverlay').classList.add('show');
   }
 };
 
