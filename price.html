@@ -2087,19 +2087,14 @@ window.confirmImport = function() {
   let _hideTimer = null;
 
   function calcStats(vendor, item, buyUnit, query) {
-    // 優先用 query（查詢欄）+ buyUnit 組合搜尋；若 query 空白則 fallback 到 vendor+item+buyUnit
-    const queryKey = query || catalog.find(r => r.vendor === vendor && r.item === item)?.query || '';
-    const matches = queryKey
-      ? catalog.filter(r => (r.query || '') === queryKey && (r.buyUnit || '') === (buyUnit || ''))
-      : catalog.filter(r => r.vendor === vendor && r.item === item && (r.buyUnit || '') === (buyUnit || ''));
+    // 用查詢欄（query）+ 進貨單位（buyUnit）組合搜尋
+    const matches = catalog.filter(r =>
+      (r.query || '') === (query || '') && (r.buyUnit || '') === (buyUnit || '')
+    );
     if (!matches.length) return null;
     const priced = matches.map(r => {
       const p = Number(r.priceTax);
-      let dateStr = r.date || '';
-      if (!dateStr && r.year && r.month) {
-        dateStr = `${r.year}/${String(r.month).padStart(2,'0')}` +
-                  (r.day ? `/${String(r.day).padStart(2,'0')}` : '');
-      }
+      const dateStr = fmtDate(r);  // 統一用 fmtDate() 轉成 yyyy/mm/dd
       return { price: p, dateStr };
     }).filter(x => !isNaN(x.price) && x.price > 0);
     if (!priced.length) return null;
