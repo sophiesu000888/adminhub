@@ -496,7 +496,7 @@ tr.filter-row th.col-filter-th {
 .pop-label { color: #888; font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
 .pop-val { font-weight: 700; font-family: 'DM Mono', monospace; color: var(--green-dark); }
 .pop-val.hi { color: var(--red); }
-.pop-unit { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: #888; margin-left: 2px; }
+.pop-unit { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700; margin-left: 2px; }
 .pop-sub { font-size: 0.88rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
 .pop-no-data { color: #bbb; font-size: 1rem; text-align: center; padding: 4px 0; }
 
@@ -2133,10 +2133,17 @@ window.confirmImport = function() {
       (r.query || '') === (query || '') && (r.buyUnit || '') === (buyUnit || '')
     );
     if (!matches.length) return null;
+
+    // 從報價單取規格 pcs（報價單才有此欄位）
+    const quoteRec = quoteList.find(r =>
+      (r.query || '') === (query || '') &&
+      ((r.buyUnit || r.unit || '') === (buyUnit || ''))
+    );
+    const spec = (quoteRec && (quoteRec.specPcs || quoteRec.spec)) || '';
+
     const priced = matches.map(r => {
       const p = Number(r.priceTax);
       const dateStr = fmtDate(r);
-      const spec = r.specPcs || r.spec || '';  // 優先 specPcs，fallback spec
       return { price: p, dateStr, spec };
     }).filter(x => !isNaN(x.price) && x.price > 0);
     if (!priced.length) return null;
@@ -2152,12 +2159,13 @@ window.confirmImport = function() {
       return d >= sixMonthsAgo;
     });
     const avg6 = recent.length ? recent.reduce((s, x) => s + x.price, 0) / recent.length : null;
-    return { latest, maxItem, avg6, recentCount: recent.length };
+    return { latest, maxItem, avg6, recentCount: recent.length, spec };
   }
 
   function _priceRowHtml(label, price, dateStr, spec, extraCls) {
     const up = fmtUnitPrice(price, spec);
-    const unitPart = up ? ` <span class="pop-unit">; ${up}</span>` : '';
+    const color = extraCls === 'hi' ? 'var(--red)' : 'var(--green-dark)';
+    const unitPart = up ? ` <span class="pop-unit" style="color:${color}">; ${up}</span>` : '';
     const datePart = dateStr ? `<br><span class="pop-sub">${esc(fmtDateStr(dateStr))}</span>` : '';
     return `<div class="pop-row">
       <span class="pop-label">${label}</span>
@@ -2178,8 +2186,8 @@ window.confirmImport = function() {
       pop.innerHTML = `<div class="pop-title">${esc(item)}</div><div class="pop-no-data">無價格資料</div>`;
     } else {
       const unitLabel = buyUnit ? ` <span class="pop-sub">/ ${esc(buyUnit)}</span>` : '';
-      // spec 從最新那筆取
-      const spec = stats.latest.spec || '';
+      // spec 從報價單取（已在 calcStats 處理）
+      const spec = stats.spec || '';
       pop.innerHTML = `
         <div class="pop-title">${esc(item)}${unitLabel}</div>
         ${_priceRowHtml('最新價格', stats.latest.price, stats.latest.dateStr, spec, '')}
@@ -2188,7 +2196,7 @@ window.confirmImport = function() {
           <span class="pop-label">近六個月均價</span>
           <span style="text-align:right">
             ${stats.avg6 !== null
-              ? `<span class="pop-val">$${fmtNum(stats.avg6)}</span>${fmtUnitPrice(stats.avg6, spec) ? `<span class="pop-unit">; ${fmtUnitPrice(stats.avg6, spec)}</span>` : ''}<br><span class="pop-sub">(${stats.recentCount}筆)</span>`
+              ? `<span class="pop-val">$${fmtNum(stats.avg6)}</span>${fmtUnitPrice(stats.avg6, spec) ? `<span class="pop-unit" style="color:var(--green-dark)">; ${fmtUnitPrice(stats.avg6, spec)}</span>` : ''}<br><span class="pop-sub">(${stats.recentCount}筆)</span>`
               : `<span class="pop-sub">無近期資料</span>`}
           </span>
         </div>`;
