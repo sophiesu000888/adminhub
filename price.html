@@ -233,6 +233,27 @@ body {
 }
 .vt-section-title:first-child { border-top: none; padding-top: 4px; }
 
+/* ── FILTER DROPDOWN ── */
+.col-filter-wrap { position: relative; }
+.col-filter-dropdown {
+  position: fixed; /* fixed 避免被 sticky thead 遮住 */
+  background: white; border: 2px solid var(--ink);
+  border-radius: 0 0 8px 8px; border-top: none;
+  box-shadow: 3px 4px 0 var(--shadow);
+  z-index: 9999; min-width: 120px; max-width: 320px;
+  max-height: 240px; overflow-y: auto;
+}
+.col-filter-opt {
+  padding: 6px 10px; cursor: pointer; font-size: 0.9rem;
+  font-family: 'Noto Sans TC', sans-serif; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  border-bottom: 1px solid rgba(45,45,45,0.07);
+}
+.col-filter-opt:last-child { border-bottom: none; }
+.col-filter-opt:hover, .col-filter-opt.focused { background: #fff9e6; }
+.col-filter-opt mark { background: #fff176; border-radius: 2px; padding: 0 1px; font-style: normal; }
+
+/* ── FILTER DROPDOWN - kept for legacy, hidden ── */
 /* ── SIDEBAR FOOTER - kept for legacy, hidden ── */
 .sidebar-footer { display: none; }
 
@@ -1174,8 +1195,7 @@ window.toggleCol = function(key, checked) {
 // ═══════════════════════════════════════════════════════════
 // 常用廠商（Favorite Vendors）
 // ═══════════════════════════════════════════════════════════
-let favVendors     = new Set();   // 進貨常用
-let favQuoteVendors = new Set();  // 報價常用
+let favVendors     = new Set();   // 共用常用廠商（進貨 & 報價共享）
 let filterFav      = false;       // 進貨目前是否 ⭐ 篩選中
 let filterFavQuote = false;       // 報價目前是否 ⭐ 篩選中
 
@@ -1214,20 +1234,17 @@ function renderFavDrawer(listId, vendors, favSet, toggleFn) {
 window.toggleFavVendor = function(v, checked) {
   if (checked) favVendors.add(v); else favVendors.delete(v);
   renderSidebar();
-  saveFavPrefs();
-};
-window.toggleFavQuoteVendor = function(v, checked) {
-  if (checked) favQuoteVendors.add(v); else favQuoteVendors.delete(v);
   renderQuoteSidebar();
   saveFavPrefs();
 };
+window.toggleFavQuoteVendor = window.toggleFavVendor; // 共用同一個函式
 
 window.openFavDrawer = function(mode) {
   if (mode === 'purchase') {
     renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
     openVtab('p-fav');
   } else {
-    renderFavDrawer('favQuoteList', getQuoteVendors(), favQuoteVendors, 'toggleFavQuoteVendor');
+    renderFavDrawer('favQuoteList', getQuoteVendors(), favVendors, 'toggleFavVendor');
     openVtab('q-fav');
   }
 };
@@ -1235,11 +1252,23 @@ window.openFavDrawer = function(mode) {
 // ── 切換 ⭐ 篩選 ──
 window.toggleFavFilter = function() {
   filterFav = !filterFav;
+  if (filterFav && favVendors.size === 0) {
+    filterFav = false;
+    showToast('⭐ 請先在「常用」抽屜中勾選廠商', 'warn');
+    openVtab('p-fav');
+    return;
+  }
   if (filterFav) { state.vendor = 'all'; state.page = 1; }
   renderAll();
 };
 window.toggleFavQuoteFilter = function() {
   filterFavQuote = !filterFavQuote;
+  if (filterFavQuote && favVendors.size === 0) {
+    filterFavQuote = false;
+    showToast('⭐ 請先在「常用」抽屜中勾選廠商', 'warn');
+    openVtab('q-fav');
+    return;
+  }
   if (filterFavQuote) { quoteState.vendor = 'all'; }
   applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar();
 };
@@ -1287,20 +1316,147 @@ window.setColFilter = function(key, val) {
       : `共 <span>${catalog.length}</span> 筆`;
 };
 
-// Attach IME-safe listeners to all col-filter-inputs in the table header
-function attachColFilterListeners() {
-  document.querySelectorAll('.col-filter-input').forEach(inp => {
-    if (inp._filterBound) return;
-    inp._filterBound = true;
+// ═══════════════════════════════════════════════════════════
+// 欄位篩選下拉建議（進貨 & 報價共用）
+// ═══════════════════════════════════════════════════════════
+(function() {
+  let _dropEl  = null;  // 目前顯示的 dropdown DOM
+  let _focusIdx = -1;   // 鍵盤游標
+
+  function getColValues(mode, key) {
+    const rows = mode === 'quote' ? quoteList : catalog;
+    const seen = new Set();
+    const vals = [];
+    rows.forEach(r => {
+      let v = key === 'date' ? fmtDate(r) : String(r[key] ?? '');
+      if (v && !seen.has(v)) { seen.add(v); vals.push(v); }
+    });
+    return vals;
+  }
+
+  function suggest(mode, key, q) {
+    if (!q) return [];
+    const lower = q.toLowerCase();
+    return getColValues(mode, key)
+      .filter(v => v.toLowerCase().includes(lower))
+      .sort((a, b) => {
+        const ai = a.toLowerCase().indexOf(lower);
+        const bi = b.toLowerCase().indexOf(lower);
+        return ai - bi || a.localeCompare(b, 'zh-TW');
+      })
+      .slice(0, 12);
+  }
+
+  function removeDropdown() {
+    if (_dropEl) { _dropEl.remove(); _dropEl = null; }
+    _focusIdx = -1;
+  }
+
+  function highlightOpt(q, v) {
+    const lower = q.toLowerCase();
+    const idx   = v.toLowerCase().indexOf(lower);
+    if (idx < 0) return esc(v);
+    return esc(v.slice(0, idx)) + '<mark>' + esc(v.slice(idx, idx + q.length)) + '</mark>' + esc(v.slice(idx + q.length));
+  }
+
+  function showDropdown(inp, mode, key, q, suggestions) {
+    removeDropdown();
+    if (!suggestions.length) return;
+
+    const rect = inp.getBoundingClientRect();
+    const drop = document.createElement('div');
+    drop.className = 'col-filter-dropdown';
+    drop.style.left   = rect.left + 'px';
+    drop.style.top    = (rect.bottom) + 'px';
+    drop.style.width  = Math.max(rect.width, 140) + 'px';
+    drop.innerHTML = suggestions.map((v, i) =>
+      `<div class="col-filter-opt" data-idx="${i}">${highlightOpt(q, v)}</div>`
+    ).join('');
+
+    drop.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.col-filter-opt');
+      if (!opt) return;
+      e.preventDefault();
+      const val = suggestions[+opt.dataset.idx];
+      inp.value = val;
+      removeDropdown();
+      // 套用篩選
+      if (mode === 'quote') setQuoteColFilter(key, val);
+      else                  setColFilter(key, val);
+    });
+
+    document.body.appendChild(drop);
+    _dropEl = drop;
+    _focusIdx = -1;
+  }
+
+  function updateFocus(delta) {
+    if (!_dropEl) return;
+    const opts = _dropEl.querySelectorAll('.col-filter-opt');
+    if (!opts.length) return;
+    opts[_focusIdx]?.classList.remove('focused');
+    _focusIdx = (_focusIdx + delta + opts.length) % opts.length;
+    const cur = opts[_focusIdx];
+    cur.classList.add('focused');
+    cur.scrollIntoView({ block: 'nearest' });
+  }
+
+  // 全域點外部關閉
+  document.addEventListener('mousedown', e => {
+    if (_dropEl && !_dropEl.contains(e.target)) removeDropdown();
+  });
+  document.addEventListener('scroll', removeDropdown, true);
+
+  // ── 綁定事件（每次 render 後呼叫）──
+  window._bindColFilterDropdown = function(inp) {
+    if (inp._dropdownBound) return;
+    inp._dropdownBound = true;
+    const mode = inp.dataset.mode || 'purchase';
+    const key  = inp.dataset.filterkey;
     let composing = false;
+
     inp.addEventListener('compositionstart', () => { composing = true; });
     inp.addEventListener('compositionend',   () => {
       composing = false;
-      setColFilter(inp.dataset.filterkey, inp.value);
+      const q = inp.value;
+      if (mode === 'quote') setQuoteColFilter(key, q);
+      else                  setColFilter(key, q);
+      showDropdown(inp, mode, key, q, suggest(mode, key, q));
     });
     inp.addEventListener('input', () => {
-      if (!composing) setColFilter(inp.dataset.filterkey, inp.value);
+      if (composing) return;
+      const q = inp.value;
+      if (mode === 'quote') setQuoteColFilter(key, q);
+      else                  setColFilter(key, q);
+      showDropdown(inp, mode, key, q, suggest(mode, key, q));
     });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown')  { e.preventDefault(); updateFocus(1); }
+      else if (e.key === 'ArrowUp')   { e.preventDefault(); updateFocus(-1); }
+      else if (e.key === 'Enter') {
+        if (_dropEl && _focusIdx >= 0) {
+          e.preventDefault();
+          _dropEl.querySelectorAll('.col-filter-opt')[_focusIdx]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        }
+        removeDropdown();
+      }
+      else if (e.key === 'Escape') { removeDropdown(); }
+    });
+    inp.addEventListener('focus', () => {
+      const q = inp.value;
+      if (q) showDropdown(inp, mode, key, q, suggest(mode, key, q));
+    });
+    inp.addEventListener('blur', () => {
+      // 延遲讓 mousedown 先觸發
+      setTimeout(() => { if (_dropEl && !_dropEl.matches(':hover')) removeDropdown(); }, 150);
+    });
+  };
+})();
+
+// Attach IME-safe listeners to all col-filter-inputs in the table header
+function attachColFilterListeners() {
+  document.querySelectorAll('#mainTable .col-filter-input').forEach(inp => {
+    _bindColFilterDropdown(inp);
   });
 }
 
@@ -1433,9 +1589,11 @@ function renderTable() {
   const filterRow = cols.map(c => {
     const val = esc(colFilters[c.key] || '');
     return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
-      <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
-        data-filterkey="${c.key}"
-        onclick="event.stopPropagation()">
+      <div class="col-filter-wrap">
+        <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
+          data-filterkey="${c.key}" data-mode="purchase"
+          onclick="event.stopPropagation()" autocomplete="off">
+      </div>
     </th>`;
   }).join('');
 
@@ -2049,8 +2207,7 @@ requireAuth((user) => {
     visibleCols: [...visibleCols],
     customCols,
     colOrder,
-    favVendors:      [...favVendors],
-    favQuoteVendors: [...favQuoteVendors],
+    favVendors: [...favVendors],
   }), 800);
 
   startSync('price_prefs', user, (content) => {
@@ -2063,8 +2220,6 @@ requireAuth((user) => {
         colOrder = content.colOrder;
       if (Array.isArray(content.favVendors))
         favVendors = new Set(content.favVendors);
-      if (Array.isArray(content.favQuoteVendors))
-        favQuoteVendors = new Set(content.favQuoteVendors);
     }
     buildColToggleUI();
     renderTable();
@@ -2175,7 +2330,7 @@ window.openVtab = function(id) {
   if (!wasOpen && drawer) {
     // 常用廠商抽屜：先填充內容再打開
     if (id === 'p-fav') renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
-    if (id === 'q-fav') renderFavDrawer('favQuoteList', getQuoteVendors(), favQuoteVendors, 'toggleFavQuoteVendor');
+    if (id === 'q-fav') renderFavDrawer('favQuoteList', getQuoteVendors(), favVendors, 'toggleFavVendor');
     drawer.classList.add('open');
     if (tab) tab.classList.add('open');
     document.getElementById('vtabOverlay').classList.add('show');
@@ -2405,7 +2560,7 @@ function renderQuoteSidebar() {
   html += `<button class="vendor-btn ${quoteState.vendor==='all'?'active':''}" onclick="setQuoteVendor('all')">全部 <span>${quoteList.length}</span></button>`;
   displayVendors.forEach(([v,c]) => {
     const safe = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const star = favQuoteVendors.has(v) ? '<span class="vendor-star">⭐</span>' : '';
+    const star = favVendors.has(v) ? '<span class="vendor-star">⭐</span>' : '';
     html += `<button class="vendor-btn ${quoteState.vendor===v?'active':''}" onclick="setQuoteVendor('${safe}')">${esc(v)}${star} <span>${c}</span></button>`;
   });
   vList.innerHTML = html;
@@ -2437,7 +2592,7 @@ function _setupQuoteScrollLoad() {
 function applyQuoteFilter() {
   const q = quoteState.search.toLowerCase();
   quoteState.filtered = quoteList.filter(r => {
-    if (filterFavQuote && !favQuoteVendors.has(r.vendor || '（未知）')) return false;
+    if (filterFavQuote && !favVendors.has(r.vendor || '（未知）')) return false;
     if (quoteState.vendor !== 'all' && r.vendor !== quoteState.vendor) return false;
     if (q && !allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
     for (const [key, val] of Object.entries(quoteColFilters)) {
@@ -2484,18 +2639,8 @@ function _buildQuoteBodyHtml(visCols, re) {
 }
 
 function attachQuoteColFilterListeners() {
-  document.querySelectorAll('.quote-filter-input').forEach(inp => {
-    if (inp._filterBound) return;
-    inp._filterBound = true;
-    let composing = false;
-    inp.addEventListener('compositionstart', () => { composing = true; });
-    inp.addEventListener('compositionend',   () => {
-      composing = false;
-      setQuoteColFilter(inp.dataset.filterkey, inp.value);
-    });
-    inp.addEventListener('input', () => {
-      if (!composing) setQuoteColFilter(inp.dataset.filterkey, inp.value);
-    });
+  document.querySelectorAll('#quoteTable .col-filter-input').forEach(inp => {
+    _bindColFilterDropdown(inp);
   });
 }
 
@@ -2540,10 +2685,12 @@ function renderQuoteTable() {
   // Header row 2: filter inputs (compact, IME-safe)
   const filterRow = visCols.map(c =>
     `<th class="col-filter-th quote-th">
-      <input class="quote-filter-input col-filter-input" type="text" placeholder="篩選"
-        value="${esc(quoteColFilters[c.key]||'')}"
-        data-filterkey="${c.key}"
-        onclick="event.stopPropagation()">
+      <div class="col-filter-wrap">
+        <input class="quote-filter-input col-filter-input" type="text" placeholder="篩選"
+          value="${esc(quoteColFilters[c.key]||'')}"
+          data-filterkey="${c.key}" data-mode="quote"
+          onclick="event.stopPropagation()" autocomplete="off">
+      </div>
     </th>`
   ).join('');
 
