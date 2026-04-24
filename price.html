@@ -3220,12 +3220,12 @@ window.syncQuoteFromPurchase = function() {
   console.log('[Sync] bestMap keys:', Object.keys(bestMap).slice(0,5));
   console.log('[Sync] quoteKeyMap keys:', Object.keys(quoteKeyMap).slice(0,5));
 
-  let updated = 0, cleared = 0;
-
+  let updated = 0;
   Object.entries(bestMap).forEach(([k, rec]) => {
     const price   = rec.priceTax || rec.priceEx;
-    if (!isValidPrice(price)) return;
+    if (!isValidPrice(price)) return; // 雙重保險
     const dateStr = fmtDate(rec) || todayStr();
+
     if (quoteKeyMap[k] !== undefined) {
       const existing = keptRows[quoteKeyMap[k]];
       existing.quotePrice = price;
@@ -3233,19 +3233,7 @@ window.syncQuoteFromPurchase = function() {
       existing.source     = 'purchase';
       updated++;
     }
-  });
-
-  // 報價單本來就沒有價格，且進貨紀錄也找不到 → 清空 updatedAt
-  keptRows.forEach(r => {
-    const hasPrice = isValidPrice(r.quotePrice);
-    if (!hasPrice) {
-      const k = [r.query||'', r.buyUnit||r.unit||''].join('|||');
-      const hasPurchase = bestMap[k] !== undefined;
-      if (!hasPurchase) {
-        r.updatedAt = null;
-        cleared++;
-      }
-    }
+    // 報價單沒有此 key → 略過
   });
 
   quoteList.length = 0;
@@ -3255,7 +3243,7 @@ window.syncQuoteFromPurchase = function() {
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  showToast(`🔄 同步完成：更新 ${updated} 筆${cleared ? `，清空 ${cleared} 筆無資料的更新日期` : ''}`, 'success');
+  showToast(`🔄 同步完成：更新 ${updated} 筆（共比對 ${Object.keys(bestMap).length} 個進貨項目，${keptRows.length} 個報價項目）`, 'success');
 };
 
 // ══ 自訂欄位對應 ══════════════════════════════════════════════
