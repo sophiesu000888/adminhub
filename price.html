@@ -1482,44 +1482,89 @@ function attachColFilterListeners() {
   });
 }
 
-// ── 排序狀態 ──
-let sortState  = { key: 'date', dir: 'desc' };  // 進貨紀錄預設日期降序
-let qSortState = { key: null,   dir: 'asc'  };  // 報價單預設無排序
 
-function _sortRows(rows, sortKey, dir, mode) {
+// ── 排序狀態（多欄位階層排序）──
+// sortKeys: [{ key, dir }, ...] 第一個優先級最高
+let sortKeys  = [{ key: 'date', dir: 'desc' }];  // 進貨紀錄
+let qSortKeys = [];                                // 報價單
+
+function _getVal(r, key, mode) {
+  if (mode !== 'quote' && key === 'date') return fmtDate(r) || '';
+  return r[key] ?? '';
+}
+
+function _sortRows(rows, keys, mode) {
+  if (!keys.length) return rows;
+  const collator = new Intl.Collator('zh-TW', { numeric: true, sensitivity: 'base' });
   return [...rows].sort((a, b) => {
-    let va = mode === 'quote' ? (a[sortKey] ?? '') : (sortKey === 'date' ? fmtDate(a) : (a[sortKey] ?? ''));
-    let vb = mode === 'quote' ? (b[sortKey] ?? '') : (sortKey === 'date' ? fmtDate(b) : (b[sortKey] ?? ''));
-    const na = Number(va), nb = Number(vb);
-    let cmp;
-    if (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '') {
-      cmp = na - nb;
-    } else {
-      cmp = String(va).localeCompare(String(vb), 'zh-TW', { numeric: true });
+    for (const { key, dir } of keys) {
+      const va = _getVal(a, key, mode);
+      const vb = _getVal(b, key, mode);
+      const na = Number(va), nb = Number(vb);
+      let cmp;
+      if (va !== '' && vb !== '' && !isNaN(na) && !isNaN(nb)) {
+        cmp = na - nb;
+      } else {
+        cmp = collator.compare(String(va), String(vb));
+      }
+      if (cmp !== 0) return dir === 'asc' ? cmp : -cmp;
     }
-    return dir === 'asc' ? cmp : -cmp;
+    return 0;
   });
 }
 
-window.setSortCol = function(key, mode) {
+// 只重排，不重新 filter（速度快）
+function _applySort(mode) {
   if (mode === 'quote') {
-    if (qSortState.key === key) qSortState.dir = qSortState.dir === 'asc' ? 'desc' : 'asc';
-    else { qSortState.key = key; qSortState.dir = 'asc'; }
-    applyQuoteFilter(); renderQuoteTable();
+    quoteState.filtered = _sortRows(quoteState.filtered, qSortKeys, 'quote');
   } else {
-    if (sortState.key === key) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
-    else { sortState.key = key; sortState.dir = 'desc'; }
-    applyFilter(); renderTable();
+    state.filtered = _sortRows(state.filtered, sortKeys, 'purchase');
   }
+}
+
+window.setSortCol = function(key, mode, e) {
+  const keys = mode === 'quote' ? qSortKeys : sortKeys;
+  const existing = keys.find(k => k.key === key);
+  const shiftHeld = e && e.shiftKey;
+
+  if (shiftHeld) {
+    // Shift+點：加入次要排序鍵
+    if (existing) {
+      existing.dir = existing.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      keys.push({ key, dir: 'asc' });
+    }
+  } else {
+    // 一般點：單欄排序，若已是主鍵則切換方向
+    if (keys.length === 1 && keys[0].key === key) {
+      keys[0].dir = keys[0].dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      keys.length = 0;
+      keys.push({ key, dir: mode === 'purchase' ? 'desc' : 'asc' });
+    }
+  }
+
+  _applySort(mode);
+  if (mode === 'quote') renderQuoteTable();
+  else _renderTableBody(), _syncBadge();
 };
 
-function _sortIcon(key, mode) {
-  const s = mode === 'quote' ? qSortState : sortState;
-  if (s.key !== key) return '<span style="opacity:0.25;font-size:0.75rem;margin-left:3px">⇅</span>';
-  return s.dir === 'asc'
-    ? '<span style="font-size:0.75rem;margin-left:3px">▲</span>'
-    : '<span style="font-size:0.75rem;margin-left:3px">▼</span>';
+function _syncBadge() {
+  document.getElementById('headerBadge').innerHTML =
+    state.filtered.length < catalog.length
+      ? `篩選 <span>${state.filtered.length}</span> / ${catalog.length} 筆`
+      : `共 <span>${catalog.length}</span> 筆`;
 }
+
+function _sortIcon(key, mode) {
+  const keys = mode === 'quote' ? qSortKeys : sortKeys;
+  const idx = keys.findIndex(k => k.key === key);
+  if (idx < 0) return '<span style="opacity:0.2;font-size:0.7rem;margin-left:2px">⇅</span>';
+  const arrow = keys[idx].dir === 'asc' ? '▲' : '▼';
+  const rank  = keys.length > 1 ? `<sup style="font-size:0.6rem">${idx+1}</sup>` : '';
+  return `<span style="font-size:0.7rem;margin-left:2px;color:var(--blue)">${arrow}${rank}</span>`;
+}
+
 // ── 欄位拖曳調整寬度 ──
 function _initColResize(tableId) {
   const table = document.getElementById(tableId);
@@ -1574,7 +1619,7 @@ function applyFilter() {
     }
     return true;
   });
-  state.filtered = _sortRows(state.filtered, sortState.key, sortState.dir, 'purchase');
+  state.filtered = _sortRows(state.filtered, sortKeys, 'purchase');
 }
 
 // ── 日期欄位格式化 → yyyy/mm/dd ──
@@ -1675,7 +1720,7 @@ function renderTable() {
 
   // Header row 1: labels
   const labelRow = cols.map(c =>
-    `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','purchase')">${esc(c.label)}${_sortIcon(c.key,'purchase')}</th>`
+    `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','purchase',event)">${esc(c.label)}${_sortIcon(c.key,'purchase')}</th>`
   ).join('');
 
   // Header row 2: filter inputs (compact, IME-safe — listeners attached by attachColFilterListeners)
@@ -2743,8 +2788,8 @@ function applyQuoteFilter() {
     }
     return true;
   });
-  if (qSortState.key) {
-    quoteState.filtered = _sortRows(quoteState.filtered, qSortState.key, qSortState.dir, 'quote');
+  if (qSortKeys.length) {
+    quoteState.filtered = _sortRows(quoteState.filtered, qSortKeys, 'quote');
   }
   quoteState.pageSize = 200;
 }
@@ -2886,7 +2931,7 @@ function renderQuoteTable() {
 
   // Header row 1: labels
   const labelRow = visCols.map(c =>
-    `<th class="${c.type==='num'?'num':''} quote-th" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','quote')">${esc(c.label)}${_sortIcon(c.key,'quote')}</th>`
+    `<th class="${c.type==='num'?'num':''} quote-th" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','quote',event)">${esc(c.label)}${_sortIcon(c.key,'quote')}</th>`
   ).join('');
 
   // Header row 2: filter inputs (compact, IME-safe)
