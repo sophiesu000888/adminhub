@@ -236,6 +236,43 @@ body {
 /* ── SIDEBAR FOOTER - kept for legacy, hidden ── */
 .sidebar-footer { display: none; }
 
+/* ── VENDOR LIST HEADER (star filter bar) ── */
+.vendor-list-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px 2px;
+}
+.btn-star-filter {
+  display: flex; align-items: center; gap: 4px;
+  background: white; border: 1.5px solid rgba(45,45,45,0.2);
+  border-radius: 20px; padding: 3px 10px; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.9rem; font-weight: 700;
+  color: #888; transition: all .12s; white-space: nowrap;
+}
+.btn-star-filter:hover { border-color: #b8942a; color: #b8942a; }
+.btn-star-filter.active { background: #fff8e7; border-color: #b8942a; color: #b8942a; box-shadow: 1px 1px 0 #b8942a; }
+.vendor-star {
+  font-size: 1rem; flex-shrink: 0; opacity: 0.85; margin-left: 2px;
+}
+
+/* ── STAR SIDE TAB ── */
+#stab-p-fav   { background: #fff8e7; color: #b8942a; border-left: 3px solid #b8942a; }
+#stab-q-fav   { background: #fff8e7; color: #b8942a; border-left: 3px solid #b8942a; }
+#sdrawer-p-fav .drawer-header { background: #fff8e7; border-bottom-color: #b8942a; }
+#sdrawer-q-fav .drawer-header { background: #fff8e7; border-bottom-color: #b8942a; }
+
+/* ── FAV CHECKBOX LIST ── */
+.fav-vendor-list { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
+.fav-vendor-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 8px; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
+  transition: background .1s;
+}
+.fav-vendor-item:hover { background: rgba(184,148,42,0.08); }
+.fav-vendor-item input[type=checkbox] { width: 17px; height: 17px; accent-color: #b8942a; cursor: pointer; flex-shrink: 0; }
+.fav-vendor-item label { cursor: pointer; flex: 1; font-weight: 600; }
+.fav-vendor-count { font-size: 0.85rem; color: #aaa; flex-shrink: 0; }
+
 /* ── TABLE ── */
 .content { display: flex; flex-direction: column; min-height: 0; }
 .table-wrap { flex: 1; overflow: auto; }
@@ -788,6 +825,10 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <!-- ══ SIDE-TAB RAIL（進貨紀錄模式） ══ -->
 <div class="vtab-rail" id="vtabRailPurchase">
+  <div class="side-tab" id="stab-p-fav"    onclick="openVtab('p-fav')"    title="常用廠商">
+    <span class="st-icon">⭐</span>
+    <span class="st-label">常用</span>
+  </div>
   <div class="side-tab" id="stab-p-cols"   onclick="openVtab('p-cols')"   title="欄位設定">
     <span class="st-icon">📋</span>
     <span class="st-label">欄位設定</span>
@@ -800,6 +841,10 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <!-- ══ SIDE-TAB RAIL（報價單模式） ══ -->
 <div class="vtab-rail" id="vtabRailQuote" style="display:none">
+  <div class="side-tab" id="stab-q-fav"    onclick="openVtab('q-fav')"    title="常用廠商">
+    <span class="st-icon">⭐</span>
+    <span class="st-label">常用</span>
+  </div>
   <div class="side-tab" id="stab-q-add"    onclick="closeVtabs();addNewQuote()" title="新增報價">
     <span class="st-icon">➕</span>
     <span class="st-label">新增</span>
@@ -906,6 +951,34 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <!-- 相容舊呼叫的空殼 -->
 <div id="vtpanel-q-manage" style="display:none"></div>
+
+<!-- ⑤ 進貨：常用廠商抽屜 -->
+<div class="side-drawer" id="sdrawer-p-fav">
+  <div class="drawer-header">
+    <span>⭐</span><h2>常用廠商</h2>
+    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <p style="font-size:0.9rem;color:#aaa;margin-bottom:10px;line-height:1.6;">
+      勾選後，廠商列表上方可用 ⭐ 快速篩選常用廠商。
+    </p>
+    <div class="fav-vendor-list" id="favPurchaseList"></div>
+  </div>
+</div>
+
+<!-- ⑥ 報價：常用廠商抽屜 -->
+<div class="side-drawer" id="sdrawer-q-fav">
+  <div class="drawer-header">
+    <span>⭐</span><h2>常用廠商</h2>
+    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <p style="font-size:0.9rem;color:#aaa;margin-bottom:10px;line-height:1.6;">
+      勾選後，廠商列表上方可用 ⭐ 快速篩選常用廠商。
+    </p>
+    <div class="fav-vendor-list" id="favQuoteList"></div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <div id="item-popover"></div>
@@ -1098,17 +1171,108 @@ window.toggleCol = function(key, checked) {
   renderTable();
 };
 
+// ═══════════════════════════════════════════════════════════
+// 常用廠商（Favorite Vendors）
+// ═══════════════════════════════════════════════════════════
+let favVendors     = new Set();   // 進貨常用
+let favQuoteVendors = new Set();  // 報價常用
+let filterFav      = false;       // 進貨目前是否 ⭐ 篩選中
+let filterFavQuote = false;       // 報價目前是否 ⭐ 篩選中
+
+// ── 取得廠商清單（去重） ──
+function getPurchaseVendors() {
+  const counts = {};
+  catalog.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
+  return Object.entries(counts).sort((a,b) => b[1]-a[1]);
+}
+function getQuoteVendors() {
+  const counts = {};
+  quoteList.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
+  return Object.entries(counts).sort((a,b) => b[1]-a[1]);
+}
+
+// ── 渲染常用廠商抽屜 ──
+function renderFavDrawer(listId, vendors, favSet, toggleFn) {
+  const el = document.getElementById(listId);
+  if (!el) return;
+  if (!vendors.length) {
+    el.innerHTML = '<div style="color:#bbb;font-size:0.9rem;padding:8px 4px;">尚無廠商資料</div>';
+    return;
+  }
+  el.innerHTML = vendors.map(([v, c]) => {
+    const safe = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const id   = listId + '_' + btoa(encodeURIComponent(v)).replace(/[=+/]/g,'_');
+    const checked = favSet.has(v) ? 'checked' : '';
+    return `<div class="fav-vendor-item">
+      <input type="checkbox" id="${id}" ${checked} onchange="${toggleFn}('${v.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this.checked)">
+      <label for="${id}">${safe}</label>
+      <span class="fav-vendor-count">${c}</span>
+    </div>`;
+  }).join('');
+}
+
+window.toggleFavVendor = function(v, checked) {
+  if (checked) favVendors.add(v); else favVendors.delete(v);
+  renderSidebar();
+  saveFavPrefs();
+};
+window.toggleFavQuoteVendor = function(v, checked) {
+  if (checked) favQuoteVendors.add(v); else favQuoteVendors.delete(v);
+  renderQuoteSidebar();
+  saveFavPrefs();
+};
+
+window.openFavDrawer = function(mode) {
+  if (mode === 'purchase') {
+    renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
+    openVtab('p-fav');
+  } else {
+    renderFavDrawer('favQuoteList', getQuoteVendors(), favQuoteVendors, 'toggleFavQuoteVendor');
+    openVtab('q-fav');
+  }
+};
+
+// ── 切換 ⭐ 篩選 ──
+window.toggleFavFilter = function() {
+  filterFav = !filterFav;
+  if (filterFav) { state.vendor = 'all'; state.page = 1; }
+  renderAll();
+};
+window.toggleFavQuoteFilter = function() {
+  filterFavQuote = !filterFavQuote;
+  if (filterFavQuote) { quoteState.vendor = 'all'; }
+  applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar();
+};
+
+// ── 儲存/載入 fav prefs（寫入 price_prefs）──
+function saveFavPrefs() { if (autoSavePrefs) autoSavePrefs(); }
+
 // ── 廠商列表 ──
 function renderSidebar() {
   const counts = {};
   catalog.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
-  const vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  let vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
+  // ⭐ 篩選模式：只顯示常用廠商
+  const displayVendors = filterFav ? vendors.filter(([v]) => favVendors.has(v)) : vendors;
+
   const vList = document.getElementById('vendorList');
-  vList.innerHTML = `<button class="vendor-btn ${state.vendor==='all'?'active':''}" onclick="setVendor('all')">全部 <span>${catalog.length}</span></button>`;
-  vendors.forEach(([v, c]) => {
+
+  // ── header bar with ⭐ filter button ──
+  const starBtnActive = filterFav ? 'active' : '';
+  let html = `<div class="vendor-list-header">
+    <button class="btn-star-filter ${starBtnActive}" onclick="toggleFavFilter()" title="常用廠商篩選">
+      ⭐ 常用
+    </button>
+  </div>`;
+
+  html += `<button class="vendor-btn ${state.vendor==='all'?'active':''}" onclick="setVendor('all')">全部 <span>${catalog.length}</span></button>`;
+  displayVendors.forEach(([v, c]) => {
     const safeJs = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    vList.innerHTML += `<button class="vendor-btn ${state.vendor===v?'active':''}" onclick="setVendor('${safeJs}')">${esc(v)} <span>${c}</span></button>`;
+    const star   = favVendors.has(v) ? '<span class="vendor-star">⭐</span>' : '';
+    html += `<button class="vendor-btn ${state.vendor===v?'active':''}" onclick="setVendor('${safeJs}')">${esc(v)}${star} <span>${c}</span></button>`;
   });
+  vList.innerHTML = html;
 }
 window.setVendor = function(v) { state.vendor = v; state.page = 1; renderAll(); };
 
@@ -1146,6 +1310,7 @@ function renderAll() { renderSidebar(); applyFilter(); renderTable(); }
 function applyFilter() {
   const q = state.search.toLowerCase();
   state.filtered = catalog.filter(r => {
+    if (filterFav && !favVendors.has(r.vendor || '（未知）')) return false;
     if (state.vendor !== 'all' && r.vendor !== state.vendor) return false;
     if (q && !allCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
     for (const [key, val] of Object.entries(colFilters)) {
@@ -1883,7 +2048,9 @@ requireAuth((user) => {
   autoSavePrefs = makeAutoSave('price_prefs', () => ({
     visibleCols: [...visibleCols],
     customCols,
-    colOrder
+    colOrder,
+    favVendors:      [...favVendors],
+    favQuoteVendors: [...favQuoteVendors],
   }), 800);
 
   startSync('price_prefs', user, (content) => {
@@ -1894,6 +2061,10 @@ requireAuth((user) => {
         customCols = content.customCols;
       if (Array.isArray(content.colOrder) && content.colOrder.length)
         colOrder = content.colOrder;
+      if (Array.isArray(content.favVendors))
+        favVendors = new Set(content.favVendors);
+      if (Array.isArray(content.favQuoteVendors))
+        favQuoteVendors = new Set(content.favQuoteVendors);
     }
     buildColToggleUI();
     renderTable();
@@ -1985,7 +2156,7 @@ requireAuth((user) => {
 let currentMode = 'purchase';
 
 // ── Vtab Rail ──
-const VTAB_IDS = ['p-cols','p-manage','q-cols','q-manage'];
+const VTAB_IDS = ['p-fav','p-cols','p-manage','q-fav','q-cols','q-manage'];
 
 function closeVtabs() {
   VTAB_IDS.forEach(id => {
@@ -2002,6 +2173,9 @@ window.openVtab = function(id) {
   const wasOpen = drawer && drawer.classList.contains('open');
   closeVtabs();
   if (!wasOpen && drawer) {
+    // 常用廠商抽屜：先填充內容再打開
+    if (id === 'p-fav') renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
+    if (id === 'q-fav') renderFavDrawer('favQuoteList', getQuoteVendors(), favQuoteVendors, 'toggleFavQuoteVendor');
     drawer.classList.add('open');
     if (tab) tab.classList.add('open');
     document.getElementById('vtabOverlay').classList.add('show');
@@ -2218,13 +2392,23 @@ window.openQuoteDrawer = function(id) {
 function renderQuoteSidebar() {
   const counts = {};
   quoteList.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
-  const vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  let vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const displayVendors = filterFavQuote ? vendors.filter(([v]) => favQuoteVendors.has(v)) : vendors;
+
   const vList = document.getElementById('quoteVendorList');
-  vList.innerHTML = `<button class="vendor-btn ${quoteState.vendor==='all'?'active':''}" onclick="setQuoteVendor('all')">全部 <span>${quoteList.length}</span></button>`;
-  vendors.forEach(([v,c]) => {
+  const starBtnActive = filterFavQuote ? 'active' : '';
+  let html = `<div class="vendor-list-header">
+    <button class="btn-star-filter ${starBtnActive}" onclick="toggleFavQuoteFilter()" title="常用廠商篩選">
+      ⭐ 常用
+    </button>
+  </div>`;
+  html += `<button class="vendor-btn ${quoteState.vendor==='all'?'active':''}" onclick="setQuoteVendor('all')">全部 <span>${quoteList.length}</span></button>`;
+  displayVendors.forEach(([v,c]) => {
     const safe = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    vList.innerHTML += `<button class="vendor-btn ${quoteState.vendor===v?'active':''}" onclick="setQuoteVendor('${safe}')">${esc(v)} <span>${c}</span></button>`;
+    const star = favQuoteVendors.has(v) ? '<span class="vendor-star">⭐</span>' : '';
+    html += `<button class="vendor-btn ${quoteState.vendor===v?'active':''}" onclick="setQuoteVendor('${safe}')">${esc(v)}${star} <span>${c}</span></button>`;
   });
+  vList.innerHTML = html;
 }
 window.setQuoteVendor = function(v) { quoteState.vendor = v; applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar(); };
 
@@ -2253,6 +2437,7 @@ function _setupQuoteScrollLoad() {
 function applyQuoteFilter() {
   const q = quoteState.search.toLowerCase();
   quoteState.filtered = quoteList.filter(r => {
+    if (filterFavQuote && !favQuoteVendors.has(r.vendor || '（未知）')) return false;
     if (quoteState.vendor !== 'all' && r.vendor !== quoteState.vendor) return false;
     if (q && !allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
     for (const [key, val] of Object.entries(quoteColFilters)) {
