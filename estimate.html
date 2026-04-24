@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -425,6 +426,10 @@ select.ds {
 }
 .drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
 .drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
+/* ── 抽屜內字體統一 18px（.sec-title 標題除外） ── */
+.drawer-body *:not(.sec-title):not(.sec-title *) { font-size: 18px !important; }
+.drawer-body .sec-title { font-size: 44px !important; }
+.drawer-body .sec-title::before { font-size: 40px !important; }
 #drawer-config .drawer-header { background: #f3e5f5; border-bottom-color: #7b1fa2; }
 #drawer-stock  .drawer-header { background: #e8f5e9; border-bottom-color: #2e7d32; }
 
@@ -1427,23 +1432,16 @@ function siteHasActiveWeek(site, mon) {
     return true; // AP6B 每週固定有午餐
   }
   if (site === 'P8') {
-    return p8Weeks[mon] === 'on';
+    // P8 顯示每週的 cfgConfirmBtn（不管是否 'on'），所以只要該週存在就算 active
+    return true;
   }
   if (site === '群聯') {
     var w = qunlianWeeks[mon];
     return w && (w.main === 'on' || w.double === 'on');
   }
   if (site === '央廚') {
-    // 央廚以日為單位，只要該週有任何平日有設定就算
-    var mon2 = mon; // weekMonForDate base
-    var days = [];
-    for (var di = 0; di < 5; di++) {
-      var ds = addDays(mon2, di);
-      if (isWorkday(ds) && yangchuDays[ds] && (yangchuDays[ds].main === 'on' || yangchuDays[ds].double === 'on')) {
-        days.push(ds);
-      }
-    }
-    return days.length > 0;
+    // 央廚每週的 weekHeader 都顯示 cfgConfirmBtn，只要該週有任何平日即算 active
+    return workdaysInWeek(mon) > 0;
   }
   if (site === '聯電') {
     var w2 = lianDianWeeks[mon];
