@@ -282,34 +282,39 @@ body {
 #sdrawer-q-fav .drawer-header { background: #fff8e7; border-bottom-color: #b8942a; }
 
 /* ── FAV CHECKBOX LIST ── */
-.fav-vendor-list { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
+.fav-vendor-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; padding: 4px 0; }
 .fav-vendor-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 7px 10px; border-radius: 8px; cursor: pointer;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 8px; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.95rem;
   transition: background .1s;
 }
 .fav-vendor-item:hover { background: rgba(184,148,42,0.08); }
-.fav-vendor-item input[type=checkbox] { width: 17px; height: 17px; accent-color: #b8942a; cursor: pointer; flex-shrink: 0; }
-.fav-vendor-item label { cursor: pointer; flex: 1; font-weight: 600; }
-.fav-vendor-count { font-size: 0.85rem; color: #aaa; flex-shrink: 0; }
+.fav-vendor-item input[type=checkbox] { width: 16px; height: 16px; accent-color: #b8942a; cursor: pointer; flex-shrink: 0; }
+.fav-vendor-item label { cursor: pointer; flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── TABLE ── */
 .content { display: flex; flex-direction: column; min-height: 0; }
 .table-wrap { flex: 1; overflow: auto; }
-/* 表格寬度跟著內容走，不強制撐滿 */
-table { width: auto; min-width: 0; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: auto; }
+table { width: auto; min-width: 0; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: fixed; }
 thead th {
-  background: #c5d9f5; padding: 10px 10px; text-align: left;
+  background: #c5d9f5; padding: 10px 10px; text-align: center;
   border-bottom: 2.5px solid var(--ink); position: sticky; top: 0; z-index: 10;
   font-family: 'Noto Sans TC', sans-serif; font-weight: 700; white-space: nowrap;
+  position: relative; overflow: hidden;
 }
+/* 欄位拖曳 handle */
+.col-resize-handle {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 5px; cursor: col-resize; z-index: 1;
+  background: transparent;
+}
+.col-resize-handle:hover, .col-resize-handle.dragging { background: var(--blue); opacity: 0.5; }
 thead th.num { text-align: right; }
 thead th.custom-th { background: #ddeeff; color: var(--blue); }
 tbody tr { border-bottom: 1px solid rgba(45,45,45,0.1); cursor: pointer; }
 tbody tr:hover { background: #fff9e6; }
-/* 每格寬度自動、完整顯示，不截斷 */
-td { padding: 10px 10px; white-space: nowrap; }
+td { padding: 10px 10px; white-space: nowrap; text-align: center; overflow: hidden; text-overflow: ellipsis; }
 td.num { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--green-dark); }
 td.mono { font-family: 'DM Mono', monospace; }
 td.custom-td { color: var(--blue); font-style: italic; }
@@ -317,7 +322,7 @@ mark { background: #fff176; border-radius: 2px; padding: 0 1px; }
 /* ── 欄位篩選列 ── */
 tr.filter-row th.col-filter-th {
   background: #eef2ff; padding: 3px 6px;
-  border-bottom: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink); text-align: center;
 }
 .col-filter-input {
   width: 100%; min-width: 48px; max-width: 160px;
@@ -496,6 +501,7 @@ tr.filter-row th.col-filter-th {
 .pop-label { color: #888; font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
 .pop-val { font-weight: 700; font-family: 'DM Mono', monospace; color: var(--green-dark); }
 .pop-val.hi { color: var(--red); }
+.pop-val.lo { color: var(--blue); }
 .pop-unit { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700; margin-left: 2px; }
 .pop-sub { font-size: 0.88rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
 .pop-no-data { color: #bbb; font-size: 1rem; text-align: center; padding: 4px 0; }
@@ -1231,14 +1237,13 @@ function renderFavDrawer(listId, vendors, favSet, toggleFn) {
     el.innerHTML = '<div style="color:#bbb;font-size:0.9rem;padding:8px 4px;">尚無廠商資料</div>';
     return;
   }
-  el.innerHTML = vendors.map(([v, c]) => {
+  el.innerHTML = vendors.map(([v]) => {
     const safe = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const id   = listId + '_' + btoa(encodeURIComponent(v)).replace(/[=+/]/g,'_');
     const checked = favSet.has(v) ? 'checked' : '';
     return `<div class="fav-vendor-item">
       <input type="checkbox" id="${id}" ${checked} onchange="${toggleFn}('${v.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this.checked)">
       <label for="${id}">${safe}</label>
-      <span class="fav-vendor-count">${c}</span>
     </div>`;
   }).join('');
 }
@@ -1477,7 +1482,83 @@ function attachColFilterListeners() {
   });
 }
 
-// ── 主渲染 ──
+// ── 排序狀態 ──
+let sortState  = { key: 'date', dir: 'desc' };  // 進貨紀錄預設日期降序
+let qSortState = { key: null,   dir: 'asc'  };  // 報價單預設無排序
+
+function _sortRows(rows, sortKey, dir, mode) {
+  return [...rows].sort((a, b) => {
+    let va = mode === 'quote' ? (a[sortKey] ?? '') : (sortKey === 'date' ? fmtDate(a) : (a[sortKey] ?? ''));
+    let vb = mode === 'quote' ? (b[sortKey] ?? '') : (sortKey === 'date' ? fmtDate(b) : (b[sortKey] ?? ''));
+    const na = Number(va), nb = Number(vb);
+    let cmp;
+    if (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '') {
+      cmp = na - nb;
+    } else {
+      cmp = String(va).localeCompare(String(vb), 'zh-TW', { numeric: true });
+    }
+    return dir === 'asc' ? cmp : -cmp;
+  });
+}
+
+window.setSortCol = function(key, mode) {
+  if (mode === 'quote') {
+    if (qSortState.key === key) qSortState.dir = qSortState.dir === 'asc' ? 'desc' : 'asc';
+    else { qSortState.key = key; qSortState.dir = 'asc'; }
+    applyQuoteFilter(); renderQuoteTable();
+  } else {
+    if (sortState.key === key) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+    else { sortState.key = key; sortState.dir = 'desc'; }
+    applyFilter(); renderTable();
+  }
+};
+
+function _sortIcon(key, mode) {
+  const s = mode === 'quote' ? qSortState : sortState;
+  if (s.key !== key) return '<span style="opacity:0.25;font-size:0.75rem;margin-left:3px">⇅</span>';
+  return s.dir === 'asc'
+    ? '<span style="font-size:0.75rem;margin-left:3px">▲</span>'
+    : '<span style="font-size:0.75rem;margin-left:3px">▼</span>';
+}
+// ── 欄位拖曳調整寬度 ──
+function _initColResize(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const ths = table.querySelectorAll('thead tr:first-child th');
+  ths.forEach(th => {
+    if (!th.style.width) th.style.width = th.getBoundingClientRect().width + 'px';
+    if (th.querySelector('.col-resize-handle')) return;
+    const handle = document.createElement('div');
+    handle.className = 'col-resize-handle';
+    th.appendChild(handle);
+    let startX, startW;
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      startX = e.clientX; startW = th.getBoundingClientRect().width;
+      handle.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      function onMove(e) { th.style.width = Math.max(40, startW + e.clientX - startX) + 'px'; }
+      function onUp() {
+        handle.classList.remove('dragging');
+        document.body.style.cursor = ''; document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+    handle.addEventListener('touchstart', e => {
+      e.stopPropagation();
+      startX = e.touches[0].clientX; startW = th.getBoundingClientRect().width;
+      function onMove(e) { th.style.width = Math.max(40, startW + e.touches[0].clientX - startX) + 'px'; }
+      function onEnd() { handle.removeEventListener('touchmove', onMove); handle.removeEventListener('touchend', onEnd); }
+      handle.addEventListener('touchmove', onMove, { passive: true });
+      handle.addEventListener('touchend', onEnd);
+    }, { passive: true });
+  });
+}
+
 function renderAll() { renderSidebar(); applyFilter(); renderTable(); }
 
 function applyFilter() {
@@ -1493,13 +1574,7 @@ function applyFilter() {
     }
     return true;
   });
-  state.filtered.sort((a, b) => {
-    const da = fmtDate(a) || '';
-    const db = fmtDate(b) || '';
-    if (da > db) return -1;
-    if (da < db) return  1;
-    return 0;
-  });
+  state.filtered = _sortRows(state.filtered, sortState.key, sortState.dir, 'purchase');
 }
 
 // ── 日期欄位格式化 → yyyy/mm/dd ──
@@ -1600,7 +1675,7 @@ function renderTable() {
 
   // Header row 1: labels
   const labelRow = cols.map(c =>
-    `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}">${esc(c.label)}</th>`
+    `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','purchase')">${esc(c.label)}${_sortIcon(c.key,'purchase')}</th>`
   ).join('');
 
   // Header row 2: filter inputs (compact, IME-safe — listeners attached by attachColFilterListeners)
@@ -1640,6 +1715,7 @@ function renderTable() {
       : `共 <span>${catalog.length}</span> 筆`;
 
   attachColFilterListeners();
+  requestAnimationFrame(() => _initColResize('mainTable'));
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2149,6 +2225,7 @@ window.confirmImport = function() {
     if (!priced.length) return null;
     const latest  = priced[priced.length - 1];
     const maxItem = priced.reduce((a, b) => a.price >= b.price ? a : b);
+    const minItem = priced.reduce((a, b) => a.price <= b.price ? a : b);
     const now     = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
     const recent  = priced.filter(x => {
@@ -2159,12 +2236,12 @@ window.confirmImport = function() {
       return d >= sixMonthsAgo;
     });
     const avg6 = recent.length ? recent.reduce((s, x) => s + x.price, 0) / recent.length : null;
-    return { latest, maxItem, avg6, recentCount: recent.length, spec };
+    return { latest, maxItem, minItem, avg6, recentCount: recent.length, spec };
   }
 
   function _priceRowHtml(label, price, dateStr, spec, extraCls) {
     const up = fmtUnitPrice(price, spec);
-    const color = extraCls === 'hi' ? 'var(--red)' : 'var(--green-dark)';
+    const color = extraCls === 'hi' ? 'var(--red)' : extraCls === 'lo' ? 'var(--blue)' : 'var(--green-dark)';
     const unitPart = up ? ` <span class="pop-unit" style="color:${color}">; ${up}</span>` : '';
     const datePart = dateStr ? `<br><span class="pop-sub">${esc(fmtDateStr(dateStr))}</span>` : '';
     return `<div class="pop-row">
@@ -2191,6 +2268,7 @@ window.confirmImport = function() {
       pop.innerHTML = `
         <div class="pop-title">${esc(item)}${unitLabel}</div>
         ${_priceRowHtml('最新價格', stats.latest.price, stats.latest.dateStr, spec, '')}
+        ${_priceRowHtml('最低價格', stats.minItem.price, stats.minItem.dateStr, spec, 'lo')}
         ${_priceRowHtml('最高價格', stats.maxItem.price, stats.maxItem.dateStr, spec, 'hi')}
         <div class="pop-row">
           <span class="pop-label">近六個月均價</span>
@@ -2665,6 +2743,9 @@ function applyQuoteFilter() {
     }
     return true;
   });
+  if (qSortState.key) {
+    quoteState.filtered = _sortRows(quoteState.filtered, qSortState.key, qSortState.dir, 'quote');
+  }
   quoteState.pageSize = 200;
 }
 
@@ -2682,10 +2763,10 @@ function _buildQuoteBodyHtml(visCols, re) {
     const qListIdx = quoteList.indexOf(r);
     const cells = visCols.map(col => {
       const raw = r[col.key];
-      if (col.key === 'source') return `<td ondblclick="event.stopPropagation()">${sourceBadgeHtml(raw)}</td>`;
+      if (col.key === 'source') return `<td>${sourceBadgeHtml(raw)}</td>`;
       const isEmpty = raw === null || raw === undefined || raw === '';
       if (col.type === 'num' && !isEmpty && !isNaN(Number(raw))) {
-        return `<td class="quote-price" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','num')">${fmtNum(raw)}</td>`;
+        return `<td class="quote-price" data-colkey="${col.key}" data-coltype="num">${fmtNum(raw)}</td>`;
       }
       let val = isEmpty ? '' : esc(String(raw));
       if (re && val) val = val.replace(re, '<mark>$1</mark>');
@@ -2695,11 +2776,11 @@ function _buildQuoteBodyHtml(visCols, re) {
         const it = esc(r.item    || '');
         const bu = esc(r.buyUnit || r.unit || '');
         const qk = esc(r.query  || '');
-        return `<td class="${cls}" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','text')" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
+        return `<td class="${cls}" data-colkey="${col.key}" data-coltype="text" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
       }
-      return `<td class="${cls}" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','text')">${val}</td>`;
+      return `<td class="${cls}" data-colkey="${col.key}" data-coltype="text">${val}</td>`;
     }).join('');
-    return `<tr onclick="showQuoteDetail(${idx})" style="cursor:pointer">${cells}</tr>`;
+    return `<tr data-idx="${idx}" data-qidx="${qListIdx}" style="cursor:pointer">${cells}</tr>`;
   }).join('');
   const total = quoteState.filtered.length;
   if (displayRows.length < total) {
@@ -2744,6 +2825,32 @@ function attachQuoteColFilterListeners() {
   });
 }
 
+// ── Quote tbody click / dblclick 委派（避免單擊/雙擊衝突）──
+let _quoteClickTimer = null;
+let _quoteTbodyBound = false;
+function _bindQuoteTbodyEvents() {
+  if (_quoteTbodyBound) return;
+  const tbody = document.getElementById('quoteTableBody');
+  if (!tbody) return;
+  _quoteTbodyBound = true;
+  tbody.addEventListener('click', e => {
+    if (e.target.closest('input')) return;
+    const tr = e.target.closest('tr[data-idx]');
+    if (!tr) return;
+    clearTimeout(_quoteClickTimer);
+    _quoteClickTimer = setTimeout(() => {
+      showQuoteDetail(Number(tr.dataset.idx));
+    }, 220);
+  });
+  tbody.addEventListener('dblclick', e => {
+    clearTimeout(_quoteClickTimer);
+    const td = e.target.closest('td[data-colkey]');
+    const tr = e.target.closest('tr[data-qidx]');
+    if (!td || !tr) return;
+    _quoteInlineEdit(td, Number(tr.dataset.qidx), td.dataset.colkey, td.dataset.coltype);
+  });
+}
+
 window.setQuoteColFilter = function(key, val) {
   if (val) quoteColFilters[key] = val; else delete quoteColFilters[key];
   applyQuoteFilter();
@@ -2779,7 +2886,7 @@ function renderQuoteTable() {
 
   // Header row 1: labels
   const labelRow = visCols.map(c =>
-    `<th class="${c.type==='num'?'num':''} quote-th">${esc(c.label)}</th>`
+    `<th class="${c.type==='num'?'num':''} quote-th" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','quote')">${esc(c.label)}${_sortIcon(c.key,'quote')}</th>`
   ).join('');
 
   // Header row 2: filter inputs (compact, IME-safe)
@@ -2815,6 +2922,8 @@ function renderQuoteTable() {
 
   _setupQuoteScrollLoad();
   attachQuoteColFilterListeners();
+  _bindQuoteTbodyEvents();
+  requestAnimationFrame(() => _initColResize('quoteTable'));
 }
 
 // ── shared: build edit form html ──
