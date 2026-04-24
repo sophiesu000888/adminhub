@@ -299,6 +299,27 @@ function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
 
   const { db, auth } = initFirebase();
 
+  // 帶 retry 的單筆寫入，遇到 resource-exhausted 自動等待後重試
+  async function _setWithRetry(ref, data, maxRetries = 5) {
+    let delay = 2000;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await ref.set(data);
+        return;
+      } catch(e) {
+        const exhausted = e.code === 'resource-exhausted' ||
+                          (e.message && e.message.includes('exhausted'));
+        if (exhausted && attempt < maxRetries) {
+          setSyncStatus(`⟳ 寫入等待中 (${attempt + 1}/${maxRetries})…`, 'saving');
+          await new Promise(r => setTimeout(r, delay));
+          delay = Math.min(delay * 2, 30000); // exponential backoff，最多 30 秒
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
   const doSave = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -318,22 +339,29 @@ function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // 逐塊寫入，避免 batch 總 payload 超過 Firestore 11MB 限制
+      // 逐塊寫入，每塊間加短暫延遲避免觸發 write stream 佇列滿
       for (let i = 0; i < chunks.length; i++) {
-        await db.collection('modules').doc(`${moduleName}_chunk_${i}`).set({ rows: chunks[i] });
+        await _setWithRetry(
+          db.collection('modules').doc(`${moduleName}_chunk_${i}`),
+          { rows: chunks[i] }
+        );
+        if (i < chunks.length - 1) {
+          await new Promise(r => setTimeout(r, 200)); // 每塊間隔 200ms
+        }
       }
       // meta doc 最後寫，讓 onSnapshot 統一觸發
-      await db.collection('modules').doc(`${moduleName}_meta`).set({
-        chunkCount: chunks.length,
-        lastSaved: lastSavedInfo
-      });
+      await _setWithRetry(
+        db.collection('modules').doc(`${moduleName}_meta`),
+        { chunkCount: chunks.length, lastSaved: lastSavedInfo }
+      );
       setSyncStatus('✓ 已儲存', 'saved');
       recordActivity(user, 'save', moduleName);
     } catch (e) {
       console.error('chunkedSave error', e);
       setSyncStatus('✗ 儲存失敗', 'err');
     } finally {
-      setTimeout(() => _savingModules.delete(moduleName), 3000);
+      // 延長保護時間（等 onSnapshot 把我們剛寫的資料推回來後才解除）
+      setTimeout(() => _savingModules.delete(moduleName), 8000);
     }
   };
 
@@ -387,6 +415,18 @@ function startChunkedSync(moduleName, currentUser, onRemoteUpdate) {
     if (meta.lastSaved) {
       setLastSaved(meta.lastSaved.displayName, meta.lastSaved.uid === currentUser.uid, meta.lastSaved.timestamp);
     }
+
+    // 保護期內（自己正在寫入）：只更新狀態列，不把雲端資料推回來蓋掉本地剛匯入的資料
+    if (_savingModules.has(moduleName)) {
+      setSyncStatus('✓ 已儲存', 'saved');
+      return;
+    }
+    // hasPendingWrites=true 代表這個 snapshot 是本地寫入觸發的（尚未確認），同樣跳過
+    if (metaSnap.metadata && metaSnap.metadata.hasPendingWrites) {
+      setSyncStatus('✓ 已儲存', 'saved');
+      return;
+    }
+
     setSyncStatus('⟳ 同步中…', 'sync');
 
     const chunkCount = meta.chunkCount || 0;
