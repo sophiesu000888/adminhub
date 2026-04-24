@@ -352,6 +352,9 @@ tr.filter-row th.col-filter-th {
 }
 .drawer-close:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
 .drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+.drawer-body.split { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.drawer-body.split .detail-meta-area { padding: 14px 18px 8px; flex-shrink: 0; border-bottom: 1.5px solid rgba(45,45,45,0.1); }
+.drawer-body.split .detail-table-area { flex: 1; overflow-y: auto; padding: 0 18px 14px; }
 .drawer-overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1150; backdrop-filter: blur(2px);
 }
@@ -474,7 +477,7 @@ tr.filter-row th.col-filter-th {
   background: white; border: 2.5px solid var(--ink);
   border-radius: 10px 3px 9px 3px / 3px 9px 3px 10px;
   box-shadow: 4px 4px 0 var(--shadow);
-  padding: 12px 16px; min-width: 200px; max-width: 280px;
+  padding: 12px 16px; min-width: 220px; max-width: 320px;
   font-family: 'Noto Sans TC', sans-serif; font-size: 1rem;
   opacity: 0; transition: opacity .12s;
 }
@@ -486,14 +489,15 @@ tr.filter-row th.col-filter-th {
   padding-bottom: 6px; word-break: break-all;
 }
 .pop-row {
-  display: flex; justify-content: space-between; align-items: baseline;
+  display: flex; justify-content: space-between; align-items: flex-start;
   padding: 4px 0; gap: 10px;
 }
 .pop-row:not(:last-child) { border-bottom: 1px dashed rgba(45,45,45,0.08); }
-.pop-label { color: #888; font-size: 1rem; white-space: nowrap; }
+.pop-label { color: #888; font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
 .pop-val { font-weight: 700; font-family: 'DM Mono', monospace; color: var(--green-dark); }
 .pop-val.hi { color: var(--red); }
-.pop-sub { font-size: 1rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
+.pop-unit { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: #888; margin-left: 2px; }
+.pop-sub { font-size: 0.88rem; color: #aaa; font-family: 'Noto Sans TC', sans-serif; margin-left: 4px; font-weight: 400; }
 .pop-no-data { color: #bbb; font-size: 1rem; text-align: center; padding: 4px 0; }
 
 /* ── PURCHASE DETAIL HISTORY ── */
@@ -503,6 +507,7 @@ tr.filter-row th.col-filter-th {
 .detail-hist-table th {
   text-align:left; padding:6px 8px; background:#f0f4ff;
   border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;
+  position:sticky; top:0; z-index:2;
 }
 .detail-hist-table td { padding:7px 8px; border-bottom:1px solid rgba(45,45,45,0.08); white-space:nowrap; }
 .detail-hist-table tr:hover td { background:#fff9e6; }
@@ -573,6 +578,8 @@ tr.filter-row th.col-filter-th {
 
 thead th.quote-th { background: #ede7f6; }
 td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--purple); }
+#quoteTable tbody td[ondblclick] { cursor: text; }
+#quoteTable tbody td[ondblclick]:hover { background: rgba(106,27,154,0.04); }
 
 /* ── QUOTE COL TOGGLE / REORDER ── */
 .q-col-list { display: flex; flex-direction: column; gap: 0; }
@@ -653,23 +660,14 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <div class="mode-tabs">
   <button class="mode-tab active-purchase" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
+  <button class="btn-star-filter" id="purchaseFavTabBtn" onclick="toggleFavFilter()" title="常用廠商篩選">⭐ 常用</button>
   <button class="mode-tab" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
   <button class="btn-star-filter" id="quoteFavTabBtn" style="display:none" onclick="toggleFavQuoteFilter()" title="常用廠商篩選">⭐ 常用</button>
 </div>
 
 <!-- ══ PURCHASE MODE ══ -->
 <div id="purchaseMode">
-<div class="main">
-  <aside class="sidebar sketchy-box">
-    <div class="sidebar-section">
-      <div class="sidebar-label">🔍 搜尋</div>
-      <input type="text" id="searchInput" placeholder="品項、廠商、貨號…" autocomplete="off">
-    </div>
-
-    <div class="vendor-list" id="vendorList"></div>
-
-
-  </aside>
+<div class="main" style="grid-template-columns:1fr">
 
   <main class="content">
     <div class="table-wrap sketchy-box">
@@ -708,7 +706,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <h2 id="detailTitle">📋 進貨明細</h2>
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
-  <div class="drawer-body" id="detailBody"></div>
+  <div class="drawer-body split" id="detailBody"></div>
   <div class="drawer-foot">
     <button class="btn-delete-detail" id="detailDeleteBtn" onclick="deleteSelectedDetail()" style="width:100%">🗑 刪除勾選的筆數</button>
   </div>
@@ -782,8 +780,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <div class="edit-form-grid" id="quoteDetailForm"></div>
   </div>
   <div class="drawer-foot">
-    <button class="btn-save-detail" onclick="saveQuoteDetail()">💾 儲存</button>
-    <button class="btn-delete-detail" onclick="deleteQuoteDetail()" style="min-width:88px;padding:10px 20px">🗑 刪除</button>
+    <button class="btn-delete-detail" onclick="deleteQuoteDetail()" style="width:100%">🗑 刪除此報價</button>
   </div>
 </div>
 
@@ -1275,6 +1272,8 @@ window.toggleFavFilter = function() {
     return;
   }
   if (filterFav) { state.vendor = 'all'; state.page = 1; }
+  const btn = document.getElementById('purchaseFavTabBtn');
+  if (btn) btn.classList.toggle('active', filterFav);
   renderAll();
 };
 window.toggleFavQuoteFilter = function() {
@@ -1294,26 +1293,15 @@ window.toggleFavQuoteFilter = function() {
 // ── 儲存/載入 fav prefs（寫入 price_prefs）──
 function saveFavPrefs() { if (autoSavePrefs) autoSavePrefs(); }
 
-// ── 廠商列表 ──
+// ── 廠商列表（sidebar 已移除，保留空函式供相容）──
 function renderSidebar() {
+  const vList = document.getElementById('vendorList');
+  if (!vList) return;
   const counts = {};
   catalog.forEach(r => { const v = r.vendor || '（未知）'; counts[v] = (counts[v]||0)+1; });
   let vendors = Object.entries(counts).sort((a,b) => b[1]-a[1]);
-
-  // ⭐ 篩選模式：只顯示常用廠商
   const displayVendors = filterFav ? vendors.filter(([v]) => favVendors.has(v)) : vendors;
-
-  const vList = document.getElementById('vendorList');
-
-  // ── header bar with ⭐ filter button ──
-  const starBtnActive = filterFav ? 'active' : '';
-  let html = `<div class="vendor-list-header">
-    <button class="btn-star-filter ${starBtnActive}" onclick="toggleFavFilter()" title="常用廠商篩選">
-      ⭐ 常用
-    </button>
-  </div>`;
-
-  html += `<button class="vendor-btn ${state.vendor==='all'?'active':''}" onclick="setVendor('all')">全部 <span>${catalog.length}</span></button>`;
+  let html = `<button class="vendor-btn ${state.vendor==='all'?'active':''}" onclick="setVendor('all')">全部 <span>${catalog.length}</span></button>`;
   displayVendors.forEach(([v, c]) => {
     const safeJs = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const star   = favVendors.has(v) ? '<span class="vendor-star">⭐</span>' : '';
@@ -1726,20 +1714,24 @@ window.showDetail = function(filteredIdx) {
   }).join('');
 
   document.getElementById('detailBody').innerHTML = `
-    ${metaHtml}
-    <label class="detail-hist-selall">
-      <input type="checkbox" id="detailSelAll" onchange="toggleDetailSelAll(this.checked)"> 全選
-    </label>
-    <table class="detail-hist-table">
-      <thead><tr>
-        <th></th>
-        <th>日期</th>
-        <th>廠商</th>
-        <th>含稅單價</th>
-        <th>數量</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    <div class="detail-meta-area">
+      ${metaHtml}
+      <label class="detail-hist-selall">
+        <input type="checkbox" id="detailSelAll" onchange="toggleDetailSelAll(this.checked)"> 全選
+      </label>
+    </div>
+    <div class="detail-table-area">
+      <table class="detail-hist-table">
+        <thead><tr>
+          <th></th>
+          <th>日期</th>
+          <th>廠商</th>
+          <th>含稅單價</th>
+          <th>數量</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 
   document.getElementById('detailDeleteBtn').disabled = false;
   openDrawer('detail');
@@ -2119,6 +2111,15 @@ window.confirmImport = function() {
     return s;
   }
 
+  // 無條件進位到小數後四位，去除末尾零
+  function fmtUnitPrice(price, spec) {
+    const s = Number(spec);
+    if (!s || isNaN(s) || s <= 0) return null;
+    const up = Math.ceil((price / s) * 10000) / 10000;
+    // 去除末尾零，最多四位小數
+    return up.toFixed(4).replace(/\.?0+$/, '');
+  }
+
   function calcStats(vendor, item, buyUnit, query) {
     // 用查詢欄（query）+ 進貨單位（buyUnit）組合搜尋
     const matches = catalog.filter(r =>
@@ -2127,8 +2128,9 @@ window.confirmImport = function() {
     if (!matches.length) return null;
     const priced = matches.map(r => {
       const p = Number(r.priceTax);
-      const dateStr = fmtDate(r);  // 統一用 fmtDate() 轉成 yyyy/mm/dd
-      return { price: p, dateStr };
+      const dateStr = fmtDate(r);
+      const spec = r.specPcs || r.spec || '';  // 優先 specPcs，fallback spec
+      return { price: p, dateStr, spec };
     }).filter(x => !isNaN(x.price) && x.price > 0);
     if (!priced.length) return null;
     const latest  = priced[priced.length - 1];
@@ -2146,6 +2148,18 @@ window.confirmImport = function() {
     return { latest, maxItem, avg6, recentCount: recent.length };
   }
 
+  function _priceRowHtml(label, price, dateStr, spec, extraCls) {
+    const up = fmtUnitPrice(price, spec);
+    const unitPart = up ? ` <span class="pop-unit">; ${up}</span>` : '';
+    const datePart = dateStr ? `<br><span class="pop-sub">${esc(fmtDateStr(dateStr))}</span>` : '';
+    return `<div class="pop-row">
+      <span class="pop-label">${label}</span>
+      <span style="text-align:right">
+        <span class="pop-val${extraCls ? ' '+extraCls : ''}">$${fmtNum(price)}</span>${unitPart}${datePart}
+      </span>
+    </div>`;
+  }
+
   window._showItemPopover = function(e, td) {
     clearTimeout(_hideTimer);
     const vendor  = td.dataset.vendor   || '';
@@ -2157,24 +2171,17 @@ window.confirmImport = function() {
       pop.innerHTML = `<div class="pop-title">${esc(item)}</div><div class="pop-no-data">無價格資料</div>`;
     } else {
       const unitLabel = buyUnit ? ` <span class="pop-sub">/ ${esc(buyUnit)}</span>` : '';
+      // spec 從最新那筆取
+      const spec = stats.latest.spec || '';
       pop.innerHTML = `
         <div class="pop-title">${esc(item)}${unitLabel}</div>
-        <div class="pop-row">
-          <span class="pop-label">最新價格</span>
-          <span class="pop-val">$${fmtNum(stats.latest.price)}</span>
-        </div>
-        <div class="pop-row">
-          <span class="pop-label">最高價格</span>
-          <span>
-            <span class="pop-val hi">$${fmtNum(stats.maxItem.price)}</span>
-            ${stats.maxItem.dateStr ? `<span class="pop-sub">${esc(fmtDateStr(stats.maxItem.dateStr))}</span>` : ''}
-          </span>
-        </div>
+        ${_priceRowHtml('最新價格', stats.latest.price, stats.latest.dateStr, spec, '')}
+        ${_priceRowHtml('最高價格', stats.maxItem.price, stats.maxItem.dateStr, spec, 'hi')}
         <div class="pop-row">
           <span class="pop-label">近六個月均價</span>
-          <span>
+          <span style="text-align:right">
             ${stats.avg6 !== null
-              ? `<span class="pop-val">$${fmtNum(stats.avg6)}</span><span class="pop-sub">(${stats.recentCount}筆)</span>`
+              ? `<span class="pop-val">$${fmtNum(stats.avg6)}</span>${fmtUnitPrice(stats.avg6, spec) ? `<span class="pop-unit">; ${fmtUnitPrice(stats.avg6, spec)}</span>` : ''}<br><span class="pop-sub">(${stats.recentCount}筆)</span>`
               : `<span class="pop-sub">無近期資料</span>`}
           </span>
         </div>`;
@@ -2397,10 +2404,15 @@ window.switchMode = function(mode) {
   closeVtabs();
   document.getElementById('vtabRailPurchase').style.display = mode === 'purchase' ? '' : 'none';
   document.getElementById('vtabRailQuote').style.display    = mode === 'quote'    ? '' : 'none';
-  const favBtn = document.getElementById('quoteFavTabBtn');
-  if (favBtn) {
-    favBtn.style.display = mode === 'quote' ? '' : 'none';
-    favBtn.classList.toggle('active', filterFavQuote);
+  const pFavBtn = document.getElementById('purchaseFavTabBtn');
+  if (pFavBtn) {
+    pFavBtn.style.display = mode === 'purchase' ? '' : 'none';
+    pFavBtn.classList.toggle('active', filterFav);
+  }
+  const qFavBtn = document.getElementById('quoteFavTabBtn');
+  if (qFavBtn) {
+    qFavBtn.style.display = mode === 'quote' ? '' : 'none';
+    qFavBtn.classList.toggle('active', filterFavQuote);
   }
   const tP = document.getElementById('tabPurchase');
   const tQ = document.getElementById('tabQuote');
@@ -2657,24 +2669,27 @@ function sourceBadgeHtml(src) {
 function _buildQuoteBodyHtml(visCols, re) {
   const displayRows = quoteState.filtered.slice(0, quoteState.pageSize);
   let html = displayRows.map((r, idx) => {
+    const qListIdx = quoteList.indexOf(r);
     const cells = visCols.map(col => {
       const raw = r[col.key];
-      if (col.key === 'source') return `<td>${sourceBadgeHtml(raw)}</td>`;
-      if (raw === null || raw === undefined || raw === '') return `<td></td>`;
-      if (col.type === 'num' && !isNaN(Number(raw))) return `<td class="quote-price">${fmtNum(raw)}</td>`;
-      let val = esc(String(raw));
-      if (re) val = val.replace(re, '<mark>$1</mark>');
+      if (col.key === 'source') return `<td ondblclick="event.stopPropagation()">${sourceBadgeHtml(raw)}</td>`;
+      const isEmpty = raw === null || raw === undefined || raw === '';
+      if (col.type === 'num' && !isEmpty && !isNaN(Number(raw))) {
+        return `<td class="quote-price" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','num')">${fmtNum(raw)}</td>`;
+      }
+      let val = isEmpty ? '' : esc(String(raw));
+      if (re && val) val = val.replace(re, '<mark>$1</mark>');
       const cls = col.type === 'mono' ? 'mono' : '';
       if (col.key === 'item') {
         const v  = esc(r.vendor  || '');
         const it = esc(r.item    || '');
         const bu = esc(r.buyUnit || '');
         const qk = esc(r.query  || '');
-        return `<td class="${cls}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
+        return `<td class="${cls}" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','text')" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
       }
-      return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
+      return `<td class="${cls}" ondblclick="event.stopPropagation();_quoteInlineEdit(this,${qListIdx},'${col.key}','text')">${val}</td>`;
     }).join('');
-    return `<tr onclick="showQuoteDetail(${idx})">${cells}</tr>`;
+    return `<tr onclick="showQuoteDetail(${idx})" style="cursor:pointer">${cells}</tr>`;
   }).join('');
   const total = quoteState.filtered.length;
   if (displayRows.length < total) {
@@ -2686,6 +2701,32 @@ function _buildQuoteBodyHtml(visCols, re) {
   }
   return html;
 }
+
+// ── Quote inline cell edit ──
+window._quoteInlineEdit = function(td, qListIdx, key, type) {
+  const r = quoteList[qListIdx];
+  if (!r) return;
+  const curVal = r[key] != null ? String(r[key]) : '';
+  const inp = document.createElement('input');
+  inp.type = type === 'num' ? 'number' : 'text';
+  inp.value = curVal;
+  inp.style.cssText = 'width:100%;border:none;outline:2px solid var(--blue);border-radius:4px;padding:2px 4px;font-size:inherit;font-family:inherit;background:#f0f5ff;box-sizing:border-box';
+  td.innerHTML = '';
+  td.appendChild(inp);
+  inp.focus(); inp.select();
+  function save() {
+    const v = inp.value.trim();
+    r[key] = v === '' ? null : v;
+    r.updatedAt = todayStr(); r.source = 'manual';
+    if (autoSaveQuote) autoSaveQuote();
+    applyQuoteFilter(); renderQuoteTable();
+  }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+    if (e.key === 'Escape') { inp.removeEventListener('blur', save); td.textContent = curVal; }
+  });
+};
 
 function attachQuoteColFilterListeners() {
   document.querySelectorAll('#quoteTable .col-filter-input').forEach(inp => {
@@ -2786,13 +2827,68 @@ function buildQuoteEditFormHtml(r) {
   return html;
 }
 
-// ── Show/edit quote detail ──
+// ── Show/edit quote detail → 近六個月進貨明細 ──
 window.showQuoteDetail = function(filteredIdx) {
   const r = quoteState.filtered[filteredIdx];
   if (!r) return;
   _quoteDetailIdx = quoteList.indexOf(r);
-  document.getElementById('quoteDetailTitle').textContent = '✏️ ' + (r.item || '編輯報價');
-  document.getElementById('quoteDetailForm').innerHTML = buildQuoteEditFormHtml(r);
+
+  const query   = r.query   || '';
+  const buyUnit = r.buyUnit || r.unit || '';
+  const now     = new Date();
+  const sixAgo  = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+
+  const matched = catalog
+    .map((rec, ci) => ({ rec, ci }))
+    .filter(({ rec }) => (rec.query || '') === query && (rec.buyUnit || '') === buyUnit)
+    .sort((a, b) => {
+      const da = fmtDate(a.rec) || '', db = fmtDate(b.rec) || '';
+      return da > db ? -1 : da < db ? 1 : 0;
+    });
+
+  const itemLabel = r.item || query || '—';
+  document.getElementById('quoteDetailTitle').textContent = `📋 ${itemLabel}`;
+
+  if (!matched.length) {
+    document.getElementById('quoteDetailForm').innerHTML = `<div class="detail-no-hist">無進貨紀錄</div>`;
+    openQuoteDrawer('quoteDetail');
+    return;
+  }
+
+  const recent = matched.filter(({ rec }) => {
+    const ds = fmtDate(rec); if (!ds) return false;
+    const p = ds.split('/');
+    return new Date(+p[0], +p[1]-1, +(p[2]||1)) >= sixAgo;
+  });
+  const avg6 = recent.length
+    ? recent.reduce((s, { rec }) => s + Number(rec.priceTax||rec.priceEx||0), 0) / recent.length
+    : null;
+
+  const metaHtml = `<div class="detail-hist-meta">
+    查詢欄：<strong>${esc(query||'—')}</strong>　進貨單位：<strong>${esc(buyUnit||'—')}</strong>　共 <strong>${matched.length}</strong> 筆
+    ${avg6 !== null ? `　近六個月均價：<strong style="color:var(--green-dark)">$${fmtNum(avg6)}</strong>（${recent.length}筆）` : ''}
+  </div>`;
+
+  const rows = matched.map(({ rec }) => {
+    const ds = fmtDate(rec) || '—';
+    const price = rec.priceTax || rec.priceEx || '';
+    const parts = ds.split('/');
+    const isRecent = new Date(+parts[0], +parts[1]-1, +(parts[2]||1)) >= sixAgo;
+    return `<tr>
+      <td class="mono" style="${isRecent?'color:var(--blue);font-weight:700':''}">${esc(ds)}</td>
+      <td>${esc(rec.vendor||'—')}</td>
+      <td class="num">${price ? `$${fmtNum(price)}` : '—'}</td>
+      <td>${esc(rec.qty||'')}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('quoteDetailForm').innerHTML = `
+    ${metaHtml}
+    <table class="detail-hist-table">
+      <thead><tr><th>日期</th><th>廠商</th><th>含稅單價</th><th>數量</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
   openQuoteDrawer('quoteDetail');
 };
 
