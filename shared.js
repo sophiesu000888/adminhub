@@ -266,6 +266,157 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
   return triggerSave;
 }
 
+// ── 分頁儲存（大資料，繞過 Firestore 1MB 限制）────────────────────
+// 資料切成每塊 CHUNK_SIZE 筆，存成 {moduleName}_chunk_0, _chunk_1, …
+// 另存一個 {moduleName}_meta 記錄總塊數、lastSaved 資訊
+const CHUNK_SIZE = 300;
+
+function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
+  let timer = null;
+
+  // 本機測試模式
+  if (_testUser()) {
+    const localSave = () => {
+      const arr = getArrayFn();
+      localStorage.setItem('adminhub_data_' + moduleName, JSON.stringify(arr));
+      const tu = _testUser();
+      const el = document.getElementById('sb-last');
+      if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}（本機）`;
+      setSyncStatus('✓ 已儲存', 'saved');
+    };
+    function triggerSave() {
+      setSyncStatus('儲存中…', 'saving');
+      clearTimeout(timer);
+      timer = setTimeout(localSave, debounceMs);
+    }
+    triggerSave.now = function() {
+      setSyncStatus('儲存中…', 'saving');
+      clearTimeout(timer);
+      localSave();
+    };
+    return triggerSave;
+  }
+
+  const { db, auth } = initFirebase();
+
+  const doSave = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    const arr = sanitizeForFirestore(getArrayFn());
+    // 切塊
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += CHUNK_SIZE) {
+      chunks.push(arr.slice(i, i + CHUNK_SIZE));
+    }
+    if (!chunks.length) chunks.push([]); // 空陣列也要寫
+
+    _savingModules.add(moduleName);
+    try {
+      const lastSavedInfo = {
+        uid: user.uid,
+        displayName: _getDisplayName(user),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      // 用 batch 寫入所有 chunk（Firestore batch 上限 500 ops，chunk 數量不會到那麼多）
+      const batch = db.batch();
+      chunks.forEach((chunk, i) => {
+        batch.set(db.collection('modules').doc(`${moduleName}_chunk_${i}`), { rows: chunk });
+      });
+      // meta doc：記錄 chunkCount 和 lastSaved
+      batch.set(db.collection('modules').doc(`${moduleName}_meta`), {
+        chunkCount: chunks.length,
+        lastSaved: lastSavedInfo
+      });
+      await batch.commit();
+      setSyncStatus('✓ 已儲存', 'saved');
+      recordActivity(user, 'save', moduleName);
+    } catch (e) {
+      console.error('chunkedSave error', e);
+      setSyncStatus('✗ 儲存失敗', 'err');
+    } finally {
+      setTimeout(() => _savingModules.delete(moduleName), 3000);
+    }
+  };
+
+  function triggerSave() {
+    setSyncStatus('儲存中…', 'saving');
+    clearTimeout(timer);
+    timer = setTimeout(doSave, debounceMs);
+  }
+  triggerSave.now = async function() {
+    setSyncStatus('儲存中…', 'saving');
+    clearTimeout(timer);
+    await doSave();
+  };
+  return triggerSave;
+}
+
+// ── 分頁監聽（讀取時合併所有 chunk）──────────────────────────────
+function startChunkedSync(moduleName, currentUser, onRemoteUpdate) {
+  if (_testUser()) {
+    const stored = localStorage.getItem('adminhub_data_' + moduleName);
+    try { onRemoteUpdate(stored ? JSON.parse(stored) : []); } catch(e) { onRemoteUpdate([]); }
+    setSyncStatus('✓ 本機模式', 'saved');
+    return () => {};
+  }
+
+  const { db } = initFirebase();
+
+  // 監聽 meta doc；每當 meta 更新（chunkCount 或 lastSaved 變），重新撈所有 chunk
+  return db.collection('modules').doc(`${moduleName}_meta`).onSnapshot(async (metaSnap) => {
+    if (_savingModules.has(moduleName)) return;
+
+    if (!metaSnap.exists) {
+      // 尚無分頁資料，嘗試讀舊格式（single doc）以便遷移
+      const oldSnap = await db.collection('modules').doc(moduleName).get();
+      if (oldSnap.exists) {
+        const data = oldSnap.data();
+        if (data.lastSaved) {
+          setLastSaved(data.lastSaved.displayName, data.lastSaved.uid === currentUser.uid, data.lastSaved.timestamp);
+        }
+        const content = data.content ? restoreFromFirestore(data.content) : null;
+        // 把舊資料帶出來（呼叫者拿到後會觸發 autoSave.now() 自動遷移寫入新格式）
+        onRemoteUpdate(content, true /* isLegacy */);
+      } else {
+        onRemoteUpdate([]);
+      }
+      setSyncStatus('✓ 已儲存', 'saved');
+      return;
+    }
+
+    const meta = metaSnap.data();
+    if (meta.lastSaved) {
+      setLastSaved(meta.lastSaved.displayName, meta.lastSaved.uid === currentUser.uid, meta.lastSaved.timestamp);
+    }
+    setSyncStatus('⟳ 同步中…', 'sync');
+
+    const chunkCount = meta.chunkCount || 0;
+    try {
+      const fetches = [];
+      for (let i = 0; i < chunkCount; i++) {
+        fetches.push(db.collection('modules').doc(`${moduleName}_chunk_${i}`).get());
+      }
+      const snaps = await Promise.all(fetches);
+      const combined = [];
+      snaps.forEach(snap => {
+        if (snap.exists) {
+          const rows = snap.data().rows || [];
+          rows.forEach(r => combined.push(restoreFromFirestore(r)));
+        }
+      });
+      onRemoteUpdate(combined);
+      setSyncStatus('✓ 已儲存', 'saved');
+    } catch(e) {
+      console.error('chunkedSync read error', e);
+      setSyncStatus('⟳ 同步失敗', 'err');
+    }
+  }, (err) => {
+    console.error(err);
+    setSyncStatus('⟳ 同步失敗', 'err');
+  });
+}
+
 // ── 即時同步監聽 ───────────────────────────────────────────────
 function startSync(moduleName, currentUser, onRemoteUpdate) {
   // 本機測試模式：從 localStorage 讀取，無跨裝置同步

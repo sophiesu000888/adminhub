@@ -227,7 +227,8 @@ body {
 /* ── TABLE ── */
 .content { display: flex; flex-direction: column; min-height: 0; }
 .table-wrap { flex: 1; overflow: auto; }
-table { width: 100%; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; }
+/* 表格寬度跟著內容走，不強制撐滿 */
+table { width: auto; min-width: 100%; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: auto; }
 thead th {
   background: #c5d9f5; padding: 10px 12px; text-align: left;
   border-bottom: 2.5px solid var(--ink); position: sticky; top: 0; z-index: 10;
@@ -237,7 +238,8 @@ thead th.num { text-align: right; }
 thead th.custom-th { background: #ddeeff; color: var(--blue); }
 tbody tr { border-bottom: 1px solid rgba(45,45,45,0.1); cursor: pointer; }
 tbody tr:hover { background: #fff9e6; }
-td { padding: 10px 12px; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+/* 每格寬度自動、完整顯示，不截斷 */
+td { padding: 10px 12px; white-space: nowrap; }
 td.num { text-align: right; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--green-dark); }
 td.mono { font-family: 'DM Mono', monospace; }
 td.custom-td { color: var(--blue); font-style: italic; }
@@ -489,6 +491,8 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 .q-col-label.custom { color: var(--purple); font-weight: 700; }
 .q-col-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; padding: 0 3px; flex-shrink: 0; line-height: 1; }
 .q-col-del:hover { color: var(--red); }
+/* 改名按鈕（✎）hover 顯示藍色 */
+.q-col-del[title="改名"]:hover { color: var(--blue); }
 
 /* ── COLUMN MAPPING SETTINGS ── */
 .col-map-settings {
@@ -626,7 +630,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <!-- Import Excel Drawer -->
 <div class="side-drawer" id="drawerImport">
   <div class="drawer-head">
-    <h2>📥 匯入 Excel</h2>
+    <h2>📥 匯入進貨紀錄</h2>
     <button class="drawer-close" onclick="closeDrawers()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
@@ -692,7 +696,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
   <div class="drawer-foot">
     <button class="btn-save-detail" onclick="saveQuoteDetail()">💾 儲存</button>
-    <button class="btn-delete-detail" onclick="deleteQuoteDetail()">🗑 刪除此筆</button>
+    <button class="btn-delete-detail" onclick="deleteQuoteDetail()" style="min-width:88px;padding:10px 20px">🗑 刪除</button>
   </div>
 </div>
 
@@ -789,7 +793,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
   <div class="vtab-panel-body">
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
-      <span class="vta-icon">📥</span><span class="vta-text">匯入 Excel</span>
+      <span class="vta-icon">📥</span><span class="vta-text">匯入進貨紀錄</span>
     </button>
     <button class="vt-action-btn vta-green" onclick="closeVtabs();doBackup()">
       <span class="vta-icon">💾</span><span class="vta-text">備份 JSON</span>
@@ -813,17 +817,9 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <span class="vtab-icon">📋</span>
     <span class="vtab-label">欄位設定</span>
   </button>
-  <button class="vtab-btn vt-blue" id="vtab-q-import" onclick="toggleVtab('vtab-q-import','vtpanel-q-manage')">
-    <span class="vtab-icon">📥</span>
-    <span class="vtab-label">匯入</span>
-  </button>
   <button class="vtab-btn vt-green" id="vtab-q-sync" onclick="closeVtabs();syncQuoteFromPurchase()">
     <span class="vtab-icon">🔄</span>
     <span class="vtab-label">同步</span>
-  </button>
-  <button class="vtab-btn vt-gold" id="vtab-q-backup" onclick="closeVtabs();doQuoteBackup()">
-    <span class="vtab-icon">💾</span>
-    <span class="vtab-label">備份</span>
   </button>
   <button class="vtab-btn vt-red" id="vtab-q-manage" onclick="toggleVtab('vtab-q-manage','vtpanel-q-danger')">
     <span class="vtab-icon">⚙️</span>
@@ -846,29 +842,31 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   </div>
 </div>
 
-<!-- vtab quote: 匯入相關 -->
-<div class="vtab-panel" id="vtpanel-q-manage">
+<!-- vtab quote: 匯入相關（已整合進管理，保留空殼供舊呼叫相容） -->
+<div class="vtab-panel" id="vtpanel-q-manage" style="display:none"></div>
+
+<!-- vtab quote: 管理（含匯入/匯出/備份/恢復/清除） -->
+<div class="vtab-panel" id="vtpanel-q-danger">
   <div class="vtab-panel-head">
-    <h3>📥 匯入報價</h3>
+    <h3>⚙️ 管理</h3>
     <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
   </div>
   <div class="vtab-panel-body">
+    <div class="vt-section-title">匯入 / 匯出</div>
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openQuoteDrawer('quoteImport')">
-      <span class="vta-icon">📥</span><span class="vta-text">匯入報價（Excel/PDF）</span>
+      <span class="vta-icon">📥</span><span class="vta-text">匯入報價單 Excel</span>
+    </button>
+    <button class="vt-action-btn vta-blue" onclick="closeVtabs();doQuoteExportExcel()">
+      <span class="vta-icon">📤</span><span class="vta-text">匯出報價單 Excel</span>
+    </button>
+    <div class="vt-section-title">備份 / 恢復</div>
+    <button class="vt-action-btn vta-gold" onclick="closeVtabs();doQuoteBackup()">
+      <span class="vta-icon">💾</span><span class="vta-text">備份報價（JSON）</span>
     </button>
     <button class="vt-action-btn vta-gold" onclick="closeVtabs();openQuoteDrawer('quoteRestore')">
       <span class="vta-icon">📂</span><span class="vta-text">恢復報價備份</span>
     </button>
-  </div>
-</div>
-
-<!-- vtab quote: 危險操作 -->
-<div class="vtab-panel" id="vtpanel-q-danger">
-  <div class="vtab-panel-head">
-    <h3>⚙️ 資料管理</h3>
-    <button class="vtab-panel-close" onclick="closeVtabs()">✕</button>
-  </div>
-  <div class="vtab-panel-body">
+    <div class="vt-section-title">危險操作</div>
     <button class="vt-action-btn vta-red" onclick="closeVtabs();doClearQuote()">
       <span class="vta-icon">🗑</span><span class="vta-text">清除所有報價</span>
     </button>
@@ -1020,6 +1018,12 @@ function buildColToggleUI() {
   list.innerHTML = cols.map((col, idx) => {
     const checked  = visibleCols.has(col.key) ? 'checked' : '';
     const isFirst  = idx === 0, isLast = idx === cols.length - 1;
+    // 固定欄位也允許改名，但不允許刪除（避免資料結構損毀）
+    // 自訂欄位允許改名＋刪除
+    const renameBtn = `<button class="q-col-del" title="改名" onclick="renameCol('${col.key}')" style="color:#888;font-size:0.9rem">✎</button>`;
+    const deleteBtn = col.isCustom
+      ? `<button class="q-col-del" title="刪除" onclick="deleteCustomCol('${col.key}')">✕</button>`
+      : '';
     return `<div class="q-col-item">
       <div class="q-col-reorder">
         <button class="q-col-reorder-btn" ${isFirst ? 'disabled' : ''} onclick="moveCol('${col.key}',-1)">←</button>
@@ -1028,10 +1032,30 @@ function buildColToggleUI() {
       <input type="checkbox" ${checked} onchange="toggleCol('${col.key}',this.checked)">
       <span class="q-col-label${col.isCustom?' custom':''}"
             onclick="this.previousElementSibling.click()">${esc(col.label)}</span>
-      ${col.isCustom ? `<button class="q-col-del" onclick="deleteCustomCol('${col.key}')">✕</button>` : ''}
+      ${renameBtn}${deleteBtn}
     </div>`;
   }).join('');
 }
+
+// ── 改名欄位（固定 + 自訂都支援）──
+window.renameCol = function(key) {
+  const col = allCols().find(c => c.key === key);
+  if (!col) return;
+  const newLabel = prompt(`改名「${col.label}」：`, col.label);
+  if (!newLabel || !newLabel.trim() || newLabel.trim() === col.label) return;
+  const label = newLabel.trim();
+  if (allCols().find(c => c.label === label && c.key !== key)) { alert(`「${label}」已存在`); return; }
+  if (col.isCustom) {
+    const cc = customCols.find(c => c.key === key);
+    if (cc) cc.label = label;
+  } else {
+    const fc = FIXED_COLS.find(c => c.key === key);
+    if (fc) fc.label = label;
+  }
+  savePrefs();
+  buildColToggleUI();
+  renderTable();
+};
 
 window.toggleCol = function(key, checked) {
   if (checked) visibleCols.add(key); else visibleCols.delete(key);
@@ -1065,6 +1089,26 @@ function applyFilter() {
   });
 }
 
+// ── 日期欄位格式化 → yyyy/mm/dd ──
+function fmtDate(r) {
+  // 優先用 date 欄位（已是 yyyy/mm/dd 字串）
+  if (r.date) {
+    const s = String(r.date).trim();
+    // 已是 yyyy/mm/dd 格式
+    const m1 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (m1) return `${m1[1]}/${m1[2].padStart(2,'0')}/${m1[3].padStart(2,'0')}`;
+    return s;
+  }
+  // 由 year/month/day 組合
+  if (r.year && r.month) {
+    const yy = String(r.year).trim();
+    const mm = String(r.month).trim().padStart(2,'0');
+    const dd = r.day ? String(r.day).trim().padStart(2,'0') : '01';
+    return `${yy}/${mm}/${dd}`;
+  }
+  return '';
+}
+
 function renderTable() {
   const cols = allCols().filter(c => visibleCols.has(c.key));
   const q    = state.search.toLowerCase();
@@ -1081,7 +1125,7 @@ function renderTable() {
   if (!rows.length) {
     tbody.innerHTML = '';
     emptyMsg.style.display = 'block';
-    emptyMsg.textContent = catalog.length ? '沒有符合的資料' : '沒有資料，請先匯入 Excel';
+    emptyMsg.textContent = catalog.length ? '沒有符合的資料' : '沒有資料，請先匯入進貨紀錄';
     document.getElementById('headerBadge').innerHTML = `共 <span>${catalog.length}</span> 筆`;
     return;
   }
@@ -1089,6 +1133,30 @@ function renderTable() {
 
   tbody.innerHTML = rows.map((r, idx) => {
     const cells = cols.map(col => {
+      // 日期欄位：統一顯示 yyyy/mm/dd
+      if (col.key === 'date') {
+        const ds = fmtDate(r);
+        let val = esc(ds);
+        if (re) val = val.replace(re, '<mark>$1</mark>');
+        return `<td class="mono">${val}</td>`;
+      }
+      // year/month/day 個別欄位：直接補零顯示
+      if (col.key === 'year') {
+        const raw = r.year; if (!raw && raw !== 0) return `<td class="mono"></td>`;
+        let val = esc(String(raw)); if (re) val = val.replace(re, '<mark>$1</mark>');
+        return `<td class="mono">${val}</td>`;
+      }
+      if (col.key === 'month') {
+        const raw = r.month; if (!raw && raw !== 0) return `<td class="mono"></td>`;
+        let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
+        return `<td class="mono">${val}</td>`;
+      }
+      if (col.key === 'day') {
+        const raw = r.day; if (!raw && raw !== 0) return `<td class="mono"></td>`;
+        let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
+        return `<td class="mono">${val}</td>`;
+      }
+
       const raw = r[col.key];
       if (raw === null || raw === undefined || raw === '') {
         return `<td class="${col.isCustom?'custom-td':''}"></td>`;
@@ -1231,6 +1299,29 @@ window.deleteDetail = function() {
   renderAll();
   showToast('🗑 已刪除', 'warn');
 };
+
+// ═══════════════════════════════════════════════════════════
+// 去重資料匯出 Excel
+// ═══════════════════════════════════════════════════════════
+function exportSkippedToExcel(rows) {
+  if (!rows.length) return;
+  // 收集所有欄位（使用目前欄位標籤作為表頭）
+  const cols = allCols();
+  // 組成 worksheet 資料（用中文標籤當表頭）
+  const header = cols.map(c => c.label);
+  const data = rows.map(r => cols.map(c => {
+    if (c.key === 'date') return fmtDate(r) || '';
+    const v = r[c.key];
+    return (v === null || v === undefined) ? '' : v;
+  }));
+  const wsData = [header, ...data];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '略過重複資料');
+  const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,16);
+  XLSX.writeFile(wb, `重複略過_${ts}.xlsx`);
+  showToast(`📊 ${rows.length} 筆重複資料已匯出 Excel`, 'warn');
+}
 
 // ═══════════════════════════════════════════════════════════
 // 備份 JSON
@@ -1536,11 +1627,13 @@ window.confirmImport = function() {
 
   const existingKeys = new Set(catalog.map(recKey));
   let added = 0, skipped = 0;
+  const skippedRows = [];
 
   pendingData.forEach(newRec => {
     const k = recKey(newRec);
     if (existingKeys.has(k)) {
       skipped++;
+      skippedRows.push(newRec);
     } else {
       catalog.push(newRec);
       existingKeys.add(k);
@@ -1548,6 +1641,11 @@ window.confirmImport = function() {
     }
   });
   if (catalog.length > 50000) catalog = catalog.slice(-50000);
+
+  // 去重資料匯出 Excel
+  if (skippedRows.length) {
+    exportSkippedToExcel(skippedRows);
+  }
 
   pendingData = null;
   _rawPurchaseRows = null;
@@ -1720,11 +1818,18 @@ requireAuth((user) => {
     renderTable();
   });
 
-  autoSave = makeAutoSave('price', () => ({ catalog, history: historyList }));
-  startSync('price', user, (content) => {
-    if (content) {
-      catalog     = Array.isArray(content.catalog) ? content.catalog : [];
-      historyList = Array.isArray(content.history) ? content.history : [];
+  // ── price 主資料：分頁儲存（繞過 Firestore 1MB 限制）──
+  // catalog 可能數萬筆，用 makeChunkedAutoSave 切成每塊 300 筆
+  autoSave = makeChunkedAutoSave('price', () => catalog);
+  startChunkedSync('price', user, (data, isLegacy) => {
+    if (isLegacy) {
+      // 舊格式：content = { catalog, history }
+      catalog     = Array.isArray(data && data.catalog) ? data.catalog : (Array.isArray(data) ? data : []);
+      historyList = Array.isArray(data && data.history) ? data.history : [];
+      // 立即用新格式覆寫 Firestore（自動遷移）
+      if (autoSave) autoSave.now();
+    } else {
+      catalog = Array.isArray(data) ? data : [];
     }
     renderAll();
   });
@@ -1829,7 +1934,15 @@ window.switchMode = function(mode) {
   const tQ = document.getElementById('tabQuote');
   tP.className = 'mode-tab' + (mode === 'purchase' ? ' active-purchase' : '');
   tQ.className = 'mode-tab' + (mode === 'quote'    ? ' active-quote'    : '');
-  if (mode === 'quote') { applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar(); }
+  if (mode === 'quote') {
+    // 先讓瀏覽器把 display:'' 的切換畫出來，再開始 render 表格
+    // 避免 layout + JS 同時跑造成 2 秒卡頓
+    requestAnimationFrame(() => {
+      applyQuoteFilter();
+      renderQuoteTable();
+      renderQuoteSidebar();
+    });
+  }
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1861,7 +1974,7 @@ const QUOTE_EXCEL_MAP = {
 };
 
 let quoteList  = [];
-let quoteState = { search: '', vendor: 'all', filtered: [] };
+let quoteState = { search: '', vendor: 'all', filtered: [], page: 1, pageSize: 200 };
 let autoSaveQuote, autoSaveQuotePrefs;
 let _quoteDetailIdx = null;
 let pendingQuoteData = null;
@@ -1892,8 +2005,12 @@ function buildQuoteColToggleUI() {
   if (!list) return;
   const cols = allQuoteCols();
   list.innerHTML = cols.map((col, idx) => {
-    const checked  = quoteVisibleCols.has(col.key) ? 'checked' : '';
-    const isFirst  = idx === 0, isLast = idx === cols.length - 1;
+    const checked = quoteVisibleCols.has(col.key) ? 'checked' : '';
+    const isFirst = idx === 0, isLast = idx === cols.length - 1;
+    const renameBtn = `<button class="q-col-del" title="改名" onclick="renameQuoteCol('${col.key}')" style="color:#aaa;font-size:0.9rem">✎</button>`;
+    const deleteBtn = col.isCustom
+      ? `<button class="q-col-del" title="刪除" onclick="deleteQuoteCustomCol('${col.key}')">✕</button>`
+      : '';
     return `<div class="q-col-item">
       <div class="q-col-reorder">
         <button class="q-col-reorder-btn" ${isFirst  ? 'disabled' : ''} onclick="moveQuoteCol('${col.key}',-1)">←</button>
@@ -1902,10 +2019,29 @@ function buildQuoteColToggleUI() {
       <input type="checkbox" ${checked} onchange="toggleQuoteCol('${col.key}',this.checked)">
       <span class="q-col-label${col.isCustom?' custom':''}"
             onclick="this.previousElementSibling.click()">${esc(col.label)}</span>
-      ${col.isCustom ? `<button class="q-col-del" onclick="deleteQuoteCustomCol('${col.key}')">✕</button>` : ''}
+      ${renameBtn}${deleteBtn}
     </div>`;
   }).join('');
 }
+
+window.renameQuoteCol = function(key) {
+  const col = allQuoteCols().find(c => c.key === key);
+  if (!col) return;
+  const newLabel = prompt(`改名「${col.label}」：`, col.label);
+  if (!newLabel || !newLabel.trim() || newLabel.trim() === col.label) return;
+  const label = newLabel.trim();
+  if (allQuoteCols().find(c => c.label === label && c.key !== key)) { alert(`「${label}」已存在`); return; }
+  if (col.isCustom) {
+    const cc = quoteCustomCols.find(c => c.key === key);
+    if (cc) cc.label = label;
+  } else {
+    const qc = QUOTE_COLS.find(c => c.key === key);
+    if (qc) qc.label = label;
+  }
+  saveQuotePrefs();
+  buildQuoteColToggleUI();
+  renderQuoteTable();
+};
 
 window.toggleQuoteCol = function(key, checked) {
   if (checked) quoteVisibleCols.add(key); else quoteVisibleCols.delete(key);
@@ -1992,6 +2128,28 @@ function renderQuoteSidebar() {
 }
 window.setQuoteVendor = function(v) { quoteState.vendor = v; applyQuoteFilter(); renderQuoteTable(); renderQuoteSidebar(); };
 
+// ── Quote 分頁：載入更多 ──
+window.quoteLoadMore = function() {
+  quoteState.pageSize += 200;
+  renderQuoteTable();
+};
+
+let _quoteScrollHandler = null;
+function _setupQuoteScrollLoad() {
+  const wrap = document.querySelector('#quoteMode .table-wrap');
+  if (!wrap) return;
+  if (_quoteScrollHandler) wrap.removeEventListener('scroll', _quoteScrollHandler);
+  _quoteScrollHandler = function() {
+    if (wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 100) {
+      if (quoteState.pageSize < quoteState.filtered.length) {
+        quoteState.pageSize += 200;
+        renderQuoteTable();
+      }
+    }
+  };
+  wrap.addEventListener('scroll', _quoteScrollHandler, { passive: true });
+}
+
 function applyQuoteFilter() {
   const q = quoteState.search.toLowerCase();
   quoteState.filtered = quoteList.filter(r => {
@@ -1999,6 +2157,7 @@ function applyQuoteFilter() {
     if (!q) return true;
     return allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q));
   });
+  quoteState.pageSize = 200; // 搜尋/切廠商時重置到第一頁
 }
 
 function sourceBadgeHtml(src) {
@@ -2031,7 +2190,10 @@ function renderQuoteTable() {
   }
   empty.style.display = 'none';
 
-  body.innerHTML = quoteState.filtered.map((r, idx) => {
+  // 分頁：只 render 前 pageSize 筆
+  const displayRows = quoteState.filtered.slice(0, quoteState.pageSize);
+
+  body.innerHTML = displayRows.map((r, idx) => {
     const cells = visCols.map(col => {
       const raw = r[col.key];
       if (col.key === 'source') return `<td>${sourceBadgeHtml(raw)}</td>`;
@@ -2045,10 +2207,23 @@ function renderQuoteTable() {
     return `<tr onclick="showQuoteDetail(${idx})">${cells}</tr>`;
   }).join('');
 
+  // 若還有更多，顯示「載入更多」提示列
+  const total = quoteState.filtered.length;
+  if (displayRows.length < total) {
+    body.innerHTML += `<tr id="quoteLoadMoreRow">
+      <td colspan="${visCols.length}" style="text-align:center;padding:14px;color:#888;font-size:0.95rem;cursor:pointer"
+          onclick="quoteLoadMore()">
+        ▼ 顯示中 ${displayRows.length} / ${total} 筆，點擊載入更多
+      </td></tr>`;
+  }
+
   document.getElementById('headerBadge').innerHTML =
     quoteState.filtered.length < quoteList.length
       ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
       : `共 <span>${quoteList.length}</span> 筆報價`;
+
+  // 捲到底自動載入
+  _setupQuoteScrollLoad();
 }
 
 // ── shared: build edit form html ──
@@ -2437,6 +2612,27 @@ window.confirmQuoteImport = function() {
   } else {
     window.removeEventListener('beforeunload', _beforeUnloadGuard);
   }
+};
+
+// ── Quote Export Excel ──
+window.doQuoteExportExcel = function() {
+  if (!quoteList.length) { showToast('⚠️ 沒有報價資料', 'warn'); return; }
+  const cols = allQuoteCols();
+  const header = cols.map(c => c.label);
+  const data = quoteList.map(r => cols.map(c => {
+    if (c.key === 'source') {
+      const map = { manual:'手動', purchase:'進貨', excel:'Excel', pdf:'PDF' };
+      return map[r[c.key]] || r[c.key] || '';
+    }
+    const v = r[c.key];
+    return (v === null || v === undefined) ? '' : v;
+  }));
+  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '報價單');
+  const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,16);
+  XLSX.writeFile(wb, `報價單_${ts}.xlsx`);
+  showToast(`📊 已匯出 ${quoteList.length} 筆報價`, 'success');
 };
 
 // ── Quote Backup / Restore ──
