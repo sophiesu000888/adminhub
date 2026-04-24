@@ -1112,15 +1112,30 @@ window.setVendor = function(v) { state.vendor = v; state.page = 1; renderAll(); 
 window.setColFilter = function(key, val) {
   if (val) colFilters[key] = val; else delete colFilters[key];
   applyFilter();
-  renderTable();
-  // Restore focus after re-render
-  const inp = document.querySelector(`.col-filter-input[data-filterkey="${key}"]`);
-  if (inp) { inp.focus(); const len = inp.value.length; inp.setSelectionRange(len,len); }
+  // Partially re-render tbody only, keep thead (so focused input survives)
+  _renderTableBody();
   document.getElementById('headerBadge').innerHTML =
     state.filtered.length < catalog.length
       ? `篩選 <span>${state.filtered.length}</span> / ${catalog.length} 筆`
       : `共 <span>${catalog.length}</span> 筆`;
 };
+
+// Attach IME-safe listeners to all col-filter-inputs in the table header
+function attachColFilterListeners() {
+  document.querySelectorAll('.col-filter-input').forEach(inp => {
+    if (inp._filterBound) return;
+    inp._filterBound = true;
+    let composing = false;
+    inp.addEventListener('compositionstart', () => { composing = true; });
+    inp.addEventListener('compositionend',   () => {
+      composing = false;
+      setColFilter(inp.dataset.filterkey, inp.value);
+    });
+    inp.addEventListener('input', () => {
+      if (!composing) setColFilter(inp.dataset.filterkey, inp.value);
+    });
+  });
+}
 
 // ── 主渲染 ──
 function renderAll() { renderSidebar(); applyFilter(); renderTable(); }
@@ -1166,6 +1181,69 @@ function fmtDate(r) {
   return '';
 }
 
+// ── 共用：產生單一列的 cells HTML ──
+function _buildRowCells(cols, r, idx, re) {
+  const cells = cols.map(col => {
+    if (col.key === 'date') {
+      const ds = fmtDate(r);
+      let val = esc(ds);
+      if (re) val = val.replace(re, '<mark>$1</mark>');
+      return `<td class="mono">${val}</td>`;
+    }
+    if (col.key === 'year') {
+      const raw = r.year; if (!raw && raw !== 0) return `<td class="mono"></td>`;
+      let val = esc(String(raw)); if (re) val = val.replace(re, '<mark>$1</mark>');
+      return `<td class="mono">${val}</td>`;
+    }
+    if (col.key === 'month') {
+      const raw = r.month; if (!raw && raw !== 0) return `<td class="mono"></td>`;
+      let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
+      return `<td class="mono">${val}</td>`;
+    }
+    if (col.key === 'day') {
+      const raw = r.day; if (!raw && raw !== 0) return `<td class="mono"></td>`;
+      let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
+      return `<td class="mono">${val}</td>`;
+    }
+    const raw = r[col.key];
+    if (raw === null || raw === undefined || raw === '') {
+      return `<td class="${col.isCustom?'custom-td':''}"></td>`;
+    }
+    if (col.type === 'num' && !isNaN(Number(raw))) {
+      return `<td class="num">${fmtNum(raw)}</td>`;
+    }
+    let val = esc(String(raw));
+    if (re) val = val.replace(re, '<mark>$1</mark>');
+    const cls = col.isCustom ? 'custom-td' : (col.type==='mono' ? 'mono' : '');
+    if (col.key === 'item') {
+      const v  = esc(r.vendor  || '');
+      const it = esc(r.item    || '');
+      const bu = esc(r.buyUnit || '');
+      return `<td class="${cls}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}">${val}</td>`;
+    }
+    return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
+  }).join('');
+  return `<tr onclick="showDetail(${idx})">${cells}</tr>`;
+}
+
+// ── 只重繪 tbody（篩選時用，保留 thead 不動） ──
+function _renderTableBody() {
+  const cols = allCols().filter(c => visibleCols.has(c.key));
+  const q    = state.search.toLowerCase();
+  const re   = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
+  const rows = state.filtered.slice(0, state.pageSize);
+  const tbody = document.getElementById('tableBody');
+  const emptyMsg = document.getElementById('emptyMsg');
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    emptyMsg.style.display = 'block';
+    emptyMsg.textContent = catalog.length ? '沒有符合的資料' : '沒有資料，請先匯入進貨紀錄';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+  tbody.innerHTML = rows.map((r, idx) => _buildRowCells(cols, r, idx, re)).join('');
+}
+
 function renderTable() {
   const cols = allCols().filter(c => visibleCols.has(c.key));
   const q    = state.search.toLowerCase();
@@ -1176,13 +1254,12 @@ function renderTable() {
     `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}">${esc(c.label)}</th>`
   ).join('');
 
-  // Header row 2: filter inputs (compact)
+  // Header row 2: filter inputs (compact, IME-safe — listeners attached by attachColFilterListeners)
   const filterRow = cols.map(c => {
     const val = esc(colFilters[c.key] || '');
     return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
       <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
         data-filterkey="${c.key}"
-        oninput="setColFilter('${c.key}',this.value)"
         onclick="event.stopPropagation()">
     </th>`;
   }).join('');
@@ -1199,61 +1276,19 @@ function renderTable() {
     emptyMsg.style.display = 'block';
     emptyMsg.textContent = catalog.length ? '沒有符合的資料' : '沒有資料，請先匯入進貨紀錄';
     document.getElementById('headerBadge').innerHTML = `共 <span>${catalog.length}</span> 筆`;
+    attachColFilterListeners();
     return;
   }
   emptyMsg.style.display = 'none';
 
-  tbody.innerHTML = rows.map((r, idx) => {
-    const cells = cols.map(col => {
-      // 日期欄位：統一顯示 yyyy/mm/dd
-      if (col.key === 'date') {
-        const ds = fmtDate(r);
-        let val = esc(ds);
-        if (re) val = val.replace(re, '<mark>$1</mark>');
-        return `<td class="mono">${val}</td>`;
-      }
-      // year/month/day 個別欄位：直接補零顯示
-      if (col.key === 'year') {
-        const raw = r.year; if (!raw && raw !== 0) return `<td class="mono"></td>`;
-        let val = esc(String(raw)); if (re) val = val.replace(re, '<mark>$1</mark>');
-        return `<td class="mono">${val}</td>`;
-      }
-      if (col.key === 'month') {
-        const raw = r.month; if (!raw && raw !== 0) return `<td class="mono"></td>`;
-        let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
-        return `<td class="mono">${val}</td>`;
-      }
-      if (col.key === 'day') {
-        const raw = r.day; if (!raw && raw !== 0) return `<td class="mono"></td>`;
-        let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
-        return `<td class="mono">${val}</td>`;
-      }
-
-      const raw = r[col.key];
-      if (raw === null || raw === undefined || raw === '') {
-        return `<td class="${col.isCustom?'custom-td':''}"></td>`;
-      }
-      if (col.type === 'num' && !isNaN(Number(raw))) {
-        return `<td class="num">${fmtNum(raw)}</td>`;
-      }
-      let val = esc(String(raw));
-      if (re) val = val.replace(re, '<mark>$1</mark>');
-      const cls = col.isCustom ? 'custom-td' : (col.type==='mono' ? 'mono' : '');
-      if (col.key === 'item') {
-        const v  = esc(r.vendor   || '');
-        const it = esc(r.item     || '');
-        const bu = esc(r.buyUnit  || '');
-        return `<td class="${cls}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}">${val}</td>`;
-      }
-      return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
-    }).join('');
-    return `<tr onclick="showDetail(${idx})">${cells}</tr>`;
-  }).join('');
+  tbody.innerHTML = rows.map((r, idx) => _buildRowCells(cols, r, idx, re)).join('');
 
   document.getElementById('headerBadge').innerHTML =
     state.filtered.length < catalog.length
       ? `篩選 <span>${state.filtered.length}</span> / ${catalog.length} 筆`
       : `共 <span>${catalog.length}</span> 筆`;
+
+  attachColFilterListeners();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2384,45 +2419,51 @@ window.syncQuoteFromPurchase = function() {
     return;
   }
 
-  // Step 2: 以 syncKey 對應至報價單（同樣用 query+buyUnit 當 key）
-  const quoteKeyMap = {}; // syncKey → quoteList index
-  quoteList.forEach((r, i) => { quoteKeyMap[syncKeyFn(r)] = i; });
+  // Step 2: 先把報價單中所有 source='purchase' 的舊資料移除，
+  // 保留手動新增 / Excel 匯入的資料，再統一寫入最新同步結果
+  const keptManual = quoteList.filter(r => r.source !== 'purchase');
+  const removedCount = quoteList.length - keptManual.length;
+
+  // 以 syncKey 對應手動資料（避免覆蓋手動編輯的同 key 資料）
+  const manualKeyMap = {};
+  keptManual.forEach((r, i) => { manualKeyMap[syncKeyFn(r)] = i; });
 
   let added = 0, updated = 0;
+  const newPurchaseRows = [];
 
   Object.entries(bestMap).forEach(([k, rec]) => {
     const price   = rec.priceTax || rec.priceEx;
     const dateStr = fmtDate(rec) || todayStr();
 
-    if (quoteKeyMap[k] !== undefined) {
-      // 已存在 → 更新含稅單價與日期
-      const existing = quoteList[quoteKeyMap[k]];
+    if (manualKeyMap[k] !== undefined) {
+      // 手動資料有同 key → 更新價格與日期，保留其餘手動欄位
+      const existing = keptManual[manualKeyMap[k]];
       existing.quotePrice = price;
       existing.updatedAt  = dateStr;
       existing.source     = 'purchase';
-      // 補齊其他欄位（若原本是空的）
-      if (!existing.vendor) existing.vendor = rec.vendor||null;
-      if (!existing.item)   existing.item   = rec.item||null;
-      if (!existing.unit)   existing.unit   = rec.unit||null;
-      if (!existing.spec)   existing.spec   = rec.spec||null;
       updated++;
     } else {
-      quoteList.push({
+      // 沒有手動資料 → 新增一筆 purchase 來源
+      newPurchaseRows.push({
         vendor: rec.vendor||null, sku: rec.sku||null, item: rec.item||null,
         query: rec.query||null, unit: rec.unit||null, spec: rec.spec||null,
         buyUnit: rec.buyUnit||null,
         quotePrice: price, note: null, updatedAt: dateStr, source: 'purchase'
       });
-      quoteKeyMap[k] = quoteList.length - 1;
       added++;
     }
   });
+
+  // 重建報價單 = 手動資料（已更新） + 新 purchase 筆
+  quoteList.length = 0;
+  keptManual.forEach(r => quoteList.push(r));
+  newPurchaseRows.forEach(r => quoteList.push(r));
 
   if (autoSaveQuote) autoSaveQuote();
   applyQuoteFilter();
   renderQuoteTable();
   renderQuoteSidebar();
-  showToast(`🔄 同步完成：新增 ${added} 筆，更新 ${updated} 筆（每組合僅取最新日期）`, 'success');
+  showToast(`🔄 同步完成：新增 ${added} 筆，更新 ${updated} 筆，清除舊進貨資料 ${removedCount} 筆`, 'success');
 };
 
 // ══ 自訂欄位對應 ══════════════════════════════════════════════
