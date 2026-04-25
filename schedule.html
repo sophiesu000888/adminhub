@@ -15,8 +15,8 @@
   --border-dark: #2d2d2d; --shadow: #2d2d2d;
   --hol-tx: #d32f2f; --hol-bg: #ffebee; --hol-bd: #ef9a9a;
   --night-tx: #1976d2; --night-bg: #e3f2fd; --night-bd: #90caf9;
-  --chef-bg: #fff3e0; --chef-bd: #e65100; --chef-tx: #7f2a00;
-  --assist-bg: #e3f2fd; --assist-bd: #1565c0; --assist-tx: #0d3a7a;
+  --chef-bg: #fde8d0; --chef-bd: #d4500a; --chef-tx: #7f2a00;
+  --assist-bg: #d4e8fc; --assist-bd: #1565c0; --assist-tx: #0a2f6e;
   --hand-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   --shadow-sm: 3px 3px 0px 0px var(--shadow);
   --shadow-hover: 1px 1px 0px 0px var(--shadow);
@@ -124,7 +124,7 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 /* ── Table chip — role-colored ── */
 .p-chip {
   display: flex; align-items: center; justify-content: space-between; text-align: center;
-  padding: 4px 8px; border-radius: 4px; font-size: 18px; font-weight: 900;
+  padding: 5px 8px; border-radius: 4px; font-size: 20px; font-weight: 900;
   margin: 2px 0; border: 1.5px solid; width: 100%; white-space: nowrap;
 }
 .p-chip.chef { background: var(--chef-bg); border-color: var(--chef-bd); color: var(--chef-tx); }
@@ -139,18 +139,18 @@ main { flex: 1; overflow-y: hidden; overflow-x: visible; padding: 0 12px 10px 12
 #scheduleCenter { display: flex; flex-direction: column; padding-bottom: 10px; width: 100%; align-items: flex-start; }
 
 /* ── Night table wider columns ── */
-.night-table th { width: 140px; min-width: 140px; }
-.night-table td { width: 140px; min-width: 140px; }
+.night-table th { width: 156px; min-width: 156px; }
+.night-table td { width: 156px; min-width: 156px; }
 
 /* ── Table ── */
-.table-wrapper { border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 12px; background: #fff; width: max-content; }
+.table-wrapper { border-radius: 12px; border: 3px solid var(--border-dark); margin-bottom: 16px; background: #fff; width: max-content; }
 table { width: max-content; border-collapse: collapse; table-layout: fixed; }
-th { background: #f8f8f8; padding: 2px 2px; font-size: 22px; border-bottom: 2px solid var(--border-dark); border-right: 1px solid #ddd; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.1; width: 108px; min-width: 108px; }
-td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; text-align: center; vertical-align: middle; width: 108px; min-width: 108px; }
+th { background: #e8e8e8; padding: 5px 4px; font-size: 24px; border-bottom: 2.5px solid var(--border-dark); border-right: 1px solid #ccc; white-space: nowrap; font-weight: 900; text-align: center; line-height: 1.2; width: 120px; min-width: 120px; }
+td { padding: 3px 4px; border-bottom: 1px solid #d8d8d8; border-right: 1px solid #d8d8d8; text-align: center; vertical-align: middle; width: 120px; min-width: 120px; }
 .sticky-col {
-  position: sticky; left: 0; background: #f8f8f8; z-index: 10;
-  font-weight: 900; border-right: 2px solid var(--border-dark); width: 80px; min-width: 80px;
-  font-size: 22px !important; text-align: center; vertical-align: middle;
+  position: sticky; left: 0; background: #dadada; z-index: 10;
+  font-weight: 900; border-right: 2.5px solid var(--border-dark); width: 88px; min-width: 88px;
+  font-size: 24px !important; text-align: center; vertical-align: middle;
 }
 .td-disabled { background: #f5f5f5; color: #bbb; vertical-align: middle; }
 .add-slot { width: 22px; height: 22px; border-radius: 4px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 3px auto; color: #999; font-size: 14px; font-weight: 900; }
@@ -244,9 +244,9 @@ td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #d
 
 /* ── Week stripes ── */
 .week-a { background: #fafafa; }
-.week-b { background: #f0f4ff; }
-th.week-a { background: #f3f3f3; }
-th.week-b { background: #e8eeff; }
+.week-b { background: #edf2ff; }
+th.week-a { background: #e8e8e8; }
+th.week-b { background: #d8e2ff; }
 
 
 #drawerOverlay {
@@ -1167,7 +1167,7 @@ function buildTable(containerId, days, mo, type) {
         const w = dateObj.getDay();
         const wc = crossMonth ? '' : weekStripe(d);
         const opacity = crossMonth ? 'opacity:0.35;' : '';
-        return `<th class="${wc}" style="padding:1px 2px;${opacity}"><div style="line-height:1.1;">${displayM}/${actualD}</div><div style="font-size:22px;font-weight:900;color:#333;margin-top:0;line-height:1;">(${DOW[w]})</div></th>`;
+        return `<th class="${wc}" style="padding:2px 2px;${opacity}"><div style="font-size:20px;font-weight:900;line-height:1.2;">${displayM}/${actualD}</div><div style="font-size:16px;font-weight:700;color:#555;margin-top:1px;line-height:1;">(${DOW[w]})</div></th>`;
       }).join('')}
     </tr>`;
 
@@ -1211,7 +1211,7 @@ function buildTable(containerId, days, mo, type) {
           ${addBtn}
         </td>`;
       }).join('');
-      return `<tr><td class="sticky-col" style="text-align:center;vertical-align:middle;">${sites[sid].name}</td>${cells}</tr>`;
+      return `<tr style="border-bottom:2.5px solid var(--border-dark);"><td class="sticky-col" style="text-align:center;vertical-align:middle;">${sites[sid].name}</td>${cells}</tr>`;
     }).join('');
 
     const nightClass = type === 'night' ? ' night-table' : '';
@@ -1619,12 +1619,12 @@ async function exportPhoto() {
   function nameBg(name) {
     const p = state.people.find(x => x.name === name);
     if (!p) return '#fff';
-    return p.role === 'chef' ? '#fff3e0' : '#e3f2fd';
+    return p.role === 'chef' ? '#fde8d0' : '#d4e8fc';
   }
   function nameColor(name) {
     const p = state.people.find(x => x.name === name);
     if (!p) return '#bbb';
-    return p.role === 'chef' ? '#7f2a00' : '#0d47a1';
+    return p.role === 'chef' ? '#7f2a00' : '#0a2f6e';
   }
 
   // Build one week-chunk table (multi-site rows)
@@ -1658,14 +1658,14 @@ async function exportPhoto() {
 
     if (activeDays.length === 0) return '';
 
-    const colW = type === 'night' ? 140 : 108;
+    const colW = type === 'night' ? 156 : 120;
     let t = `<table style="border-collapse:collapse;margin-bottom:10px;table-layout:fixed;">`;
     // Header row (only active days)
     t += `<thead><tr>`;
-    t += `<th style="border:2px solid #2d2d2d;padding:4px 6px;background:#f8f8f8;font-size:15px;font-weight:900;width:80px;min-width:80px;text-align:center;">廠區</th>`;
+    t += `<th style="border:2.5px solid #2d2d2d;padding:6px 8px;background:#dadada;font-size:17px;font-weight:900;width:90px;min-width:90px;text-align:center;">廠區</th>`;
     activeDays.forEach(d => {
       const w = new Date(mo.y, mo.m, d).getDay();
-      t += `<th style="border:1.5px solid #2d2d2d;padding:4px 6px;background:#f8f8f8;font-size:14px;font-weight:900;width:${colW}px;min-width:${colW}px;text-align:center;white-space:nowrap;">${mo.m+1}/${d}<br><span style="font-size:12px;color:#555;">(${DOW[w]})</span></th>`;
+      t += `<th style="border-top:2px solid #2d2d2d;border-bottom:2px solid #2d2d2d;border-left:0.5px solid #bbb;border-right:0.5px solid #bbb;padding:6px 8px;background:#e8e8e8;font-size:17px;font-weight:900;width:${colW}px;min-width:${colW}px;text-align:center;white-space:nowrap;">${mo.m+1}/${d}<br><span style="font-size:12px;color:#555;font-weight:700;">(${DOW[w]})</span></th>`;
     });
     t += `</tr></thead><tbody>`;
 
@@ -1685,19 +1685,20 @@ async function exportPhoto() {
       for (let i = 0; i < maxNames; i++) {
         t += `<tr>`;
         if (i === 0) {
-          t += `<td rowspan="${maxNames}" style="border:2px solid #2d2d2d;border-right:2px solid #2d2d2d;padding:4px 6px;font-size:15px;font-weight:900;text-align:center;background:#f8f8f8;vertical-align:middle;">${expSites[sid]?.name||sid}</td>`;
+          t += `<td rowspan="${maxNames}" style="border:2.5px solid #2d2d2d;padding:5px 8px;font-size:17px;font-weight:900;text-align:center;background:#dadada;vertical-align:middle;">${expSites[sid]?.name||sid}</td>`;
         }
         dayNames.forEach(names => {
           if (names === null) {
             // No shift scheduled for this site on this day
-            t += `<td style="border:1px solid #ddd;padding:5px 8px;font-size:14px;text-align:center;background:#f5f5f5;color:#ccc;vertical-align:middle;">－</td>`;
+            t += `<td style="border-top:0.5px solid #ccc;border-bottom:0.5px solid #ccc;border-left:2px solid #2d2d2d;border-right:0.5px solid #ccc;padding:6px 10px;font-size:15px;text-align:center;background:#f0f0f0;color:#bbb;vertical-align:middle;">－</td>`;
             return;
           }
           const name = names[i] || '';
           const hasAny = names.length > 0;
-          const bg = name ? nameBg(name) : (hasAny ? '#fff' : '#f5f5f5');
+          const bg = name ? nameBg(name) : (hasAny ? '#fff' : '#f0f0f0');
           const color = name ? nameColor(name) : '#bbb';
-          t += `<td style="border:1px solid #ddd;padding:5px 8px;font-size:14px;font-weight:800;text-align:center;background:${bg};color:${color};vertical-align:middle;">${name||'—'}</td>`;
+          const borderL = `border-left:2px solid #2d2d2d;`;
+          t += `<td style="${borderL}border-top:0.5px solid #ccc;border-bottom:0.5px solid #ccc;border-right:0.5px solid #ccc;padding:6px 10px;font-size:16px;font-weight:900;text-align:center;background:${bg};color:${color};vertical-align:middle;">${name||'—'}</td>`;
         });
         t += `</tr>`;
       }
@@ -1708,7 +1709,7 @@ async function exportPhoto() {
   }
 
   let html = `<div style="font-family:'Noto Sans TC',sans-serif;padding:24px;background:#fff;display:inline-block;width:max-content;">`;
-  html += `<div style="font-size:22px;font-weight:900;margin-bottom:18px;color:#222;">${mo.y}年${mo.m+1}月 排班表</div>`;
+  html += `<div style="font-size:26px;font-weight:900;margin-bottom:24px;color:#222;letter-spacing:1px;">${mo.y}年${mo.m+1}月 排班表</div>`;
 
   // 晚班
   if (doNight) {
@@ -1718,7 +1719,7 @@ async function exportPhoto() {
       if (!HOLS[`${mo.y}-${mo.m+1}-${d}`] && w!==0 && w!==6) nDays.push(d);
     }
     if (nDays.length) {
-      html += `<div style="font-size:17px;font-weight:900;margin:14px 0 6px;color:#222;">📌 晚班</div>`;
+      html += `<div style="font-size:19px;font-weight:900;margin:16px 0 8px;color:#222;">📌 晚班</div>`;
       toWeekChunks(nDays).forEach(chunk => {
         html += buildChunkTable(chunk, 'night', expSiteIds);
       });
@@ -1736,7 +1737,7 @@ async function exportPhoto() {
       expSiteIds.some(sid => mo.sitesData[sid]?.hol.has(d))
     );
     if (activeHolDays.length) {
-      html += `<div style="font-size:17px;font-weight:900;margin:14px 0 6px;color:#222;">📌 假日值班</div>`;
+      html += `<div style="font-size:19px;font-weight:900;margin:16px 0 8px;color:#222;">📌 假日值班</div>`;
       toWeekChunks(activeHolDays).forEach(chunk => {
         html += buildChunkTable(chunk, 'hol', expSiteIds);
       });
