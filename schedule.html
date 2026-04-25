@@ -1887,6 +1887,7 @@ function setSiteRule(sid, type, val) {
 requireAuth((user) => {
   _currentUser = user;
   injectStatusBar('schedule');
+  initPresence(user);
   _autoSave = makeAutoSave('schedule', collectData, 1000);
   startSync('schedule', user, (content) => {
     applyData(content);

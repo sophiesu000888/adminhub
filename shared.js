@@ -137,10 +137,11 @@ function setLastSaved(displayName, isMe, timestamp) {
 }
 
 function _fmtTime(date) {
-  const diff = Date.now() - date.getTime();
-  if (diff < 60000)    return '剛剛';
-  if (diff < 3600000)  return `${Math.floor(diff / 60000)} 分鐘前`;
-  return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${mm}/${dd} ${hh}:${min}`;
 }
 
 // ── 活動紀錄 ──────────────────────────────────────────────────
@@ -210,7 +211,7 @@ function makeAutoSave(moduleName, getDataFn, debounceMs = 1800) {
       localStorage.setItem('adminhub_data_' + moduleName, JSON.stringify(getDataFn()));
       const tu = _testUser();
       const el = document.getElementById('sb-last');
-      if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}（本機）`;
+      if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}　${_fmtTime(new Date())}`;
       setSyncStatus('✓ 已儲存', 'saved');
     };
     function triggerSave() {
@@ -281,7 +282,7 @@ function makeChunkedAutoSave(moduleName, getArrayFn, debounceMs = 1800) {
       localStorage.setItem('adminhub_data_' + moduleName, JSON.stringify(arr));
       const tu = _testUser();
       const el = document.getElementById('sb-last');
-      if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}（本機）`;
+      if (el) el.textContent = `最後儲存：${tu ? tu.displayName : '你'}　${_fmtTime(new Date())}`;
       setSyncStatus('✓ 已儲存', 'saved');
     };
     function triggerSave() {

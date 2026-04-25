@@ -1207,6 +1207,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     syncSelects('cat');
     syncSelects('box');
     injectStatusBar('items');
+    initPresence(user);
     function applyBarHeight() {
       const bar = document.querySelector('#status-bar, [id^="status-bar"]');
       const h = bar ? bar.offsetHeight : 0;

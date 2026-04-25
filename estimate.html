@@ -2175,6 +2175,7 @@ var _initialized = false;
 
 function _bootApp(user) {
   injectStatusBar('estimate');
+  initPresence(user);
   _triggerSave = makeAutoSave('estimate', getEstimateData, 2000);
 
   startSync('estimate', user, function(remoteData) {
