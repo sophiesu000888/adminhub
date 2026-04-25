@@ -357,10 +357,14 @@ tr.filter-row th.col-filter-th {
   width: 100%; min-width: 48px; max-width: 160px;
   border: 1.5px solid rgba(45,45,45,0.2); border-radius: 5px;
   padding: 2px 6px; font-size: 0.85rem; font-family: 'Noto Sans TC', sans-serif;
-  background: white; outline: none; box-sizing: border-box;
+  background: white; box-sizing: border-box;
+  cursor: pointer; user-select: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-height: 24px; display: flex; align-items: center; color: var(--ink);
 }
-.col-filter-input:focus { border-color: var(--blue); background: #f0f5ff; }
-.col-filter-input::placeholder { color: #bbb; font-size: 0.8rem; }
+.col-filter-input:empty::before { content: attr(data-placeholder); color: #bbb; font-size: 0.8rem; }
+.col-filter-input:hover { border-color: rgba(45,45,45,0.4); }
+.col-filter-input.has-filter { background: #e8f0ff; border-color: var(--blue); font-weight: 600; color: var(--blue); }
 .empty-msg { text-align: center; padding: 40px; color: #aaa; font-size: 1rem; }
 
 /* ── 報價單表格：欄位自動寬度，不撐滿視窗 ── */
@@ -620,47 +624,22 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 #quoteTable tbody td[ondblclick] { cursor: text; }
 #quoteTable tbody td[ondblclick]:hover { background: rgba(106,27,154,0.04); }
 #mainTable tbody td.p-editable { cursor: text; }
-#mainTable tbody td.p-editable:hover { background: rgba(45,93,161,0.06); }
+#mainTable tbody td.p-editable:hover { background: rgba(45,93,161,0.07); outline: 1px dashed rgba(45,93,161,0.3); outline-offset: -1px; }
 #mainTable tbody td.p-editing {
-  padding: 0 !important;
+  padding: 0 !important; outline: none;
 }
-#mainTable tbody td.p-editing input {
+#mainTable tbody td.p-editing input.cell-inp {
   width: 100%; height: 100%; min-height: 32px;
   border: 2px solid var(--blue); border-radius: 4px;
   padding: 4px 7px; font-family: 'Noto Sans TC', sans-serif;
   font-size: 1rem; background: #fff; outline: none;
   box-shadow: 0 0 0 3px rgba(45,93,161,0.15);
+  box-sizing: border-box;
 }
-/* 批次編輯模式 */
-body.bulk-edit-mode #mainTable tbody td.p-editable {
-  padding: 0 !important; background: #f0f5ff;
-}
-body.bulk-edit-mode #mainTable tbody td.p-editable input.bulk-inp {
-  width: 100%; height: 100%; min-height: 30px;
-  border: 1.5px solid #b0c4ef; border-radius: 3px;
-  padding: 3px 6px; font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.92rem; background: #fff; outline: none;
-}
-body.bulk-edit-mode #mainTable tbody td.p-editable input.bulk-inp:focus {
-  border-color: var(--blue); box-shadow: 0 0 0 2px rgba(45,93,161,0.18);
-}
-body.bulk-edit-mode #mainTable tbody tr { cursor: default !important; }
-.bulk-edit-bar {
-  display: none; align-items: center; gap: 10px;
-  background: #e8f0ff; border: 2px solid var(--blue); border-radius: 10px;
-  padding: 8px 14px; margin-bottom: 10px; font-size: 0.93rem; font-weight: 600;
-}
-body.bulk-edit-mode .bulk-edit-bar { display: flex; }
-.bulk-edit-bar .bulk-save-btn {
-  margin-left: auto; padding: 5px 16px; background: var(--blue); color: #fff;
-  border: none; border-radius: 7px; font-weight: 700; cursor: pointer;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.93rem;
-}
-.bulk-edit-bar .bulk-cancel-btn {
-  padding: 5px 14px; background: #fff; color: var(--ink);
-  border: 2px solid #ccc; border-radius: 7px; font-weight: 700; cursor: pointer;
-  font-family: 'Noto Sans TC', sans-serif; font-size: 0.93rem;
-}
+/* 數字欄 input 靠右對齊 */
+#mainTable tbody td.p-editing input.cell-inp[type=number] { text-align: right; }
+/* 批次模式（舊）保留殼以防萬一，但 bar 不顯示 */
+.bulk-edit-bar { display: none !important; }
 
 /* ── QUOTE COL TOGGLE / REORDER ── */
 .q-col-list { display: flex; flex-direction: column; gap: 0; }
@@ -958,22 +937,17 @@ body.bulk-edit-mode .bulk-edit-bar { display: flex; }
 
 <!-- ══ SIDE-TAB RAIL（報價單模式） ══ -->
 <div class="vtab-rail" id="vtabRailQuote">
-  <div class="side-tab" id="stab-q-cols-merged"   onclick="openVtab('q-cols')"   title="設定">
-    <span class="st-icon">⚙️</span>
-    <span class="st-label">設定</span>
+  <div class="side-tab" id="stab-q-manage" onclick="openVtab('q-manage')" title="資料管理">
+    <span class="st-icon">🗂️</span>
+    <span class="st-label">資料管理</span>
   </div>
-  <div class="side-tab" id="stab-q-add"    onclick="closeVtabs();addNewQuote()" title="新增報價">
-    <span class="st-icon">➕</span>
-    <span class="st-label">新增</span>
-  </div>
-
   <div class="side-tab" id="stab-q-sync"   onclick="closeVtabs();syncQuoteFromPurchase()" title="從進貨同步">
     <span class="st-icon">🔄</span>
     <span class="st-label">同步</span>
   </div>
-  <div class="side-tab" id="stab-q-manage" onclick="openVtab('q-manage')" title="資料管理">
+  <div class="side-tab" id="stab-q-cols-merged"   onclick="openVtab('q-cols')"   title="設定">
     <span class="st-icon">⚙️</span>
-    <span class="st-label">管理</span>
+    <span class="st-label">設定</span>
   </div>
 </div>
 
@@ -1014,10 +988,13 @@ body.bulk-edit-mode .bulk-edit-bar { display: flex; }
     <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
-    <div class="vt-section-title">編輯</div>
-    <button class="vt-action-btn vta-blue" onclick="closeVtabs();enterBulkEdit()">
-      <span class="vta-icon">✏️</span><span class="vta-text">批次編輯模式</span>
-    </button>
+    <div class="vt-section-title">編輯提示</div>
+    <p style="font-size:0.88rem;color:#666;line-height:1.7;padding:4px 2px 10px;">
+      直接點擊表格中的儲存格即可編輯。<br>
+      <b>Tab</b> 跳右格　<b>Enter</b> 跳下一列<br>
+      <b>Shift+Tab / Shift+Enter</b> 反向<br>
+      <b>Esc</b> 取消　離開自動存檔
+    </p>
     <div class="vt-section-title">匯入 / 備份</div>
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
       <span class="vta-icon">📥</span><span class="vta-text">匯入進貨紀錄</span>
@@ -1065,10 +1042,14 @@ body.bulk-edit-mode .bulk-edit-bar { display: flex; }
 <!-- ④ 報價：管理抽屜 -->
 <div class="side-drawer" id="sdrawer-q-manage">
   <div class="drawer-header">
-    <span>⚙️</span><h2>報價管理</h2>
+    <span>🗂️</span><h2>資料管理</h2>
     <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
+    <div class="vt-section-title">新增</div>
+    <button class="vt-action-btn" style="background:var(--purple-light);color:var(--purple);border-color:var(--purple)" onclick="closeVtabs();addNewQuote()">
+      <span class="vta-icon">➕</span><span class="vta-text">新增報價</span>
+    </button>
     <div class="vt-section-title">匯入 / 匯出</div>
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openQuoteDrawer('quoteImport')">
       <span class="vta-icon">📥</span><span class="vta-text">匯入報價單 Excel</span>
@@ -1511,13 +1492,13 @@ window.setColFilter = function(key, val) {
         setColFilter(key, new Set(localSet));
         applyFilter(); _renderTableBody();
       }
-      // 更新 input 顯示文字與樣式
+      // 更新 div 顯示文字與樣式
       if (localSet.size === 0) {
-        inp.value = ''; inp.classList.remove('has-filter');
+        inp.textContent = ''; inp.classList.remove('has-filter');
       } else if (localSet.size === 1) {
-        inp.value = [...localSet][0]; inp.classList.add('has-filter');
+        inp.textContent = [...localSet][0]; inp.classList.add('has-filter');
       } else {
-        inp.value = `已選 ${localSet.size} 項`; inp.classList.add('has-filter');
+        inp.textContent = `已選 ${localSet.size} 項`; inp.classList.add('has-filter');
       }
     }
 
@@ -1834,15 +1815,23 @@ function _buildRowCells(cols, r, idx, re) {
       let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
       return `<td class="mono">${val}</td>`;
     }
-    const PURCHASE_EDITABLE = new Set(['item','unit','spec','buyUnit']);
+    const PURCHASE_EDITABLE = new Set(['site','vendor','sku','item','query','unit','spec','qty','buyUnit','priceEx','priceTax','amount','tax','note','note2','note3','note4','note5']);
     const raw = r[col.key];
+    // 自訂欄位也可編輯
+    if (col.isCustom) {
+      const val2 = raw != null && raw !== '' ? esc(String(raw)) : '';
+      return `<td class="custom-td p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="text">${val2}</td>`;
+    }
     if (raw === null || raw === undefined || raw === '') {
       if (PURCHASE_EDITABLE.has(col.key)) {
-        return `<td class="${col.isCustom?'custom-td':''} p-editable" data-pkey="${col.key}" data-pidx="${idx}"></td>`;
+        return `<td class="${col.isCustom?'custom-td':''} p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="${col.type||'text'}"></td>`;
       }
       return `<td class="${col.isCustom?'custom-td':''}" ></td>`;
     }
     if (col.type === 'num' && !isNaN(Number(raw))) {
+      if (PURCHASE_EDITABLE.has(col.key)) {
+        return `<td class="num p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="num">${fmtNum(raw)}</td>`;
+      }
       return `<td class="num">${fmtNum(raw)}</td>`;
     }
     let val = esc(String(raw));
@@ -1853,10 +1842,11 @@ function _buildRowCells(cols, r, idx, re) {
       const it = esc(r.item    || '');
       const bu = esc(r.buyUnit || '');
       const qk = esc(r.query  || '');
-      return `<td class="${cls} p-editable" data-pkey="item" data-pidx="${idx}" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
+      return `<td class="${cls} p-editable" data-pkey="item" data-pidx="${idx}" data-coltype="text" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
     }
     if (PURCHASE_EDITABLE.has(col.key)) {
-      return `<td class="${cls} p-editable" data-pkey="${col.key}" data-pidx="${idx}" title="${esc(String(raw))}">${val}</td>`;
+      const ctype = col.type === 'num' ? 'num' : (col.type === 'mono' ? 'mono' : 'text');
+      return `<td class="${cls} p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="${ctype}" title="${esc(String(raw))}">${val}</td>`;
     }
     return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
   }).join('');
@@ -1865,6 +1855,7 @@ function _buildRowCells(cols, r, idx, re) {
 
 // ── 只重繪 tbody（篩選時用，保留 thead 不動） ──
 function _renderTableBody() {
+  if (typeof flushCellEdits === 'function') flushCellEdits();
   const cols = allCols().filter(c => visibleCols.has(c.key));
   const q    = state.search.toLowerCase();
   const re   = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
@@ -1879,7 +1870,6 @@ function _renderTableBody() {
   }
   emptyMsg.style.display = 'none';
   tbody.innerHTML = rows.map((r, idx) => _buildRowCells(cols, r, idx, re)).join('');
-  if (typeof patchBulkInputs === 'function' && document.body.classList.contains('bulk-edit-mode')) patchBulkInputs();
 }
 
 function _rebuildPurchaseThead() {
@@ -1891,9 +1881,9 @@ function _rebuildPurchaseThead() {
     const _cfv1 = colFilters[c.key]; const val = _cfv1 && _cfv1.size ? (_cfv1.size === 1 ? esc([..._cfv1][0]) : `已選 ${_cfv1.size} 項`) : '';
     return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
       <div class="col-filter-wrap">
-        <input class="col-filter-input${_cfv1 && _cfv1.size ? ' has-filter' : ''}" type="text" readonly placeholder="篩選" value="${val}"
+        <div class="col-filter-input${_cfv1 && _cfv1.size ? ' has-filter' : ''}" tabindex="0" data-placeholder="篩選"
           data-filterkey="${c.key}" data-mode="purchase"
-          onclick="event.stopPropagation()" autocomplete="off">
+          onclick="event.stopPropagation()">${val}</div>
       </div>
     </th>`;
   }).join('');
@@ -1903,7 +1893,7 @@ function _rebuildPurchaseThead() {
 }
 
 function renderTable() {
-  const cols = allCols().filter(c => visibleCols.has(c.key));
+  if (typeof flushCellEdits === 'function') flushCellEdits();
   const q    = state.search.toLowerCase();
   const re   = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
 
@@ -1917,9 +1907,9 @@ function renderTable() {
     const _cfv1 = colFilters[c.key]; const val = _cfv1 && _cfv1.size ? (_cfv1.size === 1 ? esc([..._cfv1][0]) : `已選 ${_cfv1.size} 項`) : '';
     return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
       <div class="col-filter-wrap">
-        <input class="col-filter-input${_cfv1 && _cfv1.size ? ' has-filter' : ''}" type="text" readonly placeholder="篩選" value="${val}"
+        <div class="col-filter-input${_cfv1 && _cfv1.size ? ' has-filter' : ''}" tabindex="0" data-placeholder="篩選"
           data-filterkey="${c.key}" data-mode="purchase"
-          onclick="event.stopPropagation()" autocomplete="off">
+          onclick="event.stopPropagation()">${val}</div>
       </div>
     </th>`;
   }).join('');
@@ -1952,161 +1942,134 @@ function renderTable() {
   requestAnimationFrame(() => _initColResize('mainTable'));
 }
 
-// ══ 進貨表格：雙擊直接編輯 item / unit / spec / buyUnit ══════
+// ══ 進貨表格：單擊直接編輯，Tab/Enter 跨格/跨列流動 ══════════
 (function() {
-  const EDITABLE_LABELS = { item: '品項', unit: '單位', spec: '規格', buyUnit: '進貨單位' };
+  let _saveTimer = null;
+  let _pendingCount = 0; // 追蹤有幾個 cell 被修改但尚未存檔
 
-  function commitEdit(td, filteredIdx, key, newVal) {
-    const row = state.filtered[filteredIdx];
-    if (!row) return;
-    const trimmed = newVal.trim();
-    row[key] = trimmed === '' ? null : trimmed;
-    // 若是 buyUnit 或 item 變更，同步更新 query（query = item + buyUnit 組合，
-    // 若原本就有 query 欄位則保留；若無則不強制建立）
-    if (autoSave) autoSave();
-    applyFilter();
-    _renderTableBody();
-    showToast(`✏️ 已更新「${EDITABLE_LABELS[key]}」`, 'success');
+  function _allEditableCells() {
+    return [...document.querySelectorAll('#mainTable tbody td.p-editable')];
   }
 
-  document.addEventListener('dblclick', function(e) {
-    const td = e.target.closest('#mainTable tbody td.p-editable');
-    if (!td) return;
-
-    // 避免觸發 showDetail
-    e.stopPropagation();
-
+  function _commitCellValue(td) {
+    const inp = td.querySelector('input.cell-inp');
+    if (!inp) return;
     const key = td.dataset.pkey;
     const idx = parseInt(td.dataset.pidx, 10);
     const row = state.filtered[idx];
     if (!row || !key) return;
+    const trimmed = inp.value.trim();
+    const coltype = td.dataset.coltype || 'text';
+    if (coltype === 'num') {
+      row[key] = trimmed === '' ? null : (isNaN(Number(trimmed)) ? trimmed : Number(trimmed));
+    } else {
+      row[key] = trimmed === '' ? null : trimmed;
+    }
+  }
 
+  function _closeCell(td, save) {
+    const inp = td.querySelector('input.cell-inp');
+    if (!inp) return;
+    if (save) _commitCellValue(td);
+    td.classList.remove('p-editing');
+    // 重新渲染此格的顯示文字
+    const key = td.dataset.pkey;
+    const idx = parseInt(td.dataset.pidx, 10);
+    const row = state.filtered[idx];
+    if (!row) { td.innerHTML = ''; return; }
+    const raw = row[key];
+    if (raw === null || raw === undefined || raw === '') { td.innerHTML = ''; return; }
+    const coltype = td.dataset.coltype || 'text';
+    if (coltype === 'num' && !isNaN(Number(raw))) {
+      td.innerHTML = fmtNum(raw);
+    } else {
+      td.innerHTML = esc(String(raw));
+    }
+    // 觸發延遲自動儲存
+    if (save) {
+      _pendingCount++;
+      clearTimeout(_saveTimer);
+      _saveTimer = setTimeout(() => {
+        if (autoSave) autoSave();
+        showToast('💾 已自動儲存', 'success');
+        _pendingCount = 0;
+      }, 800);
+    }
+  }
+
+  function _openCell(td) {
+    if (td.querySelector('input.cell-inp')) return; // 已開啟
+    const key = td.dataset.pkey;
+    const idx = parseInt(td.dataset.pidx, 10);
+    const row = state.filtered[idx];
+    if (!row || !key) return;
+    const coltype = td.dataset.coltype || 'text';
     const currentVal = row[key] != null ? String(row[key]) : '';
 
-    // 換成 input
     td.classList.add('p-editing');
     td.innerHTML = '';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = currentVal;
-    input.placeholder = EDITABLE_LABELS[key] || key;
-    td.appendChild(input);
-    input.focus();
-    input.select();
+    const inp = document.createElement('input');
+    inp.className = 'cell-inp';
+    inp.type = coltype === 'num' ? 'number' : 'text';
+    inp.value = currentVal;
+    td.appendChild(inp);
+    inp.focus();
+    inp.select();
 
-    let committed = false;
-    function doCommit() {
-      if (committed) return;
-      committed = true;
-      commitEdit(td, idx, key, input.value);
-    }
+    inp.addEventListener('blur', () => _closeCell(td, true));
 
-    input.addEventListener('blur', doCommit);
-    input.addEventListener('keydown', function(ev) {
-      if (ev.key === 'Enter')  { ev.preventDefault(); doCommit(); }
-      if (ev.key === 'Escape') { committed = true; applyFilter(); _renderTableBody(); }
-    });
-  });
-
-  // 單擊 editable cell → 不要觸發 showDetail
-  document.addEventListener('click', function(e) {
-    const td = e.target.closest('#mainTable tbody td.p-editable');
-    if (td) e.stopPropagation();
-  }, true);
-})();
-
-// ══ 批次編輯模式 ══════════════════════════════════════════
-(function() {
-  const EDITABLE_LABELS = { item: '品項', unit: '單位', spec: '規格', buyUnit: '進貨單位' };
-  let _bulkActive = false;
-  // 快照：進入時記錄原值，取消時還原
-  let _snapshot = [];
-
-  window.enterBulkEdit = function() {
-    if (_bulkActive) return;
-    _bulkActive = true;
-    // 快照
-    _snapshot = state.filtered.map(r => ({
-      item: r.item, unit: r.unit, spec: r.spec, buyUnit: r.buyUnit
-    }));
-    document.body.classList.add('bulk-edit-mode');
-    _renderTableBody();           // 重繪：讓每個 p-editable 變 input
-    // 讓 row click 不再觸發 showDetail
-  };
-
-  window.exitBulkEdit = function(save) {
-    if (!_bulkActive) return;
-    // 先把所有 input 的值寫回（以防焦點還在 input 上）
-    document.querySelectorAll('#mainTable tbody td.p-editable input.bulk-inp').forEach(inp => {
-      const td  = inp.closest('td');
-      const key = td.dataset.pkey;
-      const idx = parseInt(td.dataset.pidx, 10);
-      const row = state.filtered[idx];
-      if (row && key) {
-        const v = inp.value.trim();
-        row[key] = v === '' ? null : v;
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') {
+        inp.removeEventListener('blur', () => _closeCell(td, true));
+        _closeCell(td, false);
+        return;
       }
-    });
-    if (!save) {
-      // 還原快照
-      state.filtered.forEach((r, i) => {
-        if (_snapshot[i]) Object.assign(r, _snapshot[i]);
-      });
-    } else {
-      if (autoSave) autoSave();
-      showToast('💾 批次編輯已儲存', 'success');
-    }
-    _bulkActive = false;
-    _snapshot = [];
-    document.body.classList.remove('bulk-edit-mode');
-    applyFilter();
-    _renderTableBody();
-  };
-
-  // 在 bulk 模式下，_buildRowCells 渲染 input 而非文字
-  // 用 MutationObserver 或直接在 _renderTableBody 後 hook：
-  // 改為：在 _renderTableBody 之後，若 bulk 模式，把所有 p-editable td 換成 input
-  const _origRenderBody = window._renderTableBody;  // 可能 undefined，改用 patch 方式
-  // patch：在 body 渲染後插入 inputs
-  function patchBulkInputs() {
-    if (!_bulkActive) return;
-    document.querySelectorAll('#mainTable tbody td.p-editable').forEach(td => {
-      const key = td.dataset.pkey;
-      const idx = parseInt(td.dataset.pidx, 10);
-      const row = state.filtered[idx];
-      if (!row || !key) return;
-      const val = row[key] != null ? String(row[key]) : '';
-      td.innerHTML = '';
-      td.classList.add('p-editing');
-      const inp = document.createElement('input');
-      inp.className = 'bulk-inp';
-      inp.type = 'text';
-      inp.value = val;
-      inp.placeholder = EDITABLE_LABELS[key] || key;
-      // 直接寫回 row（即時）
-      inp.addEventListener('input', () => {
-        const v = inp.value.trim();
-        if (row) row[key] = v === '' ? null : v;
-      });
-      // Tab 跳下一格
-      inp.addEventListener('keydown', ev => {
-        if (ev.key === 'Escape') { exitBulkEdit(false); return; }
-        if (ev.key === 'Tab') {
-          ev.preventDefault();
-          const all = [...document.querySelectorAll('#mainTable tbody td.p-editable input.bulk-inp')];
-          const ci  = all.indexOf(inp);
-          const next = all[ci + (ev.shiftKey ? -1 : 1)];
-          if (next) { next.focus(); next.select(); }
-        }
-      });
-      // 阻止點擊觸發 showDetail
-      td.addEventListener('click', e => e.stopPropagation(), { once: false });
-      td.appendChild(inp);
+      if (ev.key === 'Tab') {
+        ev.preventDefault();
+        _closeCell(td, true);
+        const all = _allEditableCells();
+        const ci  = all.indexOf(td);
+        const next = all[ci + (ev.shiftKey ? -1 : 1)];
+        if (next) _openCell(next);
+        return;
+      }
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        _closeCell(td, true);
+        // 跳到下一行同欄位
+        const all = _allEditableCells();
+        const myKey = td.dataset.pkey;
+        const myIdx = parseInt(td.dataset.pidx, 10);
+        const dir = ev.shiftKey ? -1 : 1;
+        const next = all.find(c => c.dataset.pkey === myKey && parseInt(c.dataset.pidx,10) === myIdx + dir);
+        if (next) _openCell(next);
+        return;
+      }
     });
   }
 
-  // 暴露給 _renderTableBody 呼叫
-  window.patchBulkInputs = patchBulkInputs;
+  // 單擊 p-editable → 開啟編輯，阻止 showDetail
+  document.addEventListener('click', function(e) {
+    const td = e.target.closest('#mainTable tbody td.p-editable');
+    if (!td) return;
+    e.stopPropagation();
+    _openCell(td);
+  }, true);
+
+  // 暴露：外部（如篩選重繪）前先把所有開啟中的 cell 存檔
+  window.flushCellEdits = function() {
+    document.querySelectorAll('#mainTable tbody td.p-editing').forEach(td => _closeCell(td, true));
+    if (_pendingCount > 0) {
+      clearTimeout(_saveTimer);
+      if (autoSave) autoSave();
+      _pendingCount = 0;
+    }
+  };
+
+  // 保留 enterBulkEdit / exitBulkEdit / patchBulkInputs 為空函式，避免舊呼叫報錯
+  window.enterBulkEdit  = function() {};
+  window.exitBulkEdit   = function() {};
+  window.patchBulkInputs = function() {};
 })();
 
 // ═══════════════════════════════════════════════════════════
@@ -3299,10 +3262,9 @@ function _rebuildQuoteThead() {
   const filterRow = visCols.map(c =>
     `<th class="col-filter-th quote-th">
       <div class="col-filter-wrap">
-        <input class="quote-filter-input col-filter-input" readonly type="text" placeholder="篩選"
-          value="${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?(_qcf.size===1?esc([..._qcf][0]):`已選 ${_qcf.size} 項`):''; })()}"
+        <div class="quote-filter-input col-filter-input${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?' has-filter':''; })()}" tabindex="0" data-placeholder="篩選"
           data-filterkey="${c.key}" data-mode="quote"
-          onclick="event.stopPropagation()" autocomplete="off">
+          onclick="event.stopPropagation()">${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?(_qcf.size===1?esc([..._qcf][0]):`已選 ${_qcf.size} 項`):''; })()}</div>
       </div>
     </th>`
   ).join('');
@@ -3373,10 +3335,9 @@ function renderQuoteTable() {
   const filterRow = visCols.map(c =>
     `<th class="col-filter-th quote-th">
       <div class="col-filter-wrap">
-        <input class="quote-filter-input col-filter-input" readonly type="text" placeholder="篩選"
-          value="${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?(_qcf.size===1?esc([..._qcf][0]):`已選 ${_qcf.size} 項`):''; })()}"
+        <div class="quote-filter-input col-filter-input${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?' has-filter':''; })()}" tabindex="0" data-placeholder="篩選"
           data-filterkey="${c.key}" data-mode="quote"
-          onclick="event.stopPropagation()" autocomplete="off">
+          onclick="event.stopPropagation()">${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?(_qcf.size===1?esc([..._qcf][0]):`已選 ${_qcf.size} 項`):''; })()}</div>
       </div>
     </th>`
   ).join('');
