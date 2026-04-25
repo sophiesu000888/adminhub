@@ -241,7 +241,9 @@ table.ov tr:hover td { background: rgba(0,0,0,.02); }
 }
 
 /* ── HOLIDAY DIAGONAL ── */
-.cell-holiday {
+.cell-holiday,
+.dc.cs.cell-holiday,
+.dc.cu.cell-holiday {
   position: relative; overflow: hidden; background: #fff0f2;
 }
 .cell-holiday::after {
@@ -1060,7 +1062,8 @@ function renderOverview() {
     var ds=wkDs(wi,x.i); if(!ds) return; var holi=isNatHoli(ds);
     var dow=new Date(ds).getDay();
     var cls = dow===6?'cs': dow===0?'cu': '';
-    h+='<th class="'+cls+'"'+(holi?' style="background:#fff0f2;"':'')+'>'+fmt(ds)+'<br><span style="font-size:22px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;opacity:.8;">('+dowLabel(ds)+')</span></th>';
+    var isPinkCol = holi || dow===6 || dow===0;
+    h+='<th class="'+cls+'"'+(isPinkCol?' style="background:#fff0f2;"':'')+'>'+fmt(ds)+'<br><span style="font-size:22px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;opacity:.8;">('+dowLabel(ds)+')</span></th>';
   });
   h+='<th style="width:112px;">小計</th>';
   h+='<th style="width:0;padding:0;border:none;"></th>';
