@@ -1085,10 +1085,12 @@ function renderOverview() {
     vd.forEach(function(x){
       var ds=wkDs(wi,x.i); if(!ds) return; var holi=isNatHoli(ds), wknd=dsIsWeekend(ds);
       var dow=new Date(ds).getDay();
+      var isPink = wknd||holi;
       var cls='dc '+(dow===6?'cs': dow===0?'cu': '');
+      var pinkStyle = isPink ? ' style="background:#fff0f2;"' : '';
       var cell=S.weekData[wi][site][x.dk];
 
-      if((wknd||holi) && cell.est===0 && cell.act===null){
+      if(isPink && cell.est===0 && cell.act===null){
         b+='<td class="'+cls+' cell-holiday"></td>';return;
       }
       if(cell.est===0 && cell.act===null){
@@ -1108,7 +1110,7 @@ function renderOverview() {
         inner+='<div class="ev"><input type="text" inputmode="numeric" pattern="[0-9]*" min="0" value="'+cell.est+'" onchange="updEst(&apos;'+site+'&apos;,'+wi+',&apos;'+x.dk+'&apos;,this.value)"></div>';
       }
       inner+='</div>';
-      b+='<td class="'+cls+'">'+inner+'</td>';
+      b+='<td class="'+cls+'"'+pinkStyle+'>'+inner+'</td>';
     });
 
     b+='<td style="text-align:center;font-family:&apos;Kalam&apos;,cursive;font-size:32px;padding:8px;font-weight:700;color:var(--ink);">'+wTotal+'</td>';
@@ -1121,8 +1123,9 @@ function renderOverview() {
   vd.forEach(function(x){
     gTotal+=colTotal[x.dk];
     var _ds1043=wkDs(wi,x.i); if(!_ds1043) return; var dow=new Date(_ds1043).getDay();
+    var isPinkT = dsIsWeekend(_ds1043)||isNatHoli(_ds1043);
     var cls='dc '+(dow===6?'cs': dow===0?'cu': '');
-    b+='<td class="'+cls+'" style="text-align:center;">'+colTotal[x.dk]+'</td>';
+    b+='<td class="'+cls+'"'+(isPinkT?' style="text-align:center;background:#fff0f2;"':' style="text-align:center;"')+'>'+colTotal[x.dk]+'</td>';
   });
   b+='<td>'+gTotal+'</td><td style="padding:0;border:none;width:0;"></td></tr>';
 
@@ -1154,19 +1157,80 @@ function renderOverview() {
   b+='<td class="sc" style="text-align:center;"><span style="font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
   vd.forEach(function(x){
     var _dsR=wkDs(wi,x.i); if(!_dsR) return; var dowR=new Date(_dsR).getDay();
+    var isPinkR = dsIsWeekend(_dsR)||isNatHoli(_dsR);
     var clsR='dc '+(dowR===6?'cs': dowR===0?'cu': '');
+    var bgR = isPinkR ? 'background:#fff0f2;' : '';
     // 基準日之前的天：不扣庫存，顯示 —
     if(base.baseDate && _dsR < base.baseDate){
-      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
     runningStock-=colTotal[x.dk];
     var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
-  b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td><td></td></tr>';
+  b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td><td style="padding:0;border:none;width:0;"></td></tr>';
+
+  // ── 進貨 / 月初庫存 inline 輸入區 ──
+  var colSpan = vd.length + 3; // 廠區 + 7天 + 小計 + 隱藏尾欄
+  b += '<tr id="tr-stock-input"><td colspan="'+colSpan+'" style="padding:12px 16px;background:#fffbe6;border-top:2px dashed var(--gold);">';
+  b += '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">';
+
+  // 進貨區
+  b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
+  b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--ink);">📦 進貨</span>';
+  b += '<input type="date" id="si-date" style="background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
+  b += '<input type="number" id="si-qty" placeholder="數量" style="width:120px;background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,cursive;font-weight:700;text-align:center;">';
+  b += '<input type="text" id="si-note" placeholder="備註" style="width:160px;background:white;border:1.5px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:22px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
+  b += '<button onclick="inlineAddStock()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 #2e7d32\'">＋ 新增</button>';
+  b += '</div>';
+
+  // 分隔線
+  b += '<div style="width:1.5px;background:var(--border2);height:36px;align-self:center;"></div>';
+
+  // 月初實際庫存區
+  b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
+  b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--gold2);">📌 月初庫存</span>';
+  b += '<input type="date" id="si-mi-date" style="background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
+  b += '<input type="number" id="si-mi-qty" placeholder="實際隻數" style="width:150px;background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,cursive;font-weight:700;text-align:center;">';
+  b += '<button onclick="inlineAddMonthInit()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#fff8e1;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 var(--gold);transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 var(--gold)\'">📌 新增</button>';
+  b += '</div>';
+
+  b += '</div>';
+
+  // 庫存記錄列表（最近5筆）
+  if(S.stockLog && S.stockLog.length > 0) {
+    var recent = S.stockLog.slice().reverse().slice(0,5);
+    b += '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">';
+    recent.forEach(function(e,idx){
+      var realIdx = S.stockLog.length - 1 - idx; // 原始 index（倒序）
+      // 找到真實 index（從後往前）
+      var trueIdx = S.stockLog.length - 1 - S.stockLog.slice().reverse().indexOf(e); // 因為可能有相同物件，用 idx
+      trueIdx = S.stockLog.length - 1 - idx;
+      var isInit = e.type==='monthInit';
+      var bg = isInit?'#fff8e7':'#f0fdf4';
+      var border = isInit?'var(--gold)':'#81c784';
+      var icon = isInit?'📌':'📦';
+      var label = (isInit ? '月初' : (e.qty>0?'+':'')+e.qty+'隻')+(e.note?' '+e.note:'');
+      b += '<span style="font-size:22px;font-family:Patrick Hand,sans-serif;font-weight:700;background:'+bg+';border:1.5px solid '+border+';border-radius:6px;padding:3px 10px;color:var(--ink);display:inline-flex;align-items:center;gap:5px;">';
+      b += icon+' '+e.date+' '+(isInit?e.realQty+'隻(月初)':label);
+      b += ' <span onclick="inlineDeleteStock('+trueIdx+')" style="cursor:pointer;color:var(--muted);font-size:18px;margin-left:2px;" title="刪除">✕</span>';
+      b += '</span>';
+    });
+    b += '</div>';
+  }
+
+  b += '</td></tr>';
 
   document.getElementById('ov-body').innerHTML=b;
+
+  // 還原日期欄位預設值
+  var siDate = document.getElementById('si-date');
+  var siMiDate = document.getElementById('si-mi-date');
+  var now2 = new Date();
+  var todayDs2 = now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-'+String(now2.getDate()).padStart(2,'0');
+  if(siDate) siDate.value = todayDs2;
+  if(siMiDate) siMiDate.value = todayDs2;
 
   // 還原正在編輯的 input focus 和值
   if(_focusedSite !== null && _focusedVal !== null) {
@@ -1969,6 +2033,31 @@ function wkRow3(mon, wn, wd, state, onCls, fnName, activeLabel, extra){
 // ═══════════════════════════════════════
 // STOCK
 // ═══════════════════════════════════════
+// ── INLINE 進貨 / 月初庫存 ──
+function inlineAddStock(){
+  var date=document.getElementById('si-date').value;
+  var qty=+document.getElementById('si-qty').value;
+  var note=document.getElementById('si-note').value;
+  if(!date||isNaN(qty)||qty===0){alert('請填入日期及數量');return;}
+  S.stockLog.push({date:date,qty:qty,note:note});
+  document.getElementById('si-qty').value='';
+  document.getElementById('si-note').value='';
+  renderOverview();renderTopStats();saveState();
+}
+function inlineAddMonthInit(){
+  var date=document.getElementById('si-mi-date').value;
+  var qty=+document.getElementById('si-mi-qty').value;
+  if(!date||isNaN(qty)||qty===''){alert('請填入日期及實際庫存隻數');return;}
+  S.stockLog.push({date:date,qty:0,note:'📅 月初庫存 '+qty+'隻',type:'monthInit',realQty:qty});
+  document.getElementById('si-mi-qty').value='';
+  renderOverview();renderTopStats();saveState();
+}
+function inlineDeleteStock(i){
+  if(!confirm('確定要刪除這筆記錄嗎？')) return;
+  S.stockLog.splice(i,1);
+  renderOverview();renderTopStats();saveState();
+}
+
 function addStock(){
   var date=document.getElementById('in-date').value;
   var qty=+document.getElementById('in-qty').value;
