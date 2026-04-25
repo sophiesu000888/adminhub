@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -241,7 +242,7 @@ table.ov tr:hover td { background: rgba(0,0,0,.02); }
 
 /* ── HOLIDAY DIAGONAL ── */
 .cell-holiday {
-  position: relative; overflow: hidden;
+  position: relative; overflow: hidden; background: #fff0f2;
 }
 .cell-holiday::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -1059,16 +1060,10 @@ function renderOverview() {
     var ds=wkDs(wi,x.i); if(!ds) return; var holi=isNatHoli(ds);
     var dow=new Date(ds).getDay();
     var cls = dow===6?'cs': dow===0?'cu': '';
-    h+='<th class="'+cls+'">'+fmt(ds)+'<br><span style="font-size:22px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;opacity:.8;">('+dowLabel(ds)+')</span>'+(holi?'<br><span style="font-size:20px;color:var(--red);background:#ffebee;padding:0 4px;border-radius:4px;border:1px solid var(--red);">假</span>':'')+'</th>';
+    h+='<th class="'+cls+'"'+(holi?' style="background:#fff0f2;"':'')+'>'+fmt(ds)+'<br><span style="font-size:22px;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:400;opacity:.8;">('+dowLabel(ds)+')</span></th>';
   });
   h+='<th style="width:112px;">小計</th>';
-  h+='<th style="width:160px;font-size:22px;padding:4px;">';
-  if(isArchived){
-    h+='<button onclick="unarchiveWeek('+wi+')" style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:var(--green);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">↩ 移回</button>';
-  } else {
-    h+='<button onclick="archiveWeek('+wi+')" style="font-size:22px;background:#fffbe6;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:3px 7px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;">📁 封存</button>';
-  }
-  h+='</th>';
+  h+='<th style="width:0;padding:0;border:none;"></th>';
   h+='</tr>';
   document.getElementById('ov-head').innerHTML=h;
 
@@ -1114,11 +1109,7 @@ function renderOverview() {
     });
 
     b+='<td style="text-align:center;font-family:&apos;Kalam&apos;,cursive;font-size:32px;padding:8px;font-weight:700;color:var(--ink);">'+wTotal+'</td>';
-    if(rowConfirmed){
-      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 #2e7d32&apos;">✓ 已確認</button></td>';
-    } else {
-      b+='<td style="text-align:center;padding:4px;"><button onclick="lockWeek(&apos;'+site+'&apos;,'+wi+')" style="font-size:22px;background:#ffebee;border:1.5px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:&apos;Patrick Hand&apos;,sans-serif;font-weight:700;white-space:nowrap;box-shadow:1.5px 1.5px 0 0 var(--red);transition:all .1s;" onmouseover="this.style.transform=&apos;translate(1px,1px)&apos;;this.style.boxShadow=&apos;none&apos;" onmouseout="this.style.transform=&apos;&apos;;this.style.boxShadow=&apos;1.5px 1.5px 0 0 var(--red)&apos;">待確認</button></td>';
-    }
+    b+='<td style="padding:0;border:none;width:0;"></td>';
     b+='</tr>';
   });
 
@@ -1130,7 +1121,7 @@ function renderOverview() {
     var cls='dc '+(dow===6?'cs': dow===0?'cu': '');
     b+='<td class="'+cls+'" style="text-align:center;">'+colTotal[x.dk]+'</td>';
   });
-  b+='<td>'+gTotal+'</td><td></td></tr>';
+  b+='<td>'+gTotal+'</td><td style="padding:0;border:none;width:0;"></td></tr>';
 
   var base = calcStockBase();
   var stockIn = base.baseQty;
