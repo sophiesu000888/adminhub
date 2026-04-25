@@ -1815,23 +1815,21 @@ function _buildRowCells(cols, r, idx, re) {
       let val = esc(String(raw).padStart(2,'0')); if (re) val = val.replace(re, '<mark>$1</mark>');
       return `<td class="mono">${val}</td>`;
     }
-    const PURCHASE_EDITABLE = new Set(['site','vendor','sku','item','query','unit','spec','qty','buyUnit','priceEx','priceTax','amount','tax','note','note2','note3','note4','note5']);
+    // 只有這 4 個固定欄位 + isCustom 自訂欄位可編輯
+    const PURCHASE_EDITABLE = new Set(['item','unit','spec','buyUnit']);
     const raw = r[col.key];
-    // 自訂欄位也可編輯
+    // 自訂欄位：永遠可編輯
     if (col.isCustom) {
       const val2 = raw != null && raw !== '' ? esc(String(raw)) : '';
       return `<td class="custom-td p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="text">${val2}</td>`;
     }
     if (raw === null || raw === undefined || raw === '') {
       if (PURCHASE_EDITABLE.has(col.key)) {
-        return `<td class="${col.isCustom?'custom-td':''} p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="${col.type||'text'}"></td>`;
+        return `<td class="p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="text"></td>`;
       }
       return `<td class="${col.isCustom?'custom-td':''}" ></td>`;
     }
     if (col.type === 'num' && !isNaN(Number(raw))) {
-      if (PURCHASE_EDITABLE.has(col.key)) {
-        return `<td class="num p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="num">${fmtNum(raw)}</td>`;
-      }
       return `<td class="num">${fmtNum(raw)}</td>`;
     }
     let val = esc(String(raw));
@@ -1845,8 +1843,7 @@ function _buildRowCells(cols, r, idx, re) {
       return `<td class="${cls} p-editable" data-pkey="item" data-pidx="${idx}" data-coltype="text" onmouseenter="_showItemPopover(event,this)" onmouseleave="_hideItemPopover()" onmousemove="_movePop(event)" data-vendor="${v}" data-item="${it}" data-buyunit="${bu}" data-query="${qk}">${val}</td>`;
     }
     if (PURCHASE_EDITABLE.has(col.key)) {
-      const ctype = col.type === 'num' ? 'num' : (col.type === 'mono' ? 'mono' : 'text');
-      return `<td class="${cls} p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="${ctype}" title="${esc(String(raw))}">${val}</td>`;
+      return `<td class="${cls} p-editable" data-pkey="${col.key}" data-pidx="${idx}" data-coltype="text" title="${esc(String(raw))}">${val}</td>`;
     }
     return `<td class="${cls}" title="${esc(String(raw))}">${val}</td>`;
   }).join('');
