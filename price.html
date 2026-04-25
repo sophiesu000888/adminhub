@@ -45,7 +45,7 @@ body {
 }
 
 /* ── HEADER ── */
-.header { text-align: center; margin-bottom: 16px; position: relative; }
+.header { text-align: center; margin-bottom: 16px; }
 .header h1 {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   font-size: 3rem; font-weight: 700; color: var(--ink); /* 3rem = 54px */
@@ -53,10 +53,10 @@ body {
   transform: rotate(-1deg); display: inline-block; margin-bottom: 4px;
 }
 .header-badge {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
   font-family: 'Noto Sans TC', sans-serif;
   background: #fff8e7; border: 2px solid var(--ink); border-radius: 20px;
   padding: 5px 14px; font-size: 1rem; font-weight: 700; box-shadow: 2px 2px 0 0 var(--shadow);
+  white-space: nowrap;
 }
 .header-badge span { color: var(--gold); }
 
@@ -574,9 +574,13 @@ tr.filter-row th.col-filter-th {
 
 /* ── MODE TABS ── */
 .mode-tabs {
-  display: flex; justify-content: center; gap: 8px;
+  display: flex; justify-content: center; align-items: center; gap: 8px;
   margin-bottom: 14px;
   position: relative; z-index: 10; /* ensure above vtab-panel but below vtab-btn */
+}
+.mode-tabs-center {
+  display: flex; align-items: center; gap: 8px;
+  position: absolute; left: 50%; transform: translateX(-50%);
 }
 .mode-tab {
   padding: 8px 28px; font-weight: 700; cursor: pointer;
@@ -702,13 +706,15 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <div class="header">
   <h1>Price Check & Purchase Log</h1>
-  <div class="header-badge" id="headerBadge">載入中…</div>
 </div>
 
 <div class="mode-tabs">
-  <button class="mode-tab" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
-  <button class="mode-tab active-quote" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
-  <button class="btn-star-filter" id="favTabBtn" onclick="toggleCurrentFav()" title="常用廠商篩選">⭐ 常用</button>
+  <div class="mode-tabs-center">
+    <button class="mode-tab" id="tabPurchase" onclick="switchMode('purchase')">📥 進貨紀錄</button>
+    <button class="mode-tab active-quote" id="tabQuote" onclick="switchMode('quote')">💰 報價單</button>
+    <button class="btn-star-filter" id="favTabBtn" onclick="toggleCurrentFav()" title="常用廠商篩選">⭐ 常用</button>
+  </div>
+  <div class="header-badge" id="headerBadge" style="margin-left:auto">載入中…</div>
 </div>
 
 <!-- ══ PURCHASE MODE ══ -->
@@ -1456,10 +1462,18 @@ window.setColFilter = function(key, val) {
     function commit() {
       if (mode === 'quote') {
         setQuoteColFilter(key, new Set(localSet));
-        applyQuoteFilter(); renderQuoteTable();
+        applyQuoteFilter(); _renderQuoteTableBody();
       } else {
         setColFilter(key, new Set(localSet));
-        applyFilter(); renderTable();
+        applyFilter(); _renderTableBody();
+      }
+      // 更新 input 顯示文字與樣式
+      if (localSet.size === 0) {
+        inp.value = ''; inp.classList.remove('has-filter');
+      } else if (localSet.size === 1) {
+        inp.value = [...localSet][0]; inp.classList.add('has-filter');
+      } else {
+        inp.value = `已選 ${localSet.size} 項`; inp.classList.add('has-filter');
       }
     }
 
@@ -1513,28 +1527,39 @@ window.setColFilter = function(key, val) {
       renderList(); commit();
     });
 
-    // checkbox 勾選
-    listEl.addEventListener('mousedown', e => {
-      e.preventDefault();
+    // checkbox 勾選：用 click 事件，避免 mousedown+preventDefault 搶走 checkbox 原生行為
+    listEl.addEventListener('click', e => {
       const opt = e.target.closest('.col-filter-opt');
       if (!opt) return;
       const v = opt.dataset.val;
-      if (localSet.has(v)) localSet.delete(v); else localSet.add(v);
       const cb = opt.querySelector('input[type=checkbox]');
-      if (cb) cb.checked = localSet.has(v);
+      // 若點的不是 checkbox 本身，手動 toggle（點到 label 文字）
+      if (e.target !== cb) {
+        if (localSet.has(v)) localSet.delete(v); else localSet.add(v);
+        if (cb) cb.checked = localSet.has(v);
+      } else {
+        // 點到 checkbox 本身，跟著它的 checked 狀態走
+        if (cb.checked) localSet.add(v); else localSet.delete(v);
+      }
       commit();
     });
+    // 防止 listEl 內的 mousedown 冒泡到全域關閉 handler
+    listEl.addEventListener('mousedown', e => e.stopPropagation());
+    drop.addEventListener('mousedown', e => e.stopPropagation());
 
     document.body.appendChild(drop);
     _dropEl = drop;
     searchInp.focus();
   }
 
-  // 全域點外部關閉
+  // 全域點外部關閉（mousedown）
   document.addEventListener('mousedown', e => {
-    if (_dropEl && !_dropEl.contains(e.target) && e.target !== _dropEl._forInp) removeDropdown();
+    if (!_dropEl) return;
+    if (_dropEl.contains(e.target) || e.target === _dropEl._forInp) return;
+    removeDropdown();
   });
-  document.addEventListener('scroll', removeDropdown, true);
+  // scroll 只在 window/document 層關閉，不理 dropdown 內部捲動
+  window.addEventListener('scroll', removeDropdown, { passive: true });
 
   // ── 綁定事件（每次 render 後呼叫）──
   window._bindColFilterDropdown = function(inp) {
@@ -3142,6 +3167,28 @@ function _rebuildQuoteTbody() {
     quoteState.filtered.length < quoteList.length
       ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
       : `共 <span>${quoteList.length}</span> 筆報價`;
+}
+
+
+// ── Quote tbody-only 重繪（篩選時用，保留 thead 不動）──
+function _renderQuoteTableBody() {
+  const body  = document.getElementById('quoteTableBody');
+  const empty = document.getElementById('quoteEmptyMsg');
+  const q  = quoteState.search.toLowerCase();
+  const re = q ? new RegExp(`(${escapeRegExp(q)})`, 'gi') : null;
+  const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
+  if (!quoteState.filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = _buildQuoteBodyHtml(visCols, re);
+  document.getElementById('headerBadge').innerHTML =
+    quoteState.filtered.length < quoteList.length
+      ? `篩選 <span>${quoteState.filtered.length}</span> / ${quoteList.length} 筆報價`
+      : `共 <span>${quoteList.length}</span> 筆報價`;
+  _setupQuoteScrollLoad();
 }
 
 function renderQuoteTable() {
