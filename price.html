@@ -631,6 +631,36 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   font-size: 1rem; background: #fff; outline: none;
   box-shadow: 0 0 0 3px rgba(45,93,161,0.15);
 }
+/* 批次編輯模式 */
+body.bulk-edit-mode #mainTable tbody td.p-editable {
+  padding: 0 !important; background: #f0f5ff;
+}
+body.bulk-edit-mode #mainTable tbody td.p-editable input.bulk-inp {
+  width: 100%; height: 100%; min-height: 30px;
+  border: 1.5px solid #b0c4ef; border-radius: 3px;
+  padding: 3px 6px; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.92rem; background: #fff; outline: none;
+}
+body.bulk-edit-mode #mainTable tbody td.p-editable input.bulk-inp:focus {
+  border-color: var(--blue); box-shadow: 0 0 0 2px rgba(45,93,161,0.18);
+}
+body.bulk-edit-mode #mainTable tbody tr { cursor: default !important; }
+.bulk-edit-bar {
+  display: none; align-items: center; gap: 10px;
+  background: #e8f0ff; border: 2px solid var(--blue); border-radius: 10px;
+  padding: 8px 14px; margin-bottom: 10px; font-size: 0.93rem; font-weight: 600;
+}
+body.bulk-edit-mode .bulk-edit-bar { display: flex; }
+.bulk-edit-bar .bulk-save-btn {
+  margin-left: auto; padding: 5px 16px; background: var(--blue); color: #fff;
+  border: none; border-radius: 7px; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.93rem;
+}
+.bulk-edit-bar .bulk-cancel-btn {
+  padding: 5px 14px; background: #fff; color: var(--ink);
+  border: 2px solid #ccc; border-radius: 7px; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.93rem;
+}
 
 /* ── QUOTE COL TOGGLE / REORDER ── */
 .q-col-list { display: flex; flex-direction: column; gap: 0; }
@@ -700,6 +730,21 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
   display: flex; align-items: center; gap: 7px; margin-top: 10px;
   cursor: pointer; font-size: 1rem; color: #7a5a00; font-weight: 600;
 }
+
+/* ── Drawer inner tabs（抽屜內切換）── */
+.drawer-inner-tabs {
+  display: flex; border-bottom: 2px solid rgba(45,45,45,0.12);
+  background: #fafafa; flex-shrink: 0;
+}
+.dit-btn {
+  flex: 1; padding: 9px 4px; font-size: 0.9rem; font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+  border: none; background: none; color: #888;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+.dit-btn:hover { color: var(--ink); }
+.dit-btn.active { color: var(--ink); border-bottom-color: var(--ink); background: white; }
 </style>
 </head>
 <body>
@@ -722,6 +767,11 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <div class="main" style="grid-template-columns:1fr">
 
   <main class="content">
+    <div class="bulk-edit-bar" id="bulkEditBar">
+      ✏️ 批次編輯中：直接修改儲存格，完成後儲存
+      <button class="bulk-cancel-btn" onclick="exitBulkEdit(false)">取消</button>
+      <button class="bulk-save-btn" onclick="exitBulkEdit(true)">💾 儲存全部</button>
+    </div>
     <div class="table-wrap sketchy-box">
       <table id="mainTable">
         <thead id="tableHead"></thead>
@@ -896,34 +946,27 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 
 <!-- ══ SIDE-TAB RAIL（進貨紀錄模式） ══ -->
 <div class="vtab-rail" id="vtabRailPurchase" style="display:none">
-  <div class="side-tab" id="stab-p-fav"    onclick="openVtab('p-fav')"    title="常用廠商">
-    <span class="st-icon">⭐</span>
-    <span class="st-label">常用</span>
-  </div>
-  <div class="side-tab" id="stab-p-cols"   onclick="openVtab('p-cols')"   title="欄位設定">
-    <span class="st-icon">📋</span>
-    <span class="st-label">欄位設定</span>
-  </div>
   <div class="side-tab" id="stab-p-manage" onclick="openVtab('p-manage')" title="資料管理">
+    <span class="st-icon">🗂️</span>
+    <span class="st-label">資料管理</span>
+  </div>
+  <div class="side-tab" id="stab-p-cols"   onclick="openVtab('p-cols')"   title="設定">
     <span class="st-icon">⚙️</span>
-    <span class="st-label">管理</span>
+    <span class="st-label">設定</span>
   </div>
 </div>
 
 <!-- ══ SIDE-TAB RAIL（報價單模式） ══ -->
 <div class="vtab-rail" id="vtabRailQuote">
-  <div class="side-tab" id="stab-q-fav"    onclick="openVtab('q-fav')"    title="常用廠商">
-    <span class="st-icon">⭐</span>
-    <span class="st-label">常用</span>
+  <div class="side-tab" id="stab-q-cols-merged"   onclick="openVtab('q-cols')"   title="設定">
+    <span class="st-icon">⚙️</span>
+    <span class="st-label">設定</span>
   </div>
   <div class="side-tab" id="stab-q-add"    onclick="closeVtabs();addNewQuote()" title="新增報價">
     <span class="st-icon">➕</span>
     <span class="st-label">新增</span>
   </div>
-  <div class="side-tab" id="stab-q-cols"   onclick="openVtab('q-cols')"   title="欄位設定">
-    <span class="st-icon">📋</span>
-    <span class="st-label">欄位設定</span>
-  </div>
+
   <div class="side-tab" id="stab-q-sync"   onclick="closeVtabs();syncQuoteFromPurchase()" title="從進貨同步">
     <span class="st-icon">🔄</span>
     <span class="st-label">同步</span>
@@ -937,17 +980,29 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <!-- 共用遮罩 -->
 
 
-<!-- ① 進貨：欄位設定抽屜 -->
+<!-- ① 進貨：設定抽屜（欄位設定 + 常用廠商） -->
 <div class="side-drawer" id="sdrawer-p-cols">
   <div class="drawer-header">
-    <span>📋</span><h2>欄位設定</h2>
+    <span>⚙️</span><h2>設定</h2>
     <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
+  <div class="drawer-inner-tabs">
+    <button class="dit-btn active" onclick="switchDrawerTab(this,'p-cols-tab-cols')">📋 欄位設定</button>
+    <button class="dit-btn" onclick="switchDrawerTab(this,'p-cols-tab-fav')">⭐ 常用廠商</button>
+  </div>
   <div class="drawer-body">
-    <div class="q-col-list" id="colToggleList"></div>
-    <div class="col-toggle-actions">
-      <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
-      <button class="col-add-btn" onclick="addCustomCol()">＋ 新增欄位</button>
+    <div id="p-cols-tab-cols">
+      <div class="q-col-list" id="colToggleList"></div>
+      <div class="col-toggle-actions">
+        <button class="col-toggle-reset" onclick="resetCols()">還原預設</button>
+        <button class="col-add-btn" onclick="addCustomCol()">＋ 新增欄位</button>
+      </div>
+    </div>
+    <div id="p-cols-tab-fav" style="display:none">
+      <p style="font-size:0.9rem;color:#aaa;margin-bottom:10px;line-height:1.6;">
+        勾選後，廠商列表上方可用 ⭐ 快速篩選常用廠商。
+      </p>
+      <div class="fav-vendor-list" id="favPurchaseList"></div>
     </div>
   </div>
 </div>
@@ -955,10 +1010,15 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <!-- ② 進貨：資料管理抽屜 -->
 <div class="side-drawer" id="sdrawer-p-manage">
   <div class="drawer-header">
-    <span>⚙️</span><h2>資料管理</h2>
+    <span>🗂️</span><h2>資料管理</h2>
     <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
   <div class="drawer-body">
+    <div class="vt-section-title">編輯</div>
+    <button class="vt-action-btn vta-blue" onclick="closeVtabs();enterBulkEdit()">
+      <span class="vta-icon">✏️</span><span class="vta-text">批次編輯模式</span>
+    </button>
+    <div class="vt-section-title">匯入 / 備份</div>
     <button class="vt-action-btn vta-blue" onclick="closeVtabs();openDrawer('import')">
       <span class="vta-icon">📥</span><span class="vta-text">匯入進貨紀錄</span>
     </button>
@@ -968,23 +1028,36 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
     <button class="vt-action-btn vta-gold" onclick="closeVtabs();openDrawer('restore')">
       <span class="vta-icon">📂</span><span class="vta-text">匯入恢復備份</span>
     </button>
+    <div class="vt-section-title">危險操作</div>
     <button class="vt-action-btn vta-red" onclick="closeVtabs();doClearAll()">
       <span class="vta-icon">🗑</span><span class="vta-text">清除全部資料</span>
     </button>
   </div>
 </div>
 
-<!-- ③ 報價：欄位設定抽屜 -->
+<!-- ③ 報價：設定抽屜（欄位設定 + 常用廠商） -->
 <div class="side-drawer" id="sdrawer-q-cols">
   <div class="drawer-header">
-    <span>📋</span><h2>欄位設定</h2>
+    <span>⚙️</span><h2>設定</h2>
     <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
   </div>
+  <div class="drawer-inner-tabs">
+    <button class="dit-btn active" onclick="switchDrawerTab(this,'q-cols-tab-cols')">📋 欄位設定</button>
+    <button class="dit-btn" onclick="switchDrawerTab(this,'q-cols-tab-fav')">⭐ 常用廠商</button>
+  </div>
   <div class="drawer-body">
-    <div class="q-col-list" id="quoteColToggleList"></div>
-    <div class="col-toggle-actions">
-      <button class="col-toggle-reset" onclick="resetQuoteCols()">還原預設</button>
-      <button class="col-add-btn" onclick="addQuoteCustomCol()" style="color:var(--purple);border-color:var(--purple)">＋ 新增欄位</button>
+    <div id="q-cols-tab-cols">
+      <div class="q-col-list" id="quoteColToggleList"></div>
+      <div class="col-toggle-actions">
+        <button class="col-toggle-reset" onclick="resetQuoteCols()">還原預設</button>
+        <button class="col-add-btn" onclick="addQuoteCustomCol()" style="color:var(--purple);border-color:var(--purple)">＋ 新增欄位</button>
+      </div>
+    </div>
+    <div id="q-cols-tab-fav" style="display:none">
+      <p style="font-size:0.9rem;color:#aaa;margin-bottom:10px;line-height:1.6;">
+        勾選後，廠商列表上方可用 ⭐ 快速篩選常用廠商。
+      </p>
+      <div class="fav-vendor-list" id="favQuoteList"></div>
     </div>
   </div>
 </div>
@@ -1023,33 +1096,9 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 <!-- 相容舊呼叫的空殼 -->
 <div id="vtpanel-q-manage" style="display:none"></div>
 
-<!-- ⑤ 進貨：常用廠商抽屜 -->
-<div class="side-drawer" id="sdrawer-p-fav">
-  <div class="drawer-header">
-    <span>⭐</span><h2>常用廠商</h2>
-    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
-  </div>
-  <div class="drawer-body">
-    <p style="font-size:0.9rem;color:#aaa;margin-bottom:10px;line-height:1.6;">
-      勾選後，廠商列表上方可用 ⭐ 快速篩選常用廠商。
-    </p>
-    <div class="fav-vendor-list" id="favPurchaseList"></div>
-  </div>
-</div>
+<!-- ⑤ 進貨常用廠商：已合併至 sdrawer-p-cols -->
 
-<!-- ⑥ 報價：常用廠商抽屜 -->
-<div class="side-drawer" id="sdrawer-q-fav">
-  <div class="drawer-header">
-    <span>⭐</span><h2>常用廠商</h2>
-    <button class="drawer-close" onclick="closeVtabs()">✕ 關閉</button>
-  </div>
-  <div class="drawer-body">
-    <p style="font-size:0.9rem;color:#aaa;margin-bottom:10px;line-height:1.6;">
-      勾選後，廠商列表上方可用 ⭐ 快速篩選常用廠商。
-    </p>
-    <div class="fav-vendor-list" id="favQuoteList"></div>
-  </div>
-</div>
+<!-- ⑥ 報價常用廠商：已合併至 sdrawer-q-cols -->
 
 <div class="toast" id="toast"></div>
 <div id="item-popover"></div>
@@ -1304,13 +1353,8 @@ window.toggleFavVendor = function(v, checked) {
 window.toggleFavQuoteVendor = window.toggleFavVendor; // 共用同一個函式
 
 window.openFavDrawer = function(mode) {
-  if (mode === 'purchase') {
-    renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
-    openVtab('p-fav');
-  } else {
-    renderFavDrawer('favQuoteList', getQuoteVendors(), favVendors, 'toggleFavVendor');
-    openVtab('q-fav');
-  }
+  if (mode === 'purchase') openVtab('p-fav');
+  else openVtab('q-fav');
 };
 
 window.toggleCurrentFav = function() {
@@ -1835,6 +1879,7 @@ function _renderTableBody() {
   }
   emptyMsg.style.display = 'none';
   tbody.innerHTML = rows.map((r, idx) => _buildRowCells(cols, r, idx, re)).join('');
+  if (typeof patchBulkInputs === 'function' && document.body.classList.contains('bulk-edit-mode')) patchBulkInputs();
 }
 
 function _rebuildPurchaseThead() {
@@ -1968,6 +2013,100 @@ function renderTable() {
     const td = e.target.closest('#mainTable tbody td.p-editable');
     if (td) e.stopPropagation();
   }, true);
+})();
+
+// ══ 批次編輯模式 ══════════════════════════════════════════
+(function() {
+  const EDITABLE_LABELS = { item: '品項', unit: '單位', spec: '規格', buyUnit: '進貨單位' };
+  let _bulkActive = false;
+  // 快照：進入時記錄原值，取消時還原
+  let _snapshot = [];
+
+  window.enterBulkEdit = function() {
+    if (_bulkActive) return;
+    _bulkActive = true;
+    // 快照
+    _snapshot = state.filtered.map(r => ({
+      item: r.item, unit: r.unit, spec: r.spec, buyUnit: r.buyUnit
+    }));
+    document.body.classList.add('bulk-edit-mode');
+    _renderTableBody();           // 重繪：讓每個 p-editable 變 input
+    // 讓 row click 不再觸發 showDetail
+  };
+
+  window.exitBulkEdit = function(save) {
+    if (!_bulkActive) return;
+    // 先把所有 input 的值寫回（以防焦點還在 input 上）
+    document.querySelectorAll('#mainTable tbody td.p-editable input.bulk-inp').forEach(inp => {
+      const td  = inp.closest('td');
+      const key = td.dataset.pkey;
+      const idx = parseInt(td.dataset.pidx, 10);
+      const row = state.filtered[idx];
+      if (row && key) {
+        const v = inp.value.trim();
+        row[key] = v === '' ? null : v;
+      }
+    });
+    if (!save) {
+      // 還原快照
+      state.filtered.forEach((r, i) => {
+        if (_snapshot[i]) Object.assign(r, _snapshot[i]);
+      });
+    } else {
+      if (autoSave) autoSave();
+      showToast('💾 批次編輯已儲存', 'success');
+    }
+    _bulkActive = false;
+    _snapshot = [];
+    document.body.classList.remove('bulk-edit-mode');
+    applyFilter();
+    _renderTableBody();
+  };
+
+  // 在 bulk 模式下，_buildRowCells 渲染 input 而非文字
+  // 用 MutationObserver 或直接在 _renderTableBody 後 hook：
+  // 改為：在 _renderTableBody 之後，若 bulk 模式，把所有 p-editable td 換成 input
+  const _origRenderBody = window._renderTableBody;  // 可能 undefined，改用 patch 方式
+  // patch：在 body 渲染後插入 inputs
+  function patchBulkInputs() {
+    if (!_bulkActive) return;
+    document.querySelectorAll('#mainTable tbody td.p-editable').forEach(td => {
+      const key = td.dataset.pkey;
+      const idx = parseInt(td.dataset.pidx, 10);
+      const row = state.filtered[idx];
+      if (!row || !key) return;
+      const val = row[key] != null ? String(row[key]) : '';
+      td.innerHTML = '';
+      td.classList.add('p-editing');
+      const inp = document.createElement('input');
+      inp.className = 'bulk-inp';
+      inp.type = 'text';
+      inp.value = val;
+      inp.placeholder = EDITABLE_LABELS[key] || key;
+      // 直接寫回 row（即時）
+      inp.addEventListener('input', () => {
+        const v = inp.value.trim();
+        if (row) row[key] = v === '' ? null : v;
+      });
+      // Tab 跳下一格
+      inp.addEventListener('keydown', ev => {
+        if (ev.key === 'Escape') { exitBulkEdit(false); return; }
+        if (ev.key === 'Tab') {
+          ev.preventDefault();
+          const all = [...document.querySelectorAll('#mainTable tbody td.p-editable input.bulk-inp')];
+          const ci  = all.indexOf(inp);
+          const next = all[ci + (ev.shiftKey ? -1 : 1)];
+          if (next) { next.focus(); next.select(); }
+        }
+      });
+      // 阻止點擊觸發 showDetail
+      td.addEventListener('click', e => e.stopPropagation(), { once: false });
+      td.appendChild(inp);
+    });
+  }
+
+  // 暴露給 _renderTableBody 呼叫
+  window.patchBulkInputs = patchBulkInputs;
 })();
 
 // ═══════════════════════════════════════════════════════════
@@ -2702,7 +2841,7 @@ requireAuth((user) => {
 let currentMode = 'quote';
 
 // ── Vtab Rail ──
-const VTAB_IDS = ['p-fav','p-cols','p-manage','q-fav','q-cols','q-manage'];
+const VTAB_IDS = ['p-cols','p-manage','q-cols','q-manage'];
 
 function closeVtabs() {
   VTAB_IDS.forEach(id => {
@@ -2712,19 +2851,44 @@ function closeVtabs() {
   document.getElementById('vtabOverlay').classList.remove('show');
 }
 window.closeVtabs = closeVtabs;
+window.switchDrawerTab = function(btn, showId) {
+  const drawer = btn.closest('.side-drawer');
+  drawer.querySelectorAll('.dit-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  drawer.querySelectorAll('.drawer-body > div[id]').forEach(panel => {
+    panel.style.display = panel.id === showId ? '' : 'none';
+  });
+};
 
-window.openVtab = function(id) {
+
+window.openVtab = function(id, subTab) {
+  // 相容：p-fav / q-fav 導向合併後的 p-cols / q-cols 並切換到常用廠商 tab
+  if (id === 'p-fav') { window.openVtab('p-cols', 'fav'); return; }
+  if (id === 'q-fav') { window.openVtab('q-cols', 'fav'); return; }
+
   const drawer = document.getElementById('sdrawer-' + id);
   const tab    = document.getElementById('stab-' + id);
   const wasOpen = drawer && drawer.classList.contains('open');
   closeVtabs();
   if (!wasOpen && drawer) {
-    // 常用廠商抽屜：先填充內容再打開
-    if (id === 'p-fav') renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
-    if (id === 'q-fav') renderFavDrawer('favQuoteList', getQuoteVendors(), favVendors, 'toggleFavVendor');
+    // 每次開抽屜都先 render 常用廠商清單
+    if (id === 'p-cols') renderFavDrawer('favPurchaseList', getPurchaseVendors(), favVendors, 'toggleFavVendor');
+    if (id === 'q-cols') renderFavDrawer('favQuoteList', getQuoteVendors(), favVendors, 'toggleFavVendor');
     drawer.classList.add('open');
     if (tab) tab.classList.add('open');
     document.getElementById('vtabOverlay').classList.add('show');
+    // 切換到指定子 tab（預設 cols）
+    const targetTab = subTab === 'fav'
+      ? (id === 'p-cols' ? 'p-cols-tab-fav' : 'q-cols-tab-fav')
+      : (id === 'p-cols' ? 'p-cols-tab-cols' : 'q-cols-tab-cols');
+    const ditBtns = drawer.querySelectorAll('.dit-btn');
+    ditBtns.forEach(b => {
+      const panelId = b.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+      b.classList.toggle('active', panelId === targetTab);
+    });
+    drawer.querySelectorAll('.drawer-body > div[id]').forEach(panel => {
+      panel.style.display = panel.id === targetTab ? '' : 'none';
+    });
   }
 };
 
