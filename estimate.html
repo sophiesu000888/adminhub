@@ -587,6 +587,14 @@ var WEEK_START = '2026-03-30';
 var WEEK_INIT  = 8;
 var WEEK_BASE_NUM = 14;
 
+function isoWeekNum(ds) {
+  var d = new Date(ds);
+  var jan4 = new Date(d.getFullYear(), 0, 4);
+  var w1mon = new Date(jan4);
+  w1mon.setDate(jan4.getDate() - (jan4.getDay()||7) + 1);
+  return Math.round((d - w1mon) / 604800000) + 1;
+}
+
 function genWeeks() {
   var weeks = [], cur = WEEK_START;
   var total = WEEK_INIT + (S ? (S.extraWeeks||0) : 0);
@@ -649,8 +657,8 @@ var ap6bCfg = {lunchQty:3, dinnerQty:2, dinnerWeekOffset:1};
 function ap6bHasDinner(mon) {
   var wi = WEEK_MONS.indexOf(mon);
   if(wi < 0) return false;
-  var actualWeekNum = wi + WEEK_BASE_NUM; // 實際週次：14, 15, 16...
-  return (actualWeekNum % 2) === 1; // 奇數週有晚餐
+  var actualWeekNum = isoWeekNum(mon); // ISO 實際週次
+  return (actualWeekNum % 2) === 0; // 偶數週有晚餐（以4/27第18週有晚餐為基準）
 }
 function ap6bDayQty(ds) {
   if(isWeekend(ds)||isNatHoli(ds)) return 0;
@@ -1540,7 +1548,7 @@ function getBlockBadge(id) {
 // ── F20 ──
 function buildF20Block(tmw) {
   var weekRows = tmw.map(function(mon){
-    var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM, wd=workdaysInWeek(mon);
+    var wn=isoWeekNum(mon), wd=workdaysInWeek(mon);
     var has1500 = f20Holi1500[mon]==='on';
     var hasDinner = f20DinnerWeeks[mon]==='on';
     var dayQty = f20Cfg.lunchBase + (has1500?f20Cfg.lunch1500:0) + (hasDinner?f20Cfg.dinnerQty:0);
@@ -1739,7 +1747,7 @@ function removeF20Holi(ds){
 // ── AP6B ──
 function buildAP6BBlock(tmw) {
   var rows=tmw.map(function(mon){
-    var wi=WEEK_MONS.indexOf(mon),wn=wi+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
+    var wi=WEEK_MONS.indexOf(mon),wn=isoWeekNum(WEEK_MONS[wi]||mon),wd=workdaysInWeek(mon);
     var hasDinner=ap6bHasDinner(mon);
     var total=(ap6bCfg.lunchQty+(hasDinner?ap6bCfg.dinnerQty:0))*wd;
     return '<div class="wk-row" style="cursor:default;">'+
@@ -1772,7 +1780,7 @@ function applyAP6BQty(){
 // ── P8 ──
 function buildP8Block(tmw) {
   var rows=tmw.map(function(mon){
-    var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
+    var wn=isoWeekNum(mon),wd=workdaysInWeek(mon);
     var st=p8Weeks[mon]||'';
     var row=wkRow3(mon,wn,wd,st,'on-check','toggleP8Week',p8Cfg.wkQty+'隻/週','');
     // inject confirm btn before closing div
@@ -1805,7 +1813,7 @@ function toggleP8Week(mon){
 // ── 群聯 ──
 function buildQunlianBlock(tmw) {
   var rows=tmw.map(function(mon){
-    var wn=WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM,wd=workdaysInWeek(mon);
+    var wn=isoWeekNum(mon),wd=workdaysInWeek(mon);
     var w=qunlianWeeks[mon]||{main:'',double:''};
     var mainQty=(w.main==='on'?qlCfg.main:0);
     var dblQty=(w.double==='on'?qlCfg.dbl:0);
@@ -1868,7 +1876,7 @@ function buildYangchuBlock(tmw) {
     '</div>';
 
   var rows = Object.keys(weekGroups).sort().map(function(mon){
-    var wn = WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM;
+    var wn = isoWeekNum(mon);
     var allLocked = weekGroups[mon].every(function(ds){return yangchuLocked[ds];});
     var anyUnlocked = weekGroups[mon].some(function(ds){return !yangchuLocked[ds];});
 
@@ -1965,7 +1973,7 @@ function buildLianDianBlock(tmw) {
     '</div>';
 
   var rows = tmw.map(function(mon){
-    var wn = WEEK_MONS.indexOf(mon)+WEEK_BASE_NUM, wd = workdaysInWeek(mon);
+    var wn = isoWeekNum(mon), wd = workdaysInWeek(mon);
     var w = lianDianWeeks[mon]||{main:'',double:'',dinner:''};
     var tue = addDays(mon,1), thu = addDays(mon,3);
     var wkTotal = lianDianDayQty(tue) + lianDianDayQty(thu);
