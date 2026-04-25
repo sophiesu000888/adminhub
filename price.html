@@ -625,6 +625,7 @@ td.quote-price { text-align: right; font-family: 'DM Mono', monospace; font-weig
 #quoteTable tbody td[ondblclick]:hover { background: rgba(106,27,154,0.04); }
 #mainTable tbody td.p-editable { cursor: text; }
 #mainTable tbody td.p-editable:hover { background: rgba(45,93,161,0.07); outline: 1px dashed rgba(45,93,161,0.3); outline-offset: -1px; }
+#mainTable tbody td:not(.p-editable) { cursor: default; }
 #mainTable tbody td.p-editing {
   padding: 0 !important; outline: none;
 }
@@ -1964,11 +1965,19 @@ function renderTable() {
     }
   }
 
+  // _closeCell：
+  //   save=true  → 寫回資料、觸發存檔
+  //   save=false → 取消，恢復原始顯示
   function _closeCell(td, save) {
     const inp = td.querySelector('input.cell-inp');
     if (!inp) return;
+    // 標記此 input 已關閉，防止 blur 事件再次觸發
+    if (inp._closing) return;
+    inp._closing = true;
+
     if (save) _commitCellValue(td);
     td.classList.remove('p-editing');
+
     // 重新渲染此格的顯示文字
     const key = td.dataset.pkey;
     const idx = parseInt(td.dataset.pidx, 10);
@@ -1982,6 +1991,7 @@ function renderTable() {
     } else {
       td.innerHTML = esc(String(raw));
     }
+
     // 觸發延遲自動儲存
     if (save) {
       _pendingCount++;
@@ -2009,36 +2019,41 @@ function renderTable() {
     inp.className = 'cell-inp';
     inp.type = coltype === 'num' ? 'number' : 'text';
     inp.value = currentVal;
+    inp._closing = false;
     td.appendChild(inp);
     inp.focus();
     inp.select();
 
-    inp.addEventListener('blur', () => _closeCell(td, true));
+    // blur → 儲存（只在非 _closing 時觸發，防止 Esc/Tab/Enter 的雙重觸發）
+    inp.addEventListener('blur', () => {
+      if (!inp._closing) _closeCell(td, true);
+    });
 
     inp.addEventListener('keydown', ev => {
       if (ev.key === 'Escape') {
-        inp.removeEventListener('blur', () => _closeCell(td, true));
-        _closeCell(td, false);
+        ev.preventDefault();
+        _closeCell(td, false); // 取消，不儲存
         return;
       }
       if (ev.key === 'Tab') {
         ev.preventDefault();
-        _closeCell(td, true);
+        // 先記住下一格，再關閉（關閉會重繪 DOM，需在關閉前取得清單）
         const all = _allEditableCells();
         const ci  = all.indexOf(td);
         const next = all[ci + (ev.shiftKey ? -1 : 1)];
+        _closeCell(td, true);
         if (next) _openCell(next);
         return;
       }
       if (ev.key === 'Enter') {
         ev.preventDefault();
-        _closeCell(td, true);
         // 跳到下一行同欄位
         const all = _allEditableCells();
         const myKey = td.dataset.pkey;
         const myIdx = parseInt(td.dataset.pidx, 10);
         const dir = ev.shiftKey ? -1 : 1;
-        const next = all.find(c => c.dataset.pkey === myKey && parseInt(c.dataset.pidx,10) === myIdx + dir);
+        const next = all.find(c => c.dataset.pkey === myKey && parseInt(c.dataset.pidx, 10) === myIdx + dir);
+        _closeCell(td, true);
         if (next) _openCell(next);
         return;
       }
@@ -2046,9 +2061,11 @@ function renderTable() {
   }
 
   // 單擊 p-editable → 開啟編輯，阻止 showDetail
+  // 單擊非 p-editable → 不開啟編輯，讓事件冒泡至 tr onclick (showDetail)
   document.addEventListener('click', function(e) {
-    const td = e.target.closest('#mainTable tbody td.p-editable');
+    const td = e.target.closest('#mainTable tbody td');
     if (!td) return;
+    if (!td.classList.contains('p-editable')) return; // 唯讀格：不攔截
     e.stopPropagation();
     _openCell(td);
   }, true);
