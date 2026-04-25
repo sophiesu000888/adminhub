@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -191,9 +192,9 @@ td { padding: 2px 3px; border-bottom: 1px solid #ddd; border-right: 1px solid #d
 
 /* ── Summary ── */
 .sum-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-.sum-card { padding: 6px 5px; border-radius: 7px; border: 2px solid; text-align: center; }
-.sum-card.chef { background: var(--chef-bg); border-color: var(--chef-bd); box-shadow: 3px 3px 0 var(--chef-bd); color: var(--chef-tx); }
-.sum-card.assist { background: var(--assist-bg); border-color: var(--assist-bd); box-shadow: 3px 3px 0 var(--assist-bd); color: var(--assist-tx); }
+.sum-card { padding: 10px 14px; border-radius: var(--hand-radius); border: 2.5px solid; text-align: center; }
+.sum-card.chef  { background: var(--chef-bg);   border-color: var(--chef-bd);   box-shadow: 4px 4px 0 var(--chef-bd);   color: var(--chef-tx); }
+.sum-card.assist{ background: var(--assist-bg);  border-color: var(--assist-bd); box-shadow: 4px 4px 0 var(--assist-bd); color: var(--assist-tx); }
 
 .vw { display: none; flex: 1; overflow-y: hidden; overflow-x: visible; flex-direction: column; min-height: 0; }
 .vw.active { display: flex; }
@@ -302,8 +303,6 @@ th.week-b { background: #e8eeff; }
 .tbar-btn.danger:hover { box-shadow: 1px 1px 0 0 #d32f2f; }
 .tbar-btn.export { border-color: #1565c0; background: #e7eeff; color: #1565c0; box-shadow: 3px 3px 0 0 #1565c0; }
 .tbar-btn.export:hover { box-shadow: 1px 1px 0 0 #1565c0; }
-.tbar-btn.add-site { border-color: #6a1b9a; background: #f3e5f5; color: #6a1b9a; box-shadow: 3px 3px 0 0 #6a1b9a; }
-.tbar-btn.add-site:hover { box-shadow: 1px 1px 0 0 #6a1b9a; }
 
 /* ══ Month tabs row (outside card) ══ */
 #moTabsRow {
@@ -442,7 +441,6 @@ th.week-b { background: #e8eeff; }
   <div class="topbar-actions">
     <button class="tbar-btn" onclick="addNextMonth()">➕ 新增月份</button>
     <button class="tbar-btn danger" onclick="deleteCurrentMonth()">🗑️ 刪除月份</button>
-    <button class="tbar-btn add-site" onclick="openAddSiteModal()">📍 新增地點</button>
     <button class="tbar-btn export" onclick="openExportModal()">📤 匯出</button>
     <button id="lockBtn" class="btn-lock" onclick="toggleLock()">✏️ 排班中</button>
   </div>
@@ -485,16 +483,16 @@ th.week-b { background: #e8eeff; }
     <span class="icon">📊</span>
     <span class="label">統計</span>
   </button>
-  <button id="mgmtTabBtn" class="side-tab-btn" onclick="openSideDrawer('mgmt')" title="管理排班規則">
-    <span class="icon">⚙️</span>
-    <span class="label">管理</span>
+  <button id="mgmtTabBtn" class="side-tab-btn" onclick="openSideDrawer('mgmt')" title="廠區管理">
+    <span class="icon">🏭</span>
+    <span class="label">廠區管理</span>
   </button>
 </div>
 
 <!-- ══ Mgmt Drawer ══ -->
 <div id="mgmtDrawer" class="side-drawer">
   <div class="drawer-hdr" style="background:#f0fff8;border-bottom-color:#4a9a7a;">
-    <span class="drawer-hdr-title">📋 管理</span>
+    <span class="drawer-hdr-title">🏭 廠區管理</span>
     <button class="drawer-close-btn" onclick="closeSideDrawer()">✕</button>
   </div>
   <div class="drawer-body" id="mgmtBody">
@@ -583,28 +581,6 @@ th.week-b { background: #e8eeff; }
 
 <!-- Hidden export canvas container -->
 <div id="exportContainer" style="position:fixed;left:-9999px;top:0;background:#fff;width:fit-content;white-space:nowrap;"></div>
-
-<!-- Add Site Modal -->
-<div class="edit-modal-bg" id="addSiteModalBg">
-  <div class="edit-modal" style="width:320px;">
-    <h4>📍 新增地點</h4>
-    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">地點名稱</div>
-    <input type="text" id="addSiteName" class="styled-input" style="width:100%;margin-bottom:12px;" placeholder="例：B18">
-    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">加入班別</div>
-    <div style="display:flex;gap:10px;margin-bottom:14px;">
-      <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;cursor:pointer;">
-        <input type="checkbox" id="addSiteHol" checked style="width:16px;height:16px;"> 假日值班
-      </label>
-      <label style="display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;cursor:pointer;">
-        <input type="checkbox" id="addSiteNight" checked style="width:16px;height:16px;"> 晚班
-      </label>
-    </div>
-    <div class="edit-modal-btns">
-      <button class="styled-btn" onclick="doAddSite()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20;">✔ 新增</button>
-      <button class="styled-btn" onclick="closeAddSiteModal()" style="color:#d32f2f;">✖ 取消</button>
-    </div>
-  </div>
-</div>
 
 <!-- Edit modal -->
 <div class="edit-modal-bg" id="editModalBg">
@@ -1455,12 +1431,13 @@ function renderSummary() {
   document.getElementById('sumGrid').innerHTML = state.people.map(p => {
     const c = p.role === 'chef' ? chefDeep : assistDeep;
     const roleLabel = p.role === 'chef' ? '廚師' : '廚助';
+    const badgeBg = p.role === 'chef' ? 'var(--chef-bd)' : 'var(--assist-bd)';
 
-    return `<div class="sum-card ${p.role}" data-pid="${p.id}" style="display:flex;align-items:center;gap:8px;padding:8px 12px;text-align:left;">
-      <span style="font-size:18px;font-weight:900;padding:1px 6px;background:${c.bd};color:#fff;border-radius:4px;white-space:nowrap;flex-shrink:0;">${roleLabel}</span>
-      <span style="font-weight:900;font-size:18px;color:${c.tx};white-space:nowrap;flex-shrink:0;">${p.name}</span>
-      <span style="font-size:18px;font-weight:900;color:${c.tx};white-space:nowrap;margin-left:auto;flex-shrink:0;">${mo.m+1}月&nbsp;${counts[p.id]}</span>
-      ${prevMo ? `<span style="font-size:18px;font-weight:900;color:${c.lightTx};white-space:nowrap;flex-shrink:0;">${prevMo.m+1}月&nbsp;${prevCounts[p.id]}</span>` : ''}
+    return `<div class="sum-card ${p.role}" data-pid="${p.id}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;text-align:left;">
+      <span style="font-size:1rem;font-weight:900;padding:3px 8px;background:${badgeBg};color:#fff;border-radius:5px;white-space:nowrap;flex-shrink:0;letter-spacing:1px;">${roleLabel}</span>
+      <span style="font-weight:900;font-size:1.25rem;color:${c.tx};white-space:nowrap;flex-shrink:0;">${p.name}</span>
+      <span style="font-size:1.25rem;font-weight:900;color:${c.tx};white-space:nowrap;margin-left:auto;flex-shrink:0;">${mo.m+1}月&nbsp;<strong style="font-size:1.25rem;">${counts[p.id]}</strong></span>
+      ${prevMo ? `<span style="font-size:1.25rem;font-weight:900;color:${c.lightTx};white-space:nowrap;flex-shrink:0;">${prevMo.m+1}月&nbsp;<strong style="font-size:1.25rem;">${prevCounts[p.id]}</strong></span>` : ''}
     </div>`;
   }).join('');
 }
@@ -1803,29 +1780,23 @@ function renderSiteTabsInCalDrawer() {
 }
 
 // ── Add Site ──────────────────────────────────────────────────
-function openAddSiteModal() {
-  document.getElementById('addSiteName').value = '';
-  document.getElementById('addSiteHol').checked = true;
-  document.getElementById('addSiteNight').checked = true;
-  document.getElementById('addSiteModalBg').classList.add('open');
-}
-function closeAddSiteModal() {
-  document.getElementById('addSiteModalBg').classList.remove('open');
-}
 function doAddSite() {
-  const name = document.getElementById('addSiteName').value.trim();
+  const name = document.getElementById('drawerAddSiteName').value.trim();
   if (!name) return showToast('請輸入地點名稱', true);
-  const hasHol = document.getElementById('addSiteHol').checked;
-  const hasNight = document.getElementById('addSiteNight').checked;
+  const hasHol   = document.getElementById('drawerAddSiteHol').checked;
+  const hasNight = document.getElementById('drawerAddSiteNight').checked;
   if (!hasHol && !hasNight) return showToast('請至少選擇一種班別', true);
   const sid = 'site_' + Date.now();
   state.extraSites[sid] = { name, noHol: !hasHol, noNight: !hasNight };
-  // Patch all existing months to include this new site
   state.months.forEach(mo => {
     if (!mo.sitesData[sid]) mo.sitesData[sid] = { hol: new Set(), night: new Set() };
   });
   saveData(); renderAll(); renderSiteTabsInCalDrawer();
-  closeAddSiteModal();
+  // clear inputs
+  document.getElementById('drawerAddSiteName').value = '';
+  document.getElementById('drawerAddSiteHol').checked = true;
+  document.getElementById('drawerAddSiteNight').checked = true;
+  renderMgmt();
   showToast(`✅ 已新增地點：${name}`);
 }
 
@@ -1835,37 +1806,69 @@ function renderMgmt() {
   if (!body) return;
   const sites = getSites();
   body.innerHTML = `
-    <div style="font-size:1rem;font-weight:700;margin-bottom:10px;color:#555;">各廠區排班規則</div>
-    ${Object.entries(sites).map(([sid, s]) => {
-      return `
-      <div style="margin-bottom:14px;padding:10px;border:2px solid #e0e0e0;border-radius:8px;background:#fafafa;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div style="font-size:1.1rem;font-weight:900;">${s.name}</div>
-          <button onclick="deleteSite('${sid}')" style="background:#ffe7e7;border:1.5px solid #d32f2f;color:#d32f2f;border-radius:6px;padding:3px 10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑 刪除</button>
-        </div>
-        <div style="font-size:0.95rem;color:#555;margin-bottom:4px;">晚班規則：</div>
-        <textarea rows="2" style="width:100%;font-size:0.95rem;border:1.5px solid #ccc;border-radius:6px;padding:5px;font-family:inherit;resize:none;"
-          placeholder="例：平日晚班為一整週"
-          onchange="setSiteRule('${sid}','night',this.value)"
-        >${(state.siteRules&&state.siteRules[sid]&&state.siteRules[sid].night)||''}</textarea>
-        <div style="font-size:0.95rem;color:#555;margin-bottom:4px;margin-top:4px;">假日規則：</div>
-        <textarea rows="2" style="width:100%;font-size:0.95rem;border:1.5px solid #ccc;border-radius:6px;padding:5px;font-family:inherit;resize:none;"
-          placeholder="例：國定假日強制休假"
-          onchange="setSiteRule('${sid}','hol',this.value)"
-        >${(state.siteRules&&state.siteRules[sid]&&state.siteRules[sid].hol)||''}</textarea>
+    <div style="background:#f3fdf7;border:2px solid #4a9a7a;border-radius:10px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:1rem;font-weight:900;color:#2e7d32;margin-bottom:10px;">📍 新增廠區</div>
+      <div style="font-size:0.9rem;font-weight:700;margin-bottom:4px;color:#444;">廠區名稱</div>
+      <input type="text" id="drawerAddSiteName" class="styled-input" style="width:100%;margin-bottom:10px;" placeholder="例：B18"
+        onkeydown="if(event.key==='Enter')doAddSite()">
+      <div style="font-size:0.9rem;font-weight:700;margin-bottom:6px;color:#444;">加入班別</div>
+      <div style="display:flex;gap:14px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:0.95rem;font-weight:700;cursor:pointer;">
+          <input type="checkbox" id="drawerAddSiteHol" checked style="width:16px;height:16px;"> 假日值班
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:0.95rem;font-weight:700;cursor:pointer;">
+          <input type="checkbox" id="drawerAddSiteNight" checked style="width:16px;height:16px;"> 晚班
+        </label>
       </div>
-    `}).join('')}
+      <button onclick="doAddSite()" class="styled-btn" style="width:100%;background:#e8f5e9;border-color:#2e7d32;color:#1b5e20;padding:8px 0;font-size:1rem;">✔ 新增廠區</button>
+    </div>
+    <div style="font-size:0.85rem;font-weight:700;margin-bottom:8px;color:#888;letter-spacing:.5px;">現有廠區</div>
+    ${Object.entries(sites).map(([sid, s]) => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+        padding:9px 12px;
+        background:#f0fff8;border:2.5px solid #4a9a7a;
+        border-radius:var(--hand-radius);
+        box-shadow:4px 4px 0 #4a9a7a;">
+        <span style="font-size:0.95rem;font-weight:900;padding:2px 8px;background:#4a9a7a;color:#fff;border-radius:5px;white-space:nowrap;flex-shrink:0;">廠區</span>
+        <input type="text" value="${s.name}"
+          style="flex:1;font-size:1.1rem;font-weight:900;border:none;border-bottom:2px dashed transparent;border-radius:0;padding:2px 4px;font-family:inherit;background:transparent;outline:none;color:#2e7d32;min-width:0;"
+          onfocus="this.style.borderBottomColor='#4a9a7a'"
+          onblur="this.style.borderBottomColor='transparent';renameSite('${sid}',this.value)"
+          onkeydown="if(event.key==='Enter'){this.blur();}"
+          title="點擊編輯廠區名稱"
+        >
+        <button onclick="deleteSite('${sid}')" title="刪除廠區"
+          style="background:none;border:none;color:#a5d6b8;font-size:1rem;cursor:pointer;padding:2px 2px;line-height:1;flex-shrink:0;transition:color .15s;"
+          onmouseover="this.style.color='#d32f2f'" onmouseout="this.style.color='#a5d6b8'">🗑</button>
+      </div>
+    `).join('')}
   `;
 }
+
+function renameSite(sid, newName) {
+  newName = newName.trim();
+  if (!newName) return renderMgmt(); // revert if empty
+  const sites = getSites();
+  if (!sites[sid] || sites[sid].name === newName) return;
+  if (state.extraSites[sid]) {
+    state.extraSites[sid].name = newName;
+  } else {
+    // promote default site into extraSites with new name, preserving other props
+    const orig = DEFAULT_SITES[sid] || {};
+    state.extraSites[sid] = { ...orig, name: newName };
+  }
+  saveData(); renderAll(); renderSiteTabsInCalDrawer();
+  showToast(`✏️ 已更名為：${newName}`);
+}
+
 function deleteSite(sid) {
   const allSites = getSites();
   const s = allSites[sid];
   if (!s) return;
-  if (!confirm(`確定要刪除地點「${s.name}」嗎？\n⚠️ 該地點的所有排班資料將一併刪除！`)) return;
+  if (!confirm(`確定要刪除廠區「${s.name}」嗎？\n⚠️ 該廠區的所有排班資料將一併刪除！`)) return;
   if (state.extraSites[sid]) {
     delete state.extraSites[sid];
   } else {
-    // default site — track in deletedSites list
     if (!state.deletedSites) state.deletedSites = [];
     if (!state.deletedSites.includes(sid)) state.deletedSites.push(sid);
   }
@@ -1873,21 +1876,14 @@ function deleteSite(sid) {
   const remaining = Object.keys(getSites());
   if (!remaining.includes(state.curSite)) state.curSite = remaining[0] || '';
   saveData(); renderAll(); renderSiteTabsInCalDrawer(); renderMgmt();
-  showToast(`🗑 已刪除地點：${s.name}`);
+  showToast(`🗑 已刪除廠區：${s.name}`);
 }
 
-function setSiteRule(sid, type, val) {
-  if (!state.siteRules) state.siteRules = {};
-  if (!state.siteRules[sid]) state.siteRules[sid] = {};
-  state.siteRules[sid][type] = val;
-  saveData();
-}
 
 // ── Init ─────────────────────────────────────────────────────
 requireAuth((user) => {
   _currentUser = user;
   injectStatusBar('schedule');
-  initPresence(user);
   _autoSave = makeAutoSave('schedule', collectData, 1000);
   startSync('schedule', user, (content) => {
     applyData(content);
