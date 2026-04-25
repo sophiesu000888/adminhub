@@ -236,22 +236,51 @@ body {
 /* ── FILTER DROPDOWN ── */
 .col-filter-wrap { position: relative; }
 .col-filter-dropdown {
-  position: fixed; /* fixed 避免被 sticky thead 遮住 */
+  position: fixed;
   background: white; border: 2px solid var(--ink);
-  border-radius: 0 0 8px 8px; border-top: none;
+  border-radius: 8px;
   box-shadow: 3px 4px 0 var(--shadow);
-  z-index: 9999; min-width: 120px; max-width: 320px;
-  max-height: 240px; overflow-y: auto;
+  z-index: 9999; min-width: 150px; max-width: 340px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.col-filter-drop-search {
+  padding: 6px 8px; border-bottom: 1.5px solid rgba(45,45,45,0.12);
+  flex-shrink: 0;
+}
+.col-filter-drop-search input {
+  width: 100%; border: 1.5px solid #ddd; border-radius: 6px;
+  padding: 4px 8px; font-size: 0.88rem;
+  font-family: 'Noto Sans TC', sans-serif; outline: none;
+}
+.col-filter-drop-search input:focus { border-color: var(--blue); }
+.col-filter-drop-actions {
+  display: flex; gap: 0; border-bottom: 1.5px solid rgba(45,45,45,0.1);
+  flex-shrink: 0;
+}
+.col-filter-drop-actions button {
+  flex: 1; padding: 5px 0; font-size: 0.82rem; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; border: none; background: #f7f5f0;
+  color: var(--ink); font-weight: 600; border-right: 1px solid rgba(45,45,45,0.1);
+}
+.col-filter-drop-actions button:last-child { border-right: none; }
+.col-filter-drop-actions button:hover { background: #eee; }
+.col-filter-drop-list {
+  overflow-y: auto; max-height: 220px;
 }
 .col-filter-opt {
+  display: flex; align-items: center; gap: 8px;
   padding: 6px 10px; cursor: pointer; font-size: 0.9rem;
   font-family: 'Noto Sans TC', sans-serif; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
+  overflow: hidden;
   border-bottom: 1px solid rgba(45,45,45,0.07);
+  user-select: none;
 }
 .col-filter-opt:last-child { border-bottom: none; }
-.col-filter-opt:hover, .col-filter-opt.focused { background: #fff9e6; }
+.col-filter-opt:hover { background: #fff9e6; }
+.col-filter-opt input[type=checkbox] { flex-shrink: 0; accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; }
+.col-filter-opt .opt-label { overflow: hidden; text-overflow: ellipsis; }
 .col-filter-opt mark { background: #fff176; border-radius: 2px; padding: 0 1px; font-style: normal; }
+.col-filter-input.has-filter { background: #e8f0ff; border-color: var(--blue); font-weight: 600; }
 
 /* ── FILTER DROPDOWN - kept for legacy, hidden ── */
 /* ── SIDEBAR FOOTER - kept for legacy, hidden ── */
@@ -1064,7 +1093,7 @@ let autoSave, autoSavePrefs, autoSaveQuoteMap, autoSavePurchaseMap;
 let visibleCols = new Set(DEFAULT_VISIBLE);
 let colOrder    = FIXED_COLS.map(c => c.key);  // 欄位顯示順序
 let _detailCatIdx = null; // catalog index of open detail row
-let colFilters  = {};  // { colKey: filterValue } for per-column filters
+let colFilters  = {};  // { colKey: Set<string> } for per-column multi-select filters
 
 // ── 合併欄位（固定 + 自訂，依 colOrder）──
 function allCols() {
@@ -1336,7 +1365,7 @@ function renderSidebar() {
 window.setVendor = function(v) { state.vendor = v; state.page = 1; renderAll(); };
 
 window.setColFilter = function(key, val) {
-  if (val) colFilters[key] = val; else delete colFilters[key];
+  if (val && val.size > 0) colFilters[key] = val; else delete colFilters[key];
   applyFilter();
   // Partially re-render tbody only, keep thead (so focused input survives)
   _renderTableBody();
@@ -1380,61 +1409,130 @@ window.setColFilter = function(key, val) {
 
   function removeDropdown() {
     if (_dropEl) { _dropEl.remove(); _dropEl = null; }
-    _focusIdx = -1;
   }
 
   function highlightOpt(q, v) {
+    if (!q) return esc(v);
     const lower = q.toLowerCase();
     const idx   = v.toLowerCase().indexOf(lower);
     if (idx < 0) return esc(v);
     return esc(v.slice(0, idx)) + '<mark>' + esc(v.slice(idx, idx + q.length)) + '</mark>' + esc(v.slice(idx + q.length));
   }
 
-  function showDropdown(inp, mode, key, q, suggestions) {
+  function showDropdown(inp, mode, key, curSet) {
     removeDropdown();
-    if (!suggestions.length) return;
+    const allVals = getColValues(mode, key);
+    if (!allVals.length) return;
 
     const rect = inp.getBoundingClientRect();
     const drop = document.createElement('div');
     drop.className = 'col-filter-dropdown';
-    drop.style.left   = rect.left + 'px';
-    drop.style.top    = (rect.bottom) + 'px';
-    drop.style.width  = Math.max(rect.width, 140) + 'px';
-    drop.innerHTML = suggestions.map((v, i) =>
-      `<div class="col-filter-opt" data-idx="${i}">${highlightOpt(q, v)}</div>`
-    ).join('');
+    drop._forInp = inp;
 
-    drop.addEventListener('mousedown', e => {
+    // 定位
+    const dropW = Math.max(rect.width, 170);
+    let left = rect.left;
+    if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
+    drop.style.left  = left + 'px';
+    drop.style.top   = (rect.bottom + 2) + 'px';
+    drop.style.width = dropW + 'px';
+
+    let searchQ = '';
+    let localSet = new Set(curSet);
+
+    function renderList() {
+      const filtered = searchQ
+        ? allVals.filter(v => v.toLowerCase().includes(searchQ.toLowerCase()))
+        : allVals;
+      listEl.innerHTML = filtered.length
+        ? filtered.map(v =>
+            `<div class="col-filter-opt" data-val="${esc(v)}">
+              <input type="checkbox" ${localSet.has(v) ? 'checked' : ''}>
+              <span class="opt-label">${highlightOpt(searchQ, v)}</span>
+            </div>`).join('')
+        : `<div style="padding:8px 12px;color:#999;font-size:0.85rem;">無符合項目</div>`;
+    }
+
+    function commit() {
+      if (mode === 'quote') {
+        setQuoteColFilter(key, new Set(localSet));
+        applyQuoteFilter(); renderQuoteTable();
+      } else {
+        setColFilter(key, new Set(localSet));
+        applyFilter(); renderTable();
+      }
+    }
+
+    // 搜尋框
+    const searchWrap = document.createElement('div');
+    searchWrap.className = 'col-filter-drop-search';
+    const searchInp = document.createElement('input');
+    searchInp.type = 'text'; searchInp.placeholder = '搜尋...';
+    searchWrap.appendChild(searchInp);
+
+    // 全選/清除
+    const actionsEl = document.createElement('div');
+    actionsEl.className = 'col-filter-drop-actions';
+    const btnAll = document.createElement('button'); btnAll.textContent = '全選';
+    const btnClear = document.createElement('button'); btnClear.textContent = '清除全選';
+    actionsEl.appendChild(btnAll); actionsEl.appendChild(btnClear);
+
+    // 列表
+    const listEl = document.createElement('div');
+    listEl.className = 'col-filter-drop-list';
+
+    drop.appendChild(searchWrap);
+    drop.appendChild(actionsEl);
+    drop.appendChild(listEl);
+    renderList();
+
+    // 搜尋框 input
+    searchInp.addEventListener('input', () => {
+      searchQ = searchInp.value;
+      renderList();
+    });
+    searchInp.addEventListener('mousedown', e => e.stopPropagation());
+
+    // 全選
+    btnAll.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const filtered = searchQ ? allVals.filter(v => v.toLowerCase().includes(searchQ.toLowerCase())) : allVals;
+      filtered.forEach(v => localSet.add(v));
+      renderList(); commit();
+    });
+
+    // 清除全選
+    btnClear.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if (searchQ) {
+        const filtered = allVals.filter(v => v.toLowerCase().includes(searchQ.toLowerCase()));
+        filtered.forEach(v => localSet.delete(v));
+      } else {
+        localSet.clear();
+      }
+      renderList(); commit();
+    });
+
+    // checkbox 勾選
+    listEl.addEventListener('mousedown', e => {
+      e.preventDefault();
       const opt = e.target.closest('.col-filter-opt');
       if (!opt) return;
-      e.preventDefault();
-      const val = suggestions[+opt.dataset.idx];
-      inp.value = val;
-      removeDropdown();
-      // 套用篩選
-      if (mode === 'quote') setQuoteColFilter(key, val);
-      else                  setColFilter(key, val);
+      const v = opt.dataset.val;
+      if (localSet.has(v)) localSet.delete(v); else localSet.add(v);
+      const cb = opt.querySelector('input[type=checkbox]');
+      if (cb) cb.checked = localSet.has(v);
+      commit();
     });
 
     document.body.appendChild(drop);
     _dropEl = drop;
-    _focusIdx = -1;
-  }
-
-  function updateFocus(delta) {
-    if (!_dropEl) return;
-    const opts = _dropEl.querySelectorAll('.col-filter-opt');
-    if (!opts.length) return;
-    opts[_focusIdx]?.classList.remove('focused');
-    _focusIdx = (_focusIdx + delta + opts.length) % opts.length;
-    const cur = opts[_focusIdx];
-    cur.classList.add('focused');
-    cur.scrollIntoView({ block: 'nearest' });
+    searchInp.focus();
   }
 
   // 全域點外部關閉
   document.addEventListener('mousedown', e => {
-    if (_dropEl && !_dropEl.contains(e.target)) removeDropdown();
+    if (_dropEl && !_dropEl.contains(e.target) && e.target !== _dropEl._forInp) removeDropdown();
   });
   document.addEventListener('scroll', removeDropdown, true);
 
@@ -1444,45 +1542,21 @@ window.setColFilter = function(key, val) {
     inp._dropdownBound = true;
     const mode = inp.dataset.mode || 'purchase';
     const key  = inp.dataset.filterkey;
-    let composing = false;
 
-    inp.addEventListener('compositionstart', () => { composing = true; });
-    inp.addEventListener('compositionend',   () => {
-      composing = false;
-      const q = inp.value;
-      if (mode === 'quote') setQuoteColFilter(key, q);
-      else                  setColFilter(key, q);
-      showDropdown(inp, mode, key, q, suggest(mode, key, q));
-    });
-    inp.addEventListener('input', () => {
-      if (composing) return;
-      const q = inp.value;
-      if (mode === 'quote') setQuoteColFilter(key, q);
-      else                  setColFilter(key, q);
-      showDropdown(inp, mode, key, q, suggest(mode, key, q));
+    function openDropdown() {
+      const curSet = (mode === 'quote' ? quoteColFilters : colFilters)[key] || new Set();
+      showDropdown(inp, mode, key, curSet);
+    }
+
+    inp.addEventListener('mousedown', e => {
+      e.preventDefault(); // 不觸發 blur
+      if (_dropEl && _dropEl._forInp === inp) { removeDropdown(); return; }
+      openDropdown();
+      inp.focus();
     });
     inp.addEventListener('keydown', e => {
-      if (e.key === 'ArrowDown')  { e.preventDefault(); updateFocus(1); }
-      else if (e.key === 'ArrowUp')   { e.preventDefault(); updateFocus(-1); }
-      else if (e.key === 'Enter') {
-        if (_dropEl && _focusIdx >= 0) {
-          e.preventDefault();
-          _dropEl.querySelectorAll('.col-filter-opt')[_focusIdx]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-        }
-        removeDropdown();
-      }
-      else if (e.key === 'Escape') { removeDropdown(); }
-    });
-    inp.addEventListener('focus', () => {
-      // 第一下點擊：只顯示下拉，不套用篩選（等使用者選擇或輸入）
-      showDropdown(inp, mode, key, inp.value, suggest(mode, key, inp.value));
-    });
-    inp.addEventListener('click', () => {
-      showDropdown(inp, mode, key, inp.value, suggest(mode, key, inp.value));
-    });
-    inp.addEventListener('blur', () => {
-      // 延遲讓 mousedown 先觸發
-      setTimeout(() => { if (_dropEl && !_dropEl.matches(':hover')) removeDropdown(); }, 150);
+      if (e.key === 'Escape') removeDropdown();
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDropdown(); }
     });
   };
 })();
@@ -1630,10 +1704,10 @@ function applyFilter() {
     if (filterFav && !favVendors.has(r.vendor || '（未知）')) return false;
     if (state.vendor !== 'all' && r.vendor !== state.vendor) return false;
     if (q && !allCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
-    for (const [key, val] of Object.entries(colFilters)) {
-      if (!val) continue;
+    for (const [key, valSet] of Object.entries(colFilters)) {
+      if (!valSet || !valSet.size) continue;
       const cellVal = key === 'date' ? fmtDate(r) : String(r[key]||'');
-      if (!cellVal.toLowerCase().includes(val.toLowerCase())) return false;
+      if (!valSet.has(cellVal)) return false;
     }
     return true;
   });
@@ -1744,10 +1818,10 @@ function _rebuildPurchaseThead() {
     `<th class="${c.type==='num'?'num':''}${c.isCustom?' custom-th':''}" style="cursor:pointer;user-select:none" onclick="setSortCol('${c.key}','purchase',event)">${esc(c.label)}${_sortIcon(c.key,'purchase')}</th>`
   ).join('');
   const filterRow = cols.map(c => {
-    const val = esc(colFilters[c.key] || '');
+    const _cfv1 = colFilters[c.key]; const val = _cfv1 && _cfv1.size ? (_cfv1.size === 1 ? esc([..._cfv1][0]) : `已選 ${_cfv1.size} 項`) : '';
     return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
       <div class="col-filter-wrap">
-        <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
+        <input class="col-filter-input${_cfv1 && _cfv1.size ? ' has-filter' : ''}" type="text" readonly placeholder="篩選" value="${val}"
           data-filterkey="${c.key}" data-mode="purchase"
           onclick="event.stopPropagation()" autocomplete="off">
       </div>
@@ -1770,10 +1844,10 @@ function renderTable() {
 
   // Header row 2: filter inputs (compact, IME-safe — listeners attached by attachColFilterListeners)
   const filterRow = cols.map(c => {
-    const val = esc(colFilters[c.key] || '');
+    const _cfv1 = colFilters[c.key]; const val = _cfv1 && _cfv1.size ? (_cfv1.size === 1 ? esc([..._cfv1][0]) : `已選 ${_cfv1.size} 項`) : '';
     return `<th class="col-filter-th${c.isCustom?' custom-th':''}">
       <div class="col-filter-wrap">
-        <input class="col-filter-input" type="text" placeholder="篩選" value="${val}"
+        <input class="col-filter-input${_cfv1 && _cfv1.size ? ' has-filter' : ''}" type="text" readonly placeholder="篩選" value="${val}"
           data-filterkey="${c.key}" data-mode="purchase"
           onclick="event.stopPropagation()" autocomplete="off">
       </div>
@@ -2890,9 +2964,9 @@ function applyQuoteFilter() {
     if (filterFavQuote && !favVendors.has(r.vendor || '（未知）')) return false;
     if (quoteState.vendor !== 'all' && r.vendor !== quoteState.vendor) return false;
     if (q && !allQuoteCols().some(col => String(r[col.key]||'').toLowerCase().includes(q))) return false;
-    for (const [key, val] of Object.entries(quoteColFilters)) {
-      if (!val) continue;
-      if (!String(r[key]||'').toLowerCase().includes(val.toLowerCase())) return false;
+    for (const [key, valSet] of Object.entries(quoteColFilters)) {
+      if (!valSet || !valSet.size) continue;
+      if (!valSet.has(String(r[key]||''))) return false;
     }
     return true;
   });
@@ -3005,7 +3079,7 @@ function _bindQuoteTbodyEvents() {
 }
 
 window.setQuoteColFilter = function(key, val) {
-  if (val) quoteColFilters[key] = val; else delete quoteColFilters[key];
+  if (val && val.size > 0) quoteColFilters[key] = val; else delete quoteColFilters[key];
   applyQuoteFilter();
   // Re-render tbody only, keep thead intact so focus survives
   const visCols = allQuoteCols().filter(c => quoteVisibleCols.has(c.key));
@@ -3036,8 +3110,8 @@ function _rebuildQuoteThead() {
   const filterRow = visCols.map(c =>
     `<th class="col-filter-th quote-th">
       <div class="col-filter-wrap">
-        <input class="quote-filter-input col-filter-input" type="text" placeholder="篩選"
-          value="${esc(quoteColFilters[c.key]||'')}"
+        <input class="quote-filter-input col-filter-input" readonly type="text" placeholder="篩選"
+          value="${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?(_qcf.size===1?esc([..._qcf][0]):`已選 ${_qcf.size} 項`):''; })()}"
           data-filterkey="${c.key}" data-mode="quote"
           onclick="event.stopPropagation()" autocomplete="off">
       </div>
@@ -3088,8 +3162,8 @@ function renderQuoteTable() {
   const filterRow = visCols.map(c =>
     `<th class="col-filter-th quote-th">
       <div class="col-filter-wrap">
-        <input class="quote-filter-input col-filter-input" type="text" placeholder="篩選"
-          value="${esc(quoteColFilters[c.key]||'')}"
+        <input class="quote-filter-input col-filter-input" readonly type="text" placeholder="篩選"
+          value="${(function(){ const _qcf=quoteColFilters[c.key]; return _qcf&&_qcf.size?(_qcf.size===1?esc([..._qcf][0]):`已選 ${_qcf.size} 項`):''; })()}"
           data-filterkey="${c.key}" data-mode="quote"
           onclick="event.stopPropagation()" autocomplete="off">
       </div>
