@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>烤鴨庫存管理</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC&display=swap');
 
 :root {
   --paper: #fdfbf7;
@@ -98,7 +98,7 @@ body {
 .wk-arrow[disabled] { opacity: .3; cursor: default; box-shadow: none; }
 /* current week display */
 .wk-label {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 28px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 28px;
   color: var(--ink); padding: 4px 14px; white-space: nowrap;
   background: #fff8e7; border: 2px solid var(--ink);
   border-radius: var(--hand-radius); box-shadow: 2px 2px 0 0 var(--ink);
@@ -109,7 +109,7 @@ body {
 .wk-btn {
   background: white; border: 2px solid var(--border); color: var(--ink);
   border-radius: var(--hand-radius); padding: 4px 12px; font-size: 28px;
-  font-family: 'Kalam', cursive; font-weight: 700;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700;
   cursor: pointer; white-space: nowrap; transition: all .1s;
   box-shadow: 2px 2px 0 0 var(--ink);
 }
@@ -161,7 +161,7 @@ body {
 #prev-week-panel { }
 #next-week-panel { }
 .preview-wk-label {
-  font-family: 'Kalam', cursive; font-size: 24px; font-weight: 700;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 24px; font-weight: 700;
   text-align: center; letter-spacing: 1px; color: var(--dim);
   height: 40px; display: flex; align-items: center; justify-content: center;
   margin-bottom: 7px;
@@ -177,7 +177,7 @@ body {
 
 /* ── SECTION TITLE ── */
 .sec-title {
-  font-size: 44px; font-family: 'Kalam', cursive; font-weight: 700;
+  font-size: 44px; font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700;
   color: var(--ink); padding-bottom: 10px; margin-bottom: 16px;
   display: flex; align-items: center; gap: 8px; transform: rotate(-1deg);
 }
@@ -188,7 +188,7 @@ body {
 table.ov { width: auto; border-collapse: collapse; table-layout: fixed; }
 table.ov thead tr { background: var(--s2); border-bottom: 2.5px solid var(--ink); }
 table.ov th {
-  padding: 6px 8px; font-size: 30px; font-family: 'Kalam', cursive; font-weight: 700; color: var(--ink);
+  padding: 6px 8px; font-size: 30px; font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; color: var(--ink);
   border-right: 1px solid var(--border2); white-space: nowrap; vertical-align: bottom; text-align: center;
   width: 60px; height: 104px;
 }
@@ -199,9 +199,9 @@ table.ov td:last-child { border-right: none; }
 table.ov tr:last-child td { border-bottom: none; }
 table.ov tr:hover td { background: rgba(0,0,0,.02); }
 .sc { padding: 8px 6px; text-align: center; white-space: nowrap; }
-.sn { font-weight: 700; font-size: 32px; font-family: 'Kalam', cursive; display: block; text-align: center; }
+.sn { font-weight: 700; font-size: 32px; font-family: 'Kalam', 'Noto Sans TC', sans-serif; display: block; text-align: center; }
 .st {
-  font-size: 20px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 20px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   background: white; border: 1.5px solid var(--ink); color: var(--ink);
   padding: 2px 6px; border-radius: 6px; margin-left: 8px; vertical-align: middle;
 }
@@ -210,31 +210,31 @@ table.ov tr:hover td { background: rgba(0,0,0,.02); }
 .dc.cu { background: #fff0f0; }
 .day-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .ev {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 32px;
   color: var(--red); background: transparent;
   border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 3px;
   border: none;
 }
-.ev input { background: transparent; border: none; color: var(--red); font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; width: 64px; text-align: center; padding: 0; }
+.ev input { background: transparent; border: none; color: var(--red); font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 32px; width: 64px; text-align: center; padding: 0; }
 .ev input:focus { outline: none; border-bottom: 1.5px dashed var(--red); }
 .av {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 32px;
   color: var(--act); background: transparent;
   border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 3px;
   border: none;
 }
-.av input { background: transparent; border: none; color: var(--act); font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; width: 64px; text-align: center; padding: 0; }
+.av input { background: transparent; border: none; color: var(--act); font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 32px; width: 64px; text-align: center; padding: 0; }
 .av input:focus { outline: none; border-bottom: 1.5px dashed var(--act); }
 
 .fa-btn {
   font-size: 24px; background: white; border: 2px solid var(--ink); color: var(--ink);
   border-radius: 6px; padding: 3px 8px; cursor: pointer; white-space: nowrap; transition: all .1s;
-  font-family: 'Patrick Hand', sans-serif; font-weight: 700; box-shadow: 1.5px 1.5px 0 0 var(--ink);
+  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700; box-shadow: 1.5px 1.5px 0 0 var(--ink);
 }
 .fa-btn:hover { transform: translate(1px, 1px); box-shadow: 0 0 0 0; background: #f0f0f0; }
 
 .lv {
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 36px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 36px;
   color: var(--ink); background: transparent;
   border-radius: 6px; padding: 3px 10px;
   border: none;
@@ -261,19 +261,19 @@ table.ov tr:hover td { background: rgba(0,0,0,.02); }
 .lock-week-btn {
   font-size: 22px; background: white; border: 1.5px solid var(--border2); color: var(--dim);
   border-radius: 6px; padding: 2px 7px; cursor: pointer; white-space: nowrap; transition: all .1s;
-  font-family: 'Patrick Hand', sans-serif; font-weight: 700; margin-top: 3px; display: block;
+  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700; margin-top: 3px; display: block;
 }
 .lock-week-btn:hover { border-color: var(--act); color: var(--act); background: rgba(39,174,96,.06); }
 .lock-week-btn.locked { background: rgba(39,174,96,.1); border-color: var(--act); color: var(--act); }
 .holi { font-size: 36px; line-height: 1; }
-.zero { color: var(--muted); font-size: 28px; font-family: 'Kalam', cursive; }
+.zero { color: var(--muted); font-size: 28px; font-family: 'Kalam', 'Noto Sans TC', sans-serif; }
 th.cs { color: var(--gold); } th.cu { color: var(--red); }
 tr.tr-total td {
   background: var(--s2); border-top: 2.5px solid var(--ink);
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 36px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 36px;
   padding: 12px 6px; text-align: center; color: var(--ink);
 }
-tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; color: var(--ink); text-align: left; }
+tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700; color: var(--ink); text-align: left; }
 
 /* ── ACCORDION ── */
 .acc-list { display: flex; flex-direction: column; gap: 12px; }
@@ -288,16 +288,16 @@ tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font
 }
 .acc-header:hover { background: var(--s3); }
 .acc-header.open { border-bottom-color: var(--ink); }
-.acc-header .ah-name { font-family: 'Kalam', cursive; font-size: 40px; font-weight: 700; color: var(--ink); }
-.acc-header .ah-desc { font-size: 26px; color: var(--dim); margin-top: 2px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
+.acc-header .ah-name { font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 40px; font-weight: 700; color: var(--ink); }
+.acc-header .ah-desc { font-size: 26px; color: var(--dim); margin-top: 2px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700; }
 .acc-header .ah-badge {
-  margin-left: auto; font-size: 26px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  margin-left: auto; font-size: 26px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   color: var(--ink); background: white; border: 1.5px solid var(--ink);
   padding: 4px 10px; border-radius: 8px;
 }
 /* 確認進度 pill */
 .acc-header .ah-progress {
-  font-size: 24px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 24px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   padding: 4px 12px; border-radius: 20px; border: 2px solid;
   white-space: nowrap; line-height: 1.3;
 }
@@ -315,11 +315,11 @@ tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font
   background: white; border: 1.5px solid var(--border2); border-radius: 8px;
 }
 .wk-row .wr-info { flex: 1; }
-.wr-info .wr-label { font-size: 30px; font-weight: 700; font-family: 'Patrick Hand', sans-serif; color: var(--ink); }
-.wr-info .wr-range { font-size: 24px; font-family: 'Patrick Hand', sans-serif; color: var(--dim); font-weight: 700; }
+.wr-info .wr-label { font-size: 30px; font-weight: 700; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; color: var(--ink); }
+.wr-info .wr-range { font-size: 24px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; color: var(--dim); font-weight: 700; }
 .wk-toggle-btn {
   font-size: 26px; font-weight: 700; border-radius: 6px; padding: 5px 12px;
-  cursor: pointer; transition: all .1s; white-space: nowrap; font-family: 'Patrick Hand', sans-serif;
+  cursor: pointer; transition: all .1s; white-space: nowrap; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
   box-shadow: 1.5px 1.5px 0 0 var(--ink);
 }
 .wk-toggle-btn:hover { transform: translate(1px, 1px); box-shadow: 0 0 0 0; }
@@ -328,15 +328,15 @@ tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font
 .wk-toggle-btn.on-purple { background: #f3e5f5; border: 1.5px solid #ce93d8; color: #6a1b9a; }
 .wk-toggle-btn.on-check { background: #e8f5e9; border: 1.5px solid #81c784; color: #2e7d32; }
 .wk-toggle-btn.on-skip { background: #f5f5f5; border: 1.5px dashed var(--muted); color: var(--muted); text-decoration: line-through; box-shadow: none; }
-.wk-qty { min-width: 120px; text-align: right; font-family: 'Kalam', cursive; font-size: 32px; color: var(--ink); font-weight: 700; }
+.wk-qty { min-width: 120px; text-align: right; font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 32px; color: var(--ink); font-weight: 700; }
 
 /* ── TAG ── */
-.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 22px; font-weight: 700; border-radius: 6px; padding: 3px 8px; font-family: 'Patrick Hand', sans-serif; }
+.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 22px; font-weight: 700; border-radius: 6px; padding: 3px 8px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; }
 .tag-l { background: #fff8e7; color: var(--gold); border: 1.5px solid var(--gold); }
 .tag-d { background: #f3e5f5; color: #8e44ad; border: 1.5px solid #8e44ad; }
 
 /* ── INPUT ── */
-.qty-inp { width: 108px; background: white; border: 1.5px solid var(--ink); color: var(--ink); border-radius: 6px; padding: 5px 7px; font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; text-align: center; }
+.qty-inp { width: 108px; background: white; border: 1.5px solid var(--ink); color: var(--ink); border-radius: 6px; padding: 5px 7px; font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 32px; text-align: center; }
 .qty-inp:focus { outline: none; border-color: var(--blue); }
 .qty-inp.purple { color: #8e44ad; }
 
@@ -347,29 +347,29 @@ tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font
   border-radius: var(--card-radius); padding: 20px; box-shadow: var(--shadow2);
 }
 .s-card h3 {
-  font-size: 36px; font-family: 'Kalam', cursive; color: var(--ink);
+  font-size: 36px; font-family: 'Kalam', 'Noto Sans TC', sans-serif; color: var(--ink);
   margin-bottom: 16px; border-bottom: 2px dashed var(--border2); padding-bottom: 8px;
 }
 .add-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
 .fg { display: flex; flex-direction: column; gap: 5px; }
-.fg label { font-size: 26px; color: var(--ink); font-weight: 700; font-family: 'Patrick Hand', sans-serif; }
+.fg label { font-size: 26px; color: var(--ink); font-weight: 700; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; }
 .fg input {
   background: white; border: 1.5px solid var(--ink); color: var(--ink);
-  border-radius: 6px; padding: 6px 10px; font-size: 28px; font-family: 'Patrick Hand', sans-serif;
+  border-radius: 6px; padding: 6px 10px; font-size: 28px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
   font-weight: 700;
 }
 .fg input:focus { outline: none; border-color: var(--blue); }
-.sle { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border2); font-size: 28px; font-family: 'Patrick Hand', sans-serif; font-weight: 700; }
+.sle { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border2); font-size: 28px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700; }
 .sle:last-child { border-bottom: none; }
-.sle .sd { font-family: 'Patrick Hand', sans-serif; font-size: 24px; color: var(--dim); min-width: 164px; }
+.sle .sd { font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-size: 24px; color: var(--dim); min-width: 164px; }
 .sle .sn2 { flex: 1; color: var(--ink); margin: 0 10px; }
-.sle .sq { font-family: 'Kalam', cursive; font-weight: 700; font-size: 36px; color: var(--act); }
+.sle .sq { font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 36px; color: var(--act); }
 
 /* ── BTN ── */
 .btn {
   background: white; color: var(--ink); border: 2.5px solid var(--ink);
   border-radius: var(--hand-radius); padding: 8px 20px;
-  font-size: 28px; font-weight: 700; font-family: 'Patrick Hand', sans-serif;
+  font-size: 28px; font-weight: 700; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
   cursor: pointer; transition: all .1s; box-shadow: var(--shadow-sm);
 }
 .btn:hover { transform: translate(2px, 2px); box-shadow: 0 0 0 0; }
@@ -385,7 +385,7 @@ tr.tr-total .sc { font-size: 28px; font-family: 'Patrick Hand', sans-serif; font
 select.ds {
   background: white; border: 1.5px solid var(--ink); color: var(--ink);
   border-radius: 6px; padding: 6px 10px; font-size: 28px; font-weight: 700;
-  font-family: 'Patrick Hand', sans-serif; cursor: pointer;
+  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; cursor: pointer;
 }
 
 /* ── CONFIG QTY FIELD bg ── */
@@ -419,7 +419,7 @@ select.ds {
   background: var(--s2); flex-shrink: 0;
 }
 .drawer-header h2 {
-  font-family: 'Kalam', cursive; font-size: 40px; font-weight: 700;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 40px; font-weight: 700;
   color: var(--ink); margin: 0; flex: 1;
 }
 .drawer-close {
@@ -432,7 +432,12 @@ select.ds {
 .drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
 /* ── 抽屜內字體統一 18px ── */
 .drawer-body * { font-size: 18px !important; }
-.drawer-header h2 { font-size: 18px !important; }
+/* 抽屜標題「廠區設定」3rem，圖釘縮小 */
+.drawer-header h2 { font-size: 3rem !important; font-family: 'Noto Sans TC', sans-serif !important; }
+.drawer-header .st-icon { font-size: 1.4rem !important; }
+/* sec-title「廠區出貨設定」18px，圖釘縮小 */
+.sec-title { font-size: 18px !important; font-family: 'Noto Sans TC', sans-serif !important; }
+.sec-title::before { font-size: 14px !important; }
 #drawer-config .drawer-header { background: #f3e5f5; border-bottom-color: #7b1fa2; }
 #drawer-stock  .drawer-header { background: #e8f5e9; border-bottom-color: #2e7d32; }
 
@@ -450,7 +455,7 @@ select.ds {
 .cfg-cal-month-hdr {
   display: flex; align-items: center; justify-content: space-between;
   background: #1e7b4b; padding: 9px 14px; border-bottom: 2px solid var(--ink);
-  font-family: 'Kalam', cursive; font-weight: 700; font-size: 26px; color: white;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 26px; color: white;
   letter-spacing: 1px;
 }
 .cfg-cal-month-hdr .mon-confirm { margin-left: auto; }
@@ -461,7 +466,7 @@ select.ds {
 }
 .cfg-cal-dow > div {
   text-align: center; font-size: 18px; font-weight: 700; color: #3a7a5a;
-  padding: 5px 2px; font-family: 'Patrick Hand', sans-serif;
+  padding: 5px 2px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif;
 }
 .cfg-cal-dow > div:first-child { color: var(--red); }
 .cfg-cal-dow > div:last-child  { color: #2e8b57; }
@@ -489,12 +494,12 @@ select.ds {
 .cfg-cal-cell.is-weekend:not(.is-holiday) .cfg-cal-dnum { color: #2e8b57; }
 
 .cfg-cal-dnum {
-  font-family: 'Kalam', cursive; font-size: 22px; font-weight: 700; line-height: 1;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-size: 22px; font-weight: 700; line-height: 1;
   color: var(--ink); align-self: flex-start; padding-left: 2px;
 }
 
 .cfg-cal-holi-lbl {
-  font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 14px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   color: var(--red); line-height: 1;
 }
 .cfg-cal-cell.is-holiday .cfg-cal-holi-lbl { color: rgba(255,255,255,.9); }
@@ -504,12 +509,12 @@ select.ds {
   grid-column: 1 / -1;
   background: #d4edde; padding: 5px 12px;
   display: flex; align-items: center; gap: 8px;
-  font-family: 'Patrick Hand', sans-serif; font-size: 19px; font-weight: 700; color: #3a7a5a;
+  font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-size: 19px; font-weight: 700; color: #3a7a5a;
   border-bottom: 1.5px solid #c8e6d4; border-top: 1.5px solid #c8e6d4;
 }
 .cfg-cal-week-hdr .wk-lbl {
   color: #1e5c38; font-size: 20px;
-  font-family: 'Kalam', cursive; font-weight: 700;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif; font-weight: 700;
 }
 .cfg-cal-week-hdr .wk-total {
   margin-left: auto; color: #1e7b4b; font-size: 19px; font-weight: 700;
@@ -519,7 +524,7 @@ select.ds {
 
 .cfg-day-btns { display: flex; flex-direction: column; gap: 2px; width: 100%; }
 .cfg-day-btn {
-  font-size: 16px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 16px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   border-radius: 5px; padding: 2px 4px; cursor: pointer; text-align: center;
   border: 1.5px solid; transition: all .1s; line-height: 1.25; width: 100%;
   box-shadow: 1px 1px 0 0 rgba(0,0,0,.08);
@@ -535,7 +540,7 @@ select.ds {
 
 .cfg-wk-pill {
   display: inline-flex; align-items: center; gap: 3px;
-  font-size: 16px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 16px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   border-radius: 20px; padding: 2px 10px; cursor: pointer; border: 1.5px solid;
   transition: all .1s;
 }
@@ -547,7 +552,7 @@ select.ds {
 .cfg-wk-pill.on-skip   { background: #f0f0f0; border-color: #ccc; color: #aaa; text-decoration: line-through; }
 
 .cfg-confirm-pill {
-  font-size: 16px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
+  font-size: 16px; font-family: 'Patrick Hand', 'Noto Sans TC', sans-serif; font-weight: 700;
   border-radius: 20px; padding: 2px 10px; cursor: pointer; border: 1.5px solid;
   transition: all .1s;
 }
@@ -1235,12 +1240,12 @@ function renderOverview() {
       var bg=isPink?'background:#f0fff0;':'';
       var qty=inMap[_ds];
       if(qty){
-        b+='<td class="'+cls+'" style="text-align:center;padding:5px 4px;'+bg+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:28px;color:#2e7d32;">+'+qty+'</span></td>';
+        b+='<td class="'+cls+'" style="text-align:center;padding:5px 4px;'+bg+'"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:28px;color:#2e7d32;">+'+qty+'</span></td>';
       } else {
         b+='<td class="'+cls+'" style="'+bg+'"></td>';
       }
     });
-    b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;font-weight:700;color:#2e7d32;padding:8px;">+'+weekTotalIn+'</td>';
+    b+='<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:28px;font-weight:700;color:#2e7d32;padding:8px;">+'+weekTotalIn+'</td>';
     b+='<td style="padding:0;border:none;width:0;"></td></tr>';
   }
 
@@ -1285,14 +1290,14 @@ function renderOverview() {
     var extraStyle = stockUpdateDays[_dsR] ? 'outline:1.5px solid var(--red);outline-offset:-2px;' : '';
     // 基準日之前的天：不扣庫存，顯示 —
     if(base.baseDate && _dsR < base.baseDate){
-      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
     runningStock-=colTotal[x.dk];
     var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
-  b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td><td style="padding:0;border:none;width:0;"></td></tr>';
+  b+='<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:28px;padding:8px;color:var(--dim);">隻</td><td style="padding:0;border:none;width:0;"></td></tr>';
 
   // ── 進貨 / 庫存更新 inline 輸入區（可折收）──
   var colSpan = vd.length + 3;
@@ -1310,7 +1315,7 @@ function renderOverview() {
   b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
   b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--ink);">📦 進貨</span>';
   b += '<input type="date" id="si-date" style="background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
-  b += '<input type="number" id="si-qty" placeholder="數量" style="width:120px;background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,cursive;font-weight:700;text-align:center;">';
+  b += '<input type="number" id="si-qty" placeholder="數量" style="width:120px;background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;text-align:center;">';
   b += '<input type="text" id="si-note" placeholder="備註" style="width:160px;background:white;border:1.5px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:22px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
   b += '<button onclick="inlineAddStock()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 #2e7d32\'">＋ 新增</button>';
   b += '</div>';
@@ -1322,7 +1327,7 @@ function renderOverview() {
   b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
   b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--gold2);">📌 庫存更新</span>';
   b += '<input type="date" id="si-mi-date" style="background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
-  b += '<input type="number" id="si-mi-qty" placeholder="實際隻數" style="width:150px;background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,cursive;font-weight:700;text-align:center;">';
+  b += '<input type="number" id="si-mi-qty" placeholder="實際隻數" style="width:150px;background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;text-align:center;">';
   b += '<button onclick="inlineAddMonthInit()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#fff8e1;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 var(--gold);transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 var(--gold)\'">📌 新增</button>';
   b += '</div>';
 
@@ -1423,9 +1428,9 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
       var q = (cell.act!==null)?cell.act:cell.est;
       colTotal[x.dk] += q; wTotal += q;
       var color = cell.locked?'var(--ink)':(cell.act!==null?'var(--act)':'var(--red)');
-      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,cursive;font-weight:700;font-size:32px;color:'+color+';">'+q+'</span></div></td>';
+      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:32px;color:'+color+';">'+q+'</span></div></td>';
     });
-    b += '<td style="text-align:center;font-family:Kalam,cursive;font-size:32px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
+    b += '<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:32px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
   });
 
   var gTotal = 0;
@@ -1469,14 +1474,14 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
     var _dsR = wkDs(wi,x.i); if(!_dsR) return; var dowR = new Date(_dsR).getDay();
     var clsR = 'dc '+(dowR===6?'cs': dowR===0?'cu': '');
     if(base2.baseDate && _dsR < base2.baseDate){
-      b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
     runningStock -= colTotal[x.dk];
     var color = runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+    b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
-  b += '<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td></tr>';
+  b += '<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:28px;padding:8px;color:var(--dim);">隻</td></tr>';
 
   bodyEl.innerHTML = b;
 }
@@ -1838,7 +1843,7 @@ function buildF20Block(tmw) {
       }
       // 平日：顯示當天隻數
       var q=f20Qty(ds);
-      return '<div style="font-family:Kalam,cursive;font-size:20px;font-weight:700;color:var(--est);text-align:center;">'+q+'隻</div>';
+      return '<div style="font-family:Kalam,'Noto Sans TC',sans-serif;font-size:20px;font-weight:700;color:var(--est);text-align:center;">'+q+'隻</div>';
     }
   });
 
@@ -2049,7 +2054,7 @@ function buildAP6BBlock(tmw) {
       if(!q) return '';
       var hasDin=ap6bHasDinner(mon);
       var txt=hasDin?'午+晚 '+q:'午 '+q;
-      return '<div style="font-family:Kalam,cursive;font-size:19px;font-weight:700;color:var(--est);text-align:center;">'+txt+'</div>';
+      return '<div style="font-family:Kalam,'Noto Sans TC',sans-serif;font-size:19px;font-weight:700;color:var(--est);text-align:center;">'+txt+'</div>';
     }
   });
 
@@ -2088,7 +2093,7 @@ function buildP8Block(tmw) {
     getCellContent: function(ds, mon, wi){
       var q=p8DayEst(ds);
       if(!q) return '';
-      return '<div style="font-family:Kalam,cursive;font-size:19px;font-weight:700;color:var(--green);text-align:center;">'+q+'</div>';
+      return '<div style="font-family:Kalam,'Noto Sans TC',sans-serif;font-size:19px;font-weight:700;color:var(--green);text-align:center;">'+q+'</div>';
     }
   });
 
