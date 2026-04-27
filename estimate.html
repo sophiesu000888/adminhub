@@ -576,10 +576,7 @@ select.ds {
     <span class="st-icon">⚙</span>
     <span class="st-label">廠區設定</span>
   </div>
-  <div class="side-tab" id="stab-stock" onclick="openDrawer('stock')" title="庫存管理">
-    <span class="st-icon">📦</span>
-    <span class="st-label">庫存管理</span>
-  </div>
+
 </div>
 
 <!-- 共用遮罩 -->
@@ -599,46 +596,7 @@ select.ds {
   </div>
 </div>
 
-<!-- 庫存管理抽屜 -->
-<div class="side-drawer" id="drawer-stock">
-  <div class="drawer-header">
-    <span class="st-icon">📦</span>
-    <h2>庫存管理</h2>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  </div>
-  <div class="drawer-body">
-    <div class="sec-title" style="margin-top:4px;">庫存管理</div>
-    <div class="stock-panel">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:28px;color:var(--ink);font-weight:700;font-family:'Patrick Hand', sans-serif;">預警門檻</span>
-        <input type="number" id="thr-in" value="50" style="width:140px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:6px 8px;font-size:32px;font-family:'Kalam', cursive;" min="1">
-        <span style="font-size:28px;color:var(--ink);font-weight:700;font-family:'Patrick Hand', sans-serif;">隻</span>
-        <button class="btn btn-sm btn-out" onclick="updateThreshold()">更新</button>
-      </div>
-      <div class="s-card corner-frame">
-        <h3>進貨 ／ 盤點調整</h3>
-        <div class="add-form">
-          <div class="fg"><label>日期</label><input type="date" id="in-date" style="width:280px;"></div>
-          <div class="fg"><label>數量（正=進貨，負=盤差）</label><input type="number" id="in-qty" placeholder="0" style="width:160px;"></div>
-          <div class="fg"><label>備註</label><input type="text" id="in-note" placeholder="備註" style="width:280px;"></div>
-          <button class="btn btn-g btn-sm" onclick="addStock()">＋ 新增</button>
-        </div>
-        <div style="margin-top:12px;padding:10px 14px;background:#fffbe6;border:1.5px dashed var(--gold);border-radius:8px;font-family:'Patrick Hand',sans-serif;font-size:26px;color:var(--ink);font-weight:700;">
-          📅 每月初結算
-          <div style="font-size:24px;color:var(--dim);margin:4px 0 8px;">新增一筆「月初實際庫存」後，即可安心刪除舊週次，數字不受影響。</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="date" id="month-init-date" style="background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Patrick Hand',sans-serif;font-weight:700;font-size:26px;">
-            <span style="font-size:26px;">實際庫存</span>
-            <input type="number" id="month-init-qty" placeholder="隻數" style="width:140px;background:white;border:1.5px solid var(--ink);color:var(--ink);border-radius:6px;padding:5px 8px;font-family:'Kalam',cursive;font-weight:700;font-size:30px;text-align:center;">
-            <span style="font-size:26px;">隻</span>
-            <button class="btn btn-sm" style="background:#fff8e1;border-color:var(--gold);color:var(--gold2);" onclick="addMonthInit()">📌 新增月初庫存</button>
-          </div>
-        </div>
-        <div id="stock-log" style="margin-top:12px;"></div>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 
 <!-- Overview 主畫面 -->
@@ -1307,25 +1265,40 @@ function renderOverview() {
   var runningStock=stockBeforeWeek;
   b+='<tr style="background:var(--s2);border-top:1.5px dashed var(--border2);">';
   b+='<td class="sc" style="text-align:center;"><span style="font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;color:var(--dim);">剩餘庫存</span></td>';
+
+  // 找出本週哪幾天有「庫存更新」(monthInit) 紀錄
+  var stockUpdateDays = {};
+  S.stockLog.forEach(function(e){
+    if(e.type==='monthInit') stockUpdateDays[e.date] = true;
+  });
+
   vd.forEach(function(x){
     var _dsR=wkDs(wi,x.i); if(!_dsR) return; var dowR=new Date(_dsR).getDay();
     var isPinkR = dsIsWeekend(_dsR)||isNatHoli(_dsR);
     var clsR='dc '+(dowR===6?'cs': dowR===0?'cu': '');
     var bgR = isPinkR ? 'background:#fff0f2;' : '';
+    var extraStyle = stockUpdateDays[_dsR] ? 'outline:1.5px solid var(--red);outline-offset:-2px;' : '';
     // 基準日之前的天：不扣庫存，顯示 —
     if(base.baseDate && _dsR < base.baseDate){
-      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
     runningStock-=colTotal[x.dk];
     var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
   b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;padding:8px;color:var(--dim);">隻</td><td style="padding:0;border:none;width:0;"></td></tr>';
 
-  // ── 進貨 / 月初庫存 inline 輸入區 ──
-  var colSpan = vd.length + 3; // 廠區 + 7天 + 小計 + 隱藏尾欄
-  b += '<tr id="tr-stock-input"><td colspan="'+colSpan+'" style="padding:12px 16px;background:#fffbe6;border-top:2px dashed var(--gold);">';
+  // ── 進貨 / 庫存更新 inline 輸入區（可折收）──
+  var colSpan = vd.length + 3;
+  // 折收 toggle 列
+  b += '<tr id="tr-stock-toggle" onclick="toggleStockRow()" style="cursor:pointer;user-select:none;">';
+  b += '<td colspan="'+colSpan+'" style="padding:5px 16px;background:#fdf6e0;border-top:2px dashed var(--gold);border-bottom:1px solid var(--border2);">';
+  b += '<span style="font-size:20px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--gold2);">📦 進貨 ／ 庫存更新</span>';
+  b += '<span id="stock-row-arrow" style="margin-left:8px;font-size:16px;color:var(--muted);">▶</span>';
+  b += '</td></tr>';
+  // 內容列（預設隱藏）
+  b += '<tr id="tr-stock-input" style="display:none;"><td colspan="'+colSpan+'" style="padding:12px 16px;background:#fffbe6;">';
   b += '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">';
 
   // 進貨區
@@ -1342,7 +1315,7 @@ function renderOverview() {
 
   // 月初實際庫存區
   b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
-  b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--gold2);">📌 月初庫存</span>';
+  b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--gold2);">📌 庫存更新</span>';
   b += '<input type="date" id="si-mi-date" style="background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
   b += '<input type="number" id="si-mi-qty" placeholder="實際隻數" style="width:150px;background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,cursive;font-weight:700;text-align:center;">';
   b += '<button onclick="inlineAddMonthInit()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#fff8e1;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 var(--gold);transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 var(--gold)\'">📌 新增</button>';
@@ -2377,7 +2350,7 @@ function wkRow3(mon, wn, wd, state, onCls, fnName, activeLabel, extra){
 // ═══════════════════════════════════════
 // STOCK
 // ═══════════════════════════════════════
-// ── INLINE 進貨 / 月初庫存 ──
+// ── INLINE 進貨 / 庫存更新 ──
 function inlineAddStock(){
   var date=document.getElementById('si-date').value;
   var qty=+document.getElementById('si-qty').value;
@@ -2392,7 +2365,7 @@ function inlineAddMonthInit(){
   var date=document.getElementById('si-mi-date').value;
   var qty=+document.getElementById('si-mi-qty').value;
   if(!date||isNaN(qty)||qty===''){alert('請填入日期及實際庫存隻數');return;}
-  S.stockLog.push({date:date,qty:0,note:'📅 月初庫存 '+qty+'隻',type:'monthInit',realQty:qty});
+  S.stockLog.push({date:date,qty:0,note:'📅 庫存更新 '+qty+'隻',type:'monthInit',realQty:qty});
   document.getElementById('si-mi-qty').value='';
   renderOverview();renderTopStats();saveState();
 }
@@ -2417,7 +2390,7 @@ function addMonthInit(){
   var qty=+document.getElementById('month-init-qty').value;
   if(!date||isNaN(qty)||qty===''){alert('請填入日期及實際庫存隻數');return;}
   // qty 直接作為月初實際庫存基準（realQty），不再需要算 diff
-  S.stockLog.push({date:date,qty:0,note:'📅 月初庫存 '+qty+'隻',type:'monthInit',realQty:qty});
+  S.stockLog.push({date:date,qty:0,note:'📅 庫存更新 '+qty+'隻',type:'monthInit',realQty:qty});
   document.getElementById('month-init-qty').value='';
   renderStockLog();updStockCalc();renderTopStats();saveState();
 }
@@ -2431,7 +2404,7 @@ function removeStock(i){
 function renderStockLog(){
   document.getElementById('stock-log').innerHTML=S.stockLog.map(function(e,i){
     var isMonthInit = e.type==='monthInit';
-    // 月初庫存：顯示實際庫存數（realQty），其他：顯示 qty 差值
+    // 庫存更新：顯示實際庫存數（realQty），其他：顯示 qty 差值
     var displayQty = isMonthInit ? (e.realQty !== undefined ? e.realQty : e.qty) : e.qty;
     var displayColor = isMonthInit ? 'var(--blue)' : (e.qty<0?'var(--red)':'var(--act)');
     var displaySign = isMonthInit ? '' : (e.qty>0?'+':'');
@@ -2593,6 +2566,18 @@ function applyRemoteData(data) {
   if(data.threshold !== undefined) S.threshold = data.threshold;
   if(data.cfgWeekConfirmed) cfgWeekConfirmed = data.cfgWeekConfirmed;
   if(data.weekMons && data.weekMons.length) S.weekMons = data.weekMons;
+}
+
+// ═══════════════════════════════════════
+// STOCK ROW COLLAPSE
+// ═══════════════════════════════════════
+function toggleStockRow() {
+  var row = document.getElementById('tr-stock-input');
+  var arrow = document.getElementById('stock-row-arrow');
+  if(!row) return;
+  var isHidden = row.style.display === 'none';
+  row.style.display = isHidden ? '' : 'none';
+  if(arrow) arrow.textContent = isHidden ? '▼' : '▶';
 }
 
 // ═══════════════════════════════════════
