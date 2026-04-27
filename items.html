@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -927,6 +928,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         <span class="filter-row-label">類別</span>
         <div id="mx-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         <button id="clear-mx-cat-btn" class="clear-row-btn" onclick="clearMatrixFilter()" style="display:none;">✕</button>
+        <button id="mx-healthy-btn" class="avail-btn" onclick="toggleMxHealthyFilter()" style="white-space:nowrap;font-size:26px;">🥗 健康餐</button>
         <input type="text" id="mx-search" placeholder="搜尋品項…" style="min-width:160px;padding:6px 12px;border:2px solid var(--border2);border-radius:8px;font-size:28px;font-family:'Noto Sans TC',sans-serif;outline:none;background:var(--s2);" oninput="mxSearchQ=this.value.toLowerCase();renderMatrix();" onfocus="this.style.borderColor='var(--ink)';this.style.background='white'" onblur="this.style.borderColor='';this.style.background='var(--s2)'">
         <button id="clear-mx-search-btn" class="clear-row-btn" onclick="document.getElementById('mx-search').value='';mxSearchQ='';renderMatrix();" style="display:none;">✕ 清除</button>
       </div>
@@ -1908,6 +1910,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   let mxFilterSites = new Set();
   let mxFilterCats  = new Set();
   let mxSearchQ = '';
+  let mxFilterHealthy = false;
 
   function buildMatrixFilters() {
     const allCats  = [...new Set(items.map(i => getCat(i)).filter(Boolean))].sort();
@@ -1929,6 +1932,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (clearBtn) clearBtn.style.display = mxFilterCats.size > 0 ? '' : 'none';
   }
 
+  function toggleMxHealthyFilter() {
+    mxFilterHealthy = !mxFilterHealthy;
+    const btn = document.getElementById('mx-healthy-btn');
+    if (btn) btn.classList.toggle('active', mxFilterHealthy);
+    renderMatrix();
+  }
+
   function clearMatrixFilter() {
     mxFilterCats.clear();
     buildMatrixFilters();
@@ -1943,6 +1953,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function renderMatrix() {
     const clearBtn = document.getElementById('clear-mx-cat-btn');
     if (clearBtn) clearBtn.style.display = mxFilterCats.size > 0 ? '' : 'none';
+    const healthyBtn = document.getElementById('mx-healthy-btn');
+    if (healthyBtn) healthyBtn.classList.toggle('active', mxFilterHealthy);
     const allSites = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])];
     const visibleSites = mxFilterSites.size > 0
       ? allSites.filter(s => mxFilterSites.has(s))
@@ -1954,9 +1966,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
     // 篩選品項
     const filteredItems = items.filter(it => {
-      const matchCat  = mxFilterCats.size === 0 || mxFilterCats.has(getCat(it));
-      const matchQ    = !mxSearchQ || (it.name||'').toLowerCase().includes(mxSearchQ);
-      return matchCat && matchQ && it.name;
+      const matchCat     = mxFilterCats.size === 0 || mxFilterCats.has(getCat(it));
+      const matchQ       = !mxSearchQ || (it.name||'').toLowerCase().includes(mxSearchQ);
+      const matchHealthy = !mxFilterHealthy || it.isHealthy;
+      return matchCat && matchQ && matchHealthy && it.name;
     });
 
     // 依類別分組品項名稱（同名只出現一次）
