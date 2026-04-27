@@ -449,7 +449,7 @@ select.ds {
 }
 .cfg-cal-month-hdr {
   display: flex; align-items: center; justify-content: space-between;
-  background: var(--ink); padding: 9px 14px; border-bottom: 2px solid var(--ink);
+  background: #1e7b4b; padding: 9px 14px; border-bottom: 2px solid var(--ink);
   font-family: 'Kalam', cursive; font-weight: 700; font-size: 26px; color: white;
   letter-spacing: 1px;
 }
@@ -457,47 +457,41 @@ select.ds {
 
 .cfg-cal-dow {
   display: grid; grid-template-columns: repeat(7, 1fr);
-  border-bottom: 2px solid var(--ink); background: #f5f2eb;
+  border-bottom: 2px solid var(--ink); background: #e8f5ee;
 }
 .cfg-cal-dow > div {
-  text-align: center; font-size: 18px; font-weight: 700; color: var(--dim);
+  text-align: center; font-size: 18px; font-weight: 700; color: #3a7a5a;
   padding: 5px 2px; font-family: 'Patrick Hand', sans-serif;
 }
 .cfg-cal-dow > div:first-child { color: var(--red); }
-.cfg-cal-dow > div:last-child  { color: var(--gold2); }
+.cfg-cal-dow > div:last-child  { color: #2e8b57; }
 
 .cfg-cal-grid {
   display: grid; grid-template-columns: repeat(7, 1fr);
 }
 .cfg-cal-cell {
   min-height: 64px; padding: 5px 5px 4px;
-  border-right: 1.5px solid var(--border2); border-bottom: 1.5px solid var(--border2);
+  border-right: 1.5px solid #c8e6d4; border-bottom: 1.5px solid #c8e6d4;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   position: relative; transition: background .1s;
 }
 .cfg-cal-cell:nth-child(7n) { border-right: none; }
 
-/* 各狀態背景 */
-.cfg-cal-cell.other-month { background: #f0ede6; opacity: .5; pointer-events: none; }
+.cfg-cal-cell.other-month { background: #f2f9f5; opacity: .5; pointer-events: none; }
 .cfg-cal-cell.is-workday  { background: white; }
-.cfg-cal-cell.is-off      { background: #fafaf8; opacity: .4; pointer-events: none; }
+.cfg-cal-cell.is-off      { background: #f7fbf8; opacity: .4; pointer-events: none; }
 
-/* 假日：實心紅底（跟值班表一樣有份量） */
-.cfg-cal-cell.is-holiday {
-  background: var(--red);
-}
-.cfg-cal-cell.is-holiday .cfg-cal-dnum { color: white; font-size: 24px; }
-.cfg-cal-cell.is-holiday .cfg-cal-holi-lbl { color: rgba(255,255,255,0.85); }
+.cfg-cal-cell.is-holiday  { background: var(--red); }
+.cfg-cal-cell.is-holiday .cfg-cal-dnum { color: white; }
+.cfg-cal-cell.is-holiday .cfg-cal-holi-lbl { color: rgba(255,255,255,0.9); }
 
-/* 週末：淡暖灰 */
-.cfg-cal-cell.is-weekend:not(.is-holiday) { background: #f5f0e8; }
-.cfg-cal-cell.is-weekend:not(.is-holiday) .cfg-cal-dnum { color: var(--gold2); }
+.cfg-cal-cell.is-weekend:not(.is-holiday) { background: #f0faf4; }
+.cfg-cal-cell.is-weekend:not(.is-holiday) .cfg-cal-dnum { color: #2e8b57; }
 
 .cfg-cal-dnum {
   font-family: 'Kalam', cursive; font-size: 22px; font-weight: 700; line-height: 1;
   color: var(--ink); align-self: flex-start; padding-left: 2px;
 }
-.cfg-cal-cell.is-holiday .cfg-cal-dnum { color: white; align-self: flex-start; }
 
 .cfg-cal-holi-lbl {
   font-size: 14px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
@@ -505,63 +499,59 @@ select.ds {
 }
 .cfg-cal-cell.is-holiday .cfg-cal-holi-lbl { color: rgba(255,255,255,.9); }
 
-/* 週次橫欄 */
 .cfg-cal-week-wrap { display: contents; }
 .cfg-cal-week-hdr {
   grid-column: 1 / -1;
-  background: #ede8df; padding: 5px 12px;
+  background: #d4edde; padding: 5px 12px;
   display: flex; align-items: center; gap: 8px;
-  font-family: 'Patrick Hand', sans-serif; font-size: 19px; font-weight: 700; color: var(--dim);
-  border-bottom: 1.5px solid var(--border2); border-top: 1.5px solid var(--border2);
+  font-family: 'Patrick Hand', sans-serif; font-size: 19px; font-weight: 700; color: #3a7a5a;
+  border-bottom: 1.5px solid #c8e6d4; border-top: 1.5px solid #c8e6d4;
 }
 .cfg-cal-week-hdr .wk-lbl {
-  color: var(--ink); font-size: 20px;
+  color: #1e5c38; font-size: 20px;
   font-family: 'Kalam', cursive; font-weight: 700;
 }
 .cfg-cal-week-hdr .wk-total {
-  margin-left: auto; color: var(--gold2); font-size: 19px; font-weight: 700;
-  background: white; border: 1.5px solid var(--gold); border-radius: 20px;
+  margin-left: auto; color: #1e7b4b; font-size: 19px; font-weight: 700;
+  background: white; border: 1.5px solid #2e8b57; border-radius: 20px;
   padding: 1px 10px;
 }
 
-/* per-day toggle buttons inside a cell */
 .cfg-day-btns { display: flex; flex-direction: column; gap: 2px; width: 100%; }
 .cfg-day-btn {
   font-size: 16px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
   border-radius: 5px; padding: 2px 4px; cursor: pointer; text-align: center;
   border: 1.5px solid; transition: all .1s; line-height: 1.25; width: 100%;
-  box-shadow: 1px 1px 0 0 rgba(0,0,0,.1);
+  box-shadow: 1px 1px 0 0 rgba(0,0,0,.08);
 }
-.cfg-day-btn.state-off   { background: #f7f5f0; border-color: var(--border2); color: var(--muted); box-shadow: none; }
-.cfg-day-btn.state-on-amber  { background: #fff3cd; border-color: var(--gold); color: #7a5800; box-shadow: 1px 1px 0 0 var(--gold); }
+.cfg-day-btn.state-off   { background: #f5faf7; border-color: #c8e6d4; color: #888; box-shadow: none; }
+.cfg-day-btn.state-on-amber  { background: #fff3cd; border-color: #c8960c; color: #7a5800; box-shadow: 1px 1px 0 0 #c8960c; }
 .cfg-day-btn.state-on-purple { background: #ede0f7; border-color: #9c27b0; color: #5b0f87; box-shadow: 1px 1px 0 0 #9c27b0; }
-.cfg-day-btn.state-on-green  { background: #d6f0de; border-color: var(--green); color: #1b5e20; box-shadow: 1px 1px 0 0 var(--green); }
+.cfg-day-btn.state-on-green  { background: #c8f0d8; border-color: #1e7b4b; color: #1e5c38; box-shadow: 1px 1px 0 0 #1e7b4b; }
 .cfg-day-btn.state-on-blue   { background: #d6ebfa; border-color: var(--blue); color: #0d47a1; box-shadow: 1px 1px 0 0 var(--blue); }
-.cfg-day-btn.state-skip  { background: #f0f0f0; border-color: var(--muted); color: var(--muted); text-decoration: line-through; box-shadow: none; }
-.cfg-day-btn:hover:not(.state-locked) { filter: brightness(.92); transform: translateY(-1px); }
+.cfg-day-btn.state-skip  { background: #f0f0f0; border-color: #ccc; color: #aaa; text-decoration: line-through; box-shadow: none; }
+.cfg-day-btn:hover:not(.state-locked) { filter: brightness(.93); transform: translateY(-1px); }
 .cfg-day-btn.state-locked { cursor: default; opacity: .6; }
 
-/* week-level pill toggles */
 .cfg-wk-pill {
   display: inline-flex; align-items: center; gap: 3px;
   font-size: 16px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
   border-radius: 20px; padding: 2px 10px; cursor: pointer; border: 1.5px solid;
   transition: all .1s;
 }
-.cfg-wk-pill.off       { background: #f5f2eb; border-color: var(--border2); color: var(--muted); }
-.cfg-wk-pill.on-amber  { background: #fff3cd; border-color: var(--gold); color: #7a5800; box-shadow: 1px 1px 0 0 var(--gold); }
+.cfg-wk-pill.off       { background: #f0faf4; border-color: #c8e6d4; color: #888; }
+.cfg-wk-pill.on-amber  { background: #fff3cd; border-color: #c8960c; color: #7a5800; box-shadow: 1px 1px 0 0 #c8960c; }
 .cfg-wk-pill.on-purple { background: #ede0f7; border-color: #9c27b0; color: #5b0f87; box-shadow: 1px 1px 0 0 #9c27b0; }
-.cfg-wk-pill.on-green  { background: #d6f0de; border-color: var(--green); color: #1b5e20; box-shadow: 1px 1px 0 0 var(--green); }
+.cfg-wk-pill.on-green  { background: #c8f0d8; border-color: #1e7b4b; color: #1e5c38; box-shadow: 1px 1px 0 0 #1e7b4b; }
 .cfg-wk-pill.on-blue   { background: #d6ebfa; border-color: var(--blue); color: #0d47a1; box-shadow: 1px 1px 0 0 var(--blue); }
-.cfg-wk-pill.on-skip   { background: #f0f0f0; border-color: var(--muted); color: var(--muted); text-decoration: line-through; }
+.cfg-wk-pill.on-skip   { background: #f0f0f0; border-color: #ccc; color: #aaa; text-decoration: line-through; }
 
-/* confirm pill */
 .cfg-confirm-pill {
   font-size: 16px; font-family: 'Patrick Hand', sans-serif; font-weight: 700;
   border-radius: 20px; padding: 2px 10px; cursor: pointer; border: 1.5px solid;
   transition: all .1s;
 }
-.cfg-confirm-pill.confirmed { background: #d6f0de; border-color: var(--green); color: #1b5e20; box-shadow: 1px 1px 0 0 var(--green); }
+.cfg-confirm-pill.confirmed { background: #c8f0d8; border-color: #1e7b4b; color: #1e5c38; box-shadow: 1px 1px 0 0 #1e7b4b; }
 .cfg-confirm-pill.pending   { background: #fde8e8; border-color: var(--red); color: var(--red); }
 
 @media(max-width:700px) {
