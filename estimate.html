@@ -1240,12 +1240,12 @@ function renderOverview() {
       var bg=isPink?'background:#f0fff0;':'';
       var qty=inMap[_ds];
       if(qty){
-        b+='<td class="'+cls+'" style="text-align:center;padding:5px 4px;'+bg+'"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:28px;color:#2e7d32;">+'+qty+'</span></td>';
+        b+='<td class="'+cls+'" style="text-align:center;padding:5px 4px;'+bg+'"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:28px;color:#2e7d32;">+'+qty+'</span></td>';
       } else {
         b+='<td class="'+cls+'" style="'+bg+'"></td>';
       }
     });
-    b+='<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:28px;font-weight:700;color:#2e7d32;padding:8px;">+'+weekTotalIn+'</td>';
+    b+='<td style="text-align:center;font-family:Kalam,sans-serif;font-size:28px;font-weight:700;color:#2e7d32;padding:8px;">+'+weekTotalIn+'</td>';
     b+='<td style="padding:0;border:none;width:0;"></td></tr>';
   }
 
@@ -1290,14 +1290,14 @@ function renderOverview() {
     var extraStyle = stockUpdateDays[_dsR] ? 'outline:1.5px solid var(--red);outline-offset:-2px;' : '';
     // 基準日之前的天：不扣庫存，顯示 —
     if(base.baseDate && _dsR < base.baseDate){
-      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
     runningStock-=colTotal[x.dk];
     var color=runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+    b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
-  b+='<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:28px;padding:8px;color:var(--dim);">隻</td><td style="padding:0;border:none;width:0;"></td></tr>';
+  b+='<td style="text-align:center;font-family:Kalam,sans-serif;font-size:28px;padding:8px;color:var(--dim);">隻</td><td style="padding:0;border:none;width:0;"></td></tr>';
 
   // ── 進貨 / 庫存更新 inline 輸入區（可折收）──
   var colSpan = vd.length + 3;
@@ -1315,7 +1315,7 @@ function renderOverview() {
   b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
   b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--ink);">📦 進貨</span>';
   b += '<input type="date" id="si-date" style="background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
-  b += '<input type="number" id="si-qty" placeholder="數量" style="width:120px;background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;text-align:center;">';
+  b += '<input type="number" id="si-qty" placeholder="數量" style="width:120px;background:white;border:1.5px solid var(--ink);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,sans-serif;font-weight:700;text-align:center;">';
   b += '<input type="text" id="si-note" placeholder="備註" style="width:160px;background:white;border:1.5px solid var(--border2);border-radius:6px;padding:4px 8px;font-size:22px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
   b += '<button onclick="inlineAddStock()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#e8f5e9;border:1.5px solid var(--green);color:#2e7d32;border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 #2e7d32;transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 #2e7d32\'">＋ 新增</button>';
   b += '</div>';
@@ -1327,7 +1327,7 @@ function renderOverview() {
   b += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
   b += '<span style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;color:var(--gold2);">📌 庫存更新</span>';
   b += '<input type="date" id="si-mi-date" style="background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:24px;font-family:Patrick Hand,sans-serif;font-weight:700;">';
-  b += '<input type="number" id="si-mi-qty" placeholder="實際隻數" style="width:150px;background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;text-align:center;">';
+  b += '<input type="number" id="si-mi-qty" placeholder="實際隻數" style="width:150px;background:white;border:1.5px solid var(--gold);border-radius:6px;padding:4px 8px;font-size:28px;font-family:Kalam,sans-serif;font-weight:700;text-align:center;">';
   b += '<button onclick="inlineAddMonthInit()" style="font-size:24px;font-weight:700;font-family:Patrick Hand,sans-serif;background:#fff8e1;border:1.5px solid var(--gold);color:var(--gold2);border-radius:6px;padding:5px 14px;cursor:pointer;box-shadow:1.5px 1.5px 0 0 var(--gold);transition:all .1s;" onmouseover="this.style.transform=\'translate(1px,1px)\';this.style.boxShadow=\'none\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'1.5px 1.5px 0 0 var(--gold)\'">📌 新增</button>';
   b += '</div>';
 
@@ -1428,9 +1428,9 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
       var q = (cell.act!==null)?cell.act:cell.est;
       colTotal[x.dk] += q; wTotal += q;
       var color = cell.locked?'var(--ink)':(cell.act!==null?'var(--act)':'var(--red)');
-      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:32px;color:'+color+';">'+q+'</span></div></td>';
+      b += '<td class="'+cls+'"><div class="day-inner"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:32px;color:'+color+';">'+q+'</span></div></td>';
     });
-    b += '<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:32px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
+    b += '<td style="text-align:center;font-family:Kalam,sans-serif;font-size:32px;font-weight:700;padding:6px 2px;">'+wTotal+'</td></tr>';
   });
 
   var gTotal = 0;
@@ -1474,14 +1474,14 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
     var _dsR = wkDs(wi,x.i); if(!_dsR) return; var dowR = new Date(_dsR).getDay();
     var clsR = 'dc '+(dowR===6?'cs': dowR===0?'cu': '');
     if(base2.baseDate && _dsR < base2.baseDate){
-      b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
     runningStock -= colTotal[x.dk];
     var color = runningStock<0?'var(--red)':runningStock<S.threshold?'var(--est)':'var(--act)';
-    b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,'Noto Sans TC',sans-serif;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
+    b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:'+color+';">'+runningStock+'</span></td>';
   });
-  b += '<td style="text-align:center;font-family:Kalam,'Noto Sans TC',sans-serif;font-size:28px;padding:8px;color:var(--dim);">隻</td></tr>';
+  b += '<td style="text-align:center;font-family:Kalam,sans-serif;font-size:28px;padding:8px;color:var(--dim);">隻</td></tr>';
 
   bodyEl.innerHTML = b;
 }
@@ -1843,7 +1843,7 @@ function buildF20Block(tmw) {
       }
       // 平日：顯示當天隻數
       var q=f20Qty(ds);
-      return '<div style="font-family:Kalam,'Noto Sans TC',sans-serif;font-size:20px;font-weight:700;color:var(--est);text-align:center;">'+q+'隻</div>';
+      return '<div style="font-family:Kalam,sans-serif;font-size:20px;font-weight:700;color:var(--est);text-align:center;">'+q+'隻</div>';
     }
   });
 
@@ -2054,7 +2054,7 @@ function buildAP6BBlock(tmw) {
       if(!q) return '';
       var hasDin=ap6bHasDinner(mon);
       var txt=hasDin?'午+晚 '+q:'午 '+q;
-      return '<div style="font-family:Kalam,'Noto Sans TC',sans-serif;font-size:19px;font-weight:700;color:var(--est);text-align:center;">'+txt+'</div>';
+      return '<div style="font-family:Kalam,sans-serif;font-size:19px;font-weight:700;color:var(--est);text-align:center;">'+txt+'</div>';
     }
   });
 
@@ -2093,7 +2093,7 @@ function buildP8Block(tmw) {
     getCellContent: function(ds, mon, wi){
       var q=p8DayEst(ds);
       if(!q) return '';
-      return '<div style="font-family:Kalam,'Noto Sans TC',sans-serif;font-size:19px;font-weight:700;color:var(--green);text-align:center;">'+q+'</div>';
+      return '<div style="font-family:Kalam,sans-serif;font-size:19px;font-weight:700;color:var(--green);text-align:center;">'+q+'</div>';
     }
   });
 
