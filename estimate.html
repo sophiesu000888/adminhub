@@ -1711,7 +1711,7 @@ function buildCfgCalendar(tmw, opts) {
 
   var html='<div class="cfg-cal-wrap">';
 
-  months.forEach(function(ymStr){
+  months.forEach(function(ymStr, mIdx){
     var parts=ymStr.split('-'), yr=+parts[0], mo=+parts[1];
     var firstOfMonth = new Date(yr, mo-1, 1);
     var lastOfMonthD = new Date(yr, mo, 0);
@@ -1719,12 +1719,30 @@ function buildCfgCalendar(tmw, opts) {
     var startDow = firstOfMonth.getDay(); // 0=Sun
     var totalCells = Math.ceil((startDow+lastOfMonth)/7)*7;
 
-    html+='<div class="cfg-cal-month">';
-    html+='<div class="cfg-cal-month-hdr">'+yr+' 年 '+mo+' 月</div>';
+    // 奇偶月份交錯：綠 / 藍
+    var isBlue = (mo % 2 === 0); // 偶數月藍，奇數月綠
+    var hdrBg    = isBlue ? '#1a6fa8' : '#1e7b4b';
+    var dowBg    = isBlue ? '#daeef9' : '#e8f5ee';
+    var dowColor = isBlue ? '#1a5c8a' : '#3a7a5a';
+    var dowSat   = isBlue ? '#1a6fa8' : '#2e8b57';
+    var wkHdrBg  = isBlue ? '#cce5f5' : '#d4edde';
+    var wkHdrColor = isBlue ? '#1a5c8a' : '#3a7a5a';
+    var wkLblColor = isBlue ? '#0d4a73' : '#1e5c38';
+    var wkTotalBorder = isBlue ? '#1a6fa8' : '#2e8b57';
+    var wkTotalColor  = isBlue ? '#1a6fa8' : '#1e7b4b';
+    var cellBorder = isBlue ? '#b8d9ef' : '#c8e6d4';
+    var wkendBg  = isBlue ? '#edf6fc' : '#f0faf4';
+    var wkendColor = isBlue ? '#1a6fa8' : '#2e8b57';
+
+    html+='<div class="cfg-cal-month" data-theme="'+(isBlue?'blue':'green')+'">';
+    html+='<div class="cfg-cal-month-hdr" style="background:'+hdrBg+';">'+yr+' 年 '+mo+' 月</div>';
 
     // DOW header
-    html+='<div class="cfg-cal-dow">';
-    ['日','一','二','三','四','五','六'].forEach(function(d){html+='<div>'+d+'</div>';});
+    html+='<div class="cfg-cal-dow" style="background:'+dowBg+';">';
+    ['日','一','二','三','四','五','六'].forEach(function(d,i){
+      var c = i===0 ? 'var(--red)' : (i===6 ? dowSat : dowColor);
+      html+='<div style="color:'+c+';">'+d+'</div>';
+    });
     html+='</div>';
 
     html+='<div class="cfg-cal-grid">';
@@ -1766,10 +1784,10 @@ function buildCfgCalendar(tmw, opts) {
       var wn=(wi>=0)?isoWeekNum(WEEK_MONS[wi]):'?';
       var extras = (wi>=0 && opts.getWeekExtras) ? opts.getWeekExtras(mon2, wi) : '';
       var wkTotal = (wi>=0 && opts.getWeekTotal) ? opts.getWeekTotal(mon2, wi) : '';
-      html+='<div class="cfg-cal-week-hdr">';
-      html+='<span class="wk-lbl">第 '+wn+' 週</span>';
+      html+='<div class="cfg-cal-week-hdr" style="background:'+wkHdrBg+';border-color:'+cellBorder+';color:'+wkHdrColor+';">';
+      html+='<span class="wk-lbl" style="color:'+wkLblColor+';">第 '+wn+' 週</span>';
       html+=extras;
-      if(wkTotal) html+='<span class="wk-total">'+wkTotal+'</span>';
+      if(wkTotal) html+='<span class="wk-total" style="border-color:'+wkTotalBorder+';color:'+wkTotalColor+';">'+wkTotal+'</span>';
       html+='</div>';
 
       // 7 day cells
@@ -1782,15 +1800,17 @@ function buildCfgCalendar(tmw, opts) {
         var relevant = !isOther && (opts.isRelevantDay ? opts.isRelevantDay(x.ds) : !isWknd && !isHoli);
 
         var cls='cfg-cal-cell';
-        if(isOther) cls+=' other-month';
-        else if(isHoli) cls+=' is-holiday';
-        else if(isWknd) cls+=' is-weekend';
-        else if(!relevant) cls+=' is-off';
-        else cls+=' is-workday';
+        var extraStyle='border-color:'+cellBorder+';';
+        if(isOther){ cls+=' other-month'; }
+        else if(isHoli){ cls+=' is-holiday'; extraStyle=''; }
+        else if(isWknd){ cls+=' is-weekend'; extraStyle+='background:'+wkendBg+';'; }
+        else if(!relevant){ cls+=' is-off'; }
+        else{ cls+=' is-workday'; }
 
-        html+='<div class="'+cls+'">';
+        html+='<div class="'+cls+'" style="'+extraStyle+'">';
         if(!isOther){
-          html+='<div class="cfg-cal-dnum" style="align-self:flex-start;">'+x.dayNum+'</div>';
+          var dnumColor = isHoli ? 'white' : (isWknd ? wkendColor : 'var(--ink)');
+          html+='<div class="cfg-cal-dnum" style="align-self:flex-start;color:'+dnumColor+';">'+x.dayNum+'</div>';
           if(isHoli&&HOLI_NAMES[x.ds]) html+='<div class="cfg-cal-holi-lbl">'+HOLI_NAMES[x.ds]+'</div>';
           if(relevant && wi>=0 && opts.getCellContent) html+=opts.getCellContent(x.ds, mon2, wi);
         }
