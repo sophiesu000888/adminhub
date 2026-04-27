@@ -1248,6 +1248,39 @@ function renderOverview() {
   });
   b+='<td>'+gTotal+'</td><td style="padding:0;border:none;width:0;"></td></tr>';
 
+  // ── 進貨 row ──
+  // 計算每天有哪些進貨紀錄（非 monthInit，日期落在本週內）
+  var weekStart = WEEK_MONS[wi], weekEnd = addDays(weekStart, 6);
+  var inMap = {}; // ds → 進貨總量
+  S.stockLog.forEach(function(e){
+    if(e.type==='monthInit') return;
+    if(e.qty<=0) return; // 只顯示正數（進貨）
+    if(e.date >= weekStart && e.date <= weekEnd) {
+      inMap[e.date] = (inMap[e.date]||0) + e.qty;
+    }
+  });
+  var weekTotalIn = Object.values ? Object.keys(inMap).reduce(function(s,k){return s+inMap[k];},0) : 0;
+  var hasAnyIn = Object.keys(inMap).length > 0;
+  if(hasAnyIn) {
+    b+='<tr style="background:#f0fdf4;border-top:1px dashed #81c784;">';
+    b+='<td class="sc" style="text-align:center;"><span style="font-size:22px;font-family:Patrick Hand,sans-serif;font-weight:700;color:#2e7d32;">📦 進貨</span></td>';
+    vd.forEach(function(x){
+      var _ds=wkDs(wi,x.i); if(!_ds) return;
+      var dow=new Date(_ds).getDay();
+      var isPink=dsIsWeekend(_ds)||isNatHoli(_ds);
+      var cls='dc '+(dow===6?'cs':dow===0?'cu':'');
+      var bg=isPink?'background:#f0fff0;':'';
+      var qty=inMap[_ds];
+      if(qty){
+        b+='<td class="'+cls+'" style="text-align:center;padding:5px 4px;'+bg+'"><span style="font-family:Kalam,cursive;font-weight:700;font-size:28px;color:#2e7d32;">+'+qty+'</span></td>';
+      } else {
+        b+='<td class="'+cls+'" style="'+bg+'"></td>';
+      }
+    });
+    b+='<td style="text-align:center;font-family:Kalam,cursive;font-size:28px;font-weight:700;color:#2e7d32;padding:8px;">+'+weekTotalIn+'</td>';
+    b+='<td style="padding:0;border:none;width:0;"></td></tr>';
+  }
+
   var base = calcStockBase();
   var stockIn = base.baseQty;
   S.stockLog.forEach(function(e) {
