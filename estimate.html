@@ -2640,7 +2640,7 @@ function _finishInit() {
     curWi = i;
   }
   S.week = curWi;
-  document.getElementById('in-date').value = todayDs;
+  var inDateEl = document.getElementById('in-date'); if(inDateEl) inDateEl.value = todayDs;
   var thrEl = document.getElementById('thr-in'); if(thrEl) thrEl.value = S.threshold||50;
   var mid=document.getElementById('month-init-date'); if(mid) mid.value=todayDs;
   renderWeekNav();
