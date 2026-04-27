@@ -475,7 +475,7 @@ select.ds {
   display: grid; grid-template-columns: repeat(7, 1fr);
 }
 .cfg-cal-cell {
-  min-height: 64px; padding: 5px 5px 4px;
+  min-height: 80px; padding: 5px 5px 4px;
   border-right: 1.5px solid #c8e6d4; border-bottom: 1.5px solid #c8e6d4;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   position: relative; transition: background .1s;
@@ -1836,14 +1836,9 @@ function buildF20Block(tmw) {
     '</div>';
 
   var cal = buildCfgCalendar(tmw, {
-    isRelevantDay: function(ds){ return true; }, // 平日 + 假日值班都可能有
+    isRelevantDay: function(ds){ return true; },
     getWeekExtras: function(mon, wi){
-      var has1500 = f20Holi1500[mon]==='on';
-      var hasDin  = f20DinnerWeeks[mon]==='on';
-      var p1='<span class="cfg-wk-pill '+(has1500?'on-amber':'off')+'" onclick="toggle1500(&apos;'+mon+'&apos;)">'+(has1500?'✓ 15:00':'+ 15:00')+'</span>';
-      var p2='<span class="cfg-wk-pill '+(hasDin?'on-purple':'off')+'" onclick="toggleF20Dinner(&apos;'+mon+'&apos;)">'+(hasDin?'✓ 晚餐':'+ 晚餐')+'</span>';
-      var cfm=cfgConfirmPill('F20',mon);
-      return p1+' '+p2+' '+cfm;
+      return cfgConfirmPill('F20',mon);
     },
     getWeekTotal: function(mon, wi){
       var wd=workdaysInWeek(mon);
@@ -1856,14 +1851,22 @@ function buildF20Block(tmw) {
     getCellContent: function(ds, mon, wi){
       var isWknd=isWeekend(ds), isHoli=isNatHoli(ds);
       if(isWknd||isHoli){
-        // 假日值班格
         var isSel=!!f20HoliDays[ds];
         var q=isSel?(f20Cfg.lunchBase+f20Cfg.dinnerQty):0;
         return '<button class="cfg-day-btn '+(isSel?'state-on-amber':'state-off')+'" onclick="toggleF20HoliDay(&apos;'+ds+'&apos;)">'+(isSel?'✓ 值班 '+q:'+ 值班')+'</button>';
       }
-      // 平日：顯示當天隻數
+      // 週一：顯示週層級的 15:00 / 晚餐 pill
+      var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+      var html='';
+      if(dow===1){ // 週一
+        var has1500=f20Holi1500[mon]==='on';
+        var hasDin=f20DinnerWeeks[mon]==='on';
+        html+='<button class="cfg-day-btn '+(has1500?'state-on-amber':'state-off')+'" onclick="toggle1500(&apos;'+mon+'&apos;)">'+(has1500?'✓ 15:00':'+ 15:00')+'</button>';
+        html+='<button class="cfg-day-btn '+(hasDin?'state-on-purple':'state-off')+'" onclick="toggleF20Dinner(&apos;'+mon+'&apos;)">'+(hasDin?'✓ 晚餐':'+ 晚餐')+'</button>';
+      }
       var q=f20Qty(ds);
-      return '<div style="font-family:Kalam,sans-serif;font-size:20px;font-weight:700;color:var(--est);text-align:center;">'+q+'隻</div>';
+      html+='<div style="font-family:Kalam,sans-serif;font-size:18px;font-weight:700;color:var(--est);text-align:center;margin-top:2px;">'+q+'隻</div>';
+      return html;
     }
   });
 
@@ -2057,11 +2060,7 @@ function buildAP6BBlock(tmw) {
 
   var cal = buildCfgCalendar(tmw, {
     getWeekExtras: function(mon, wi){
-      var hasDinner=ap6bHasDinner(mon);
-      var tag=hasDinner
-        ? '<span class="cfg-wk-pill on-purple">🌙 晚餐</span>'
-        : '<span class="cfg-wk-pill off">無晚餐</span>';
-      return tag+' '+cfgConfirmPill('AP6B',mon);
+      return cfgConfirmPill('AP6B',mon);
     },
     getWeekTotal: function(mon, wi){
       var wd=workdaysInWeek(mon);
@@ -2070,11 +2069,18 @@ function buildAP6BBlock(tmw) {
       return t+'隻';
     },
     getCellContent: function(ds, mon, wi){
+      var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+      var html='';
+      if(dow===1){
+        var hasDinner=ap6bHasDinner(mon);
+        html+='<div class="cfg-day-btn '+(hasDinner?'state-on-purple':'state-off')+'" style="cursor:default;">'+(hasDinner?'✓ 晚餐':'無晚餐')+'</div>';
+      }
       var q=ap6bDayQty(ds);
-      if(!q) return '';
+      if(!q) return html;
       var hasDin=ap6bHasDinner(mon);
       var txt=hasDin?'午+晚 '+q:'午 '+q;
-      return '<div style="font-family:Kalam,sans-serif;font-size:19px;font-weight:700;color:var(--est);text-align:center;">'+txt+'</div>';
+      html+='<div style="font-family:Kalam,sans-serif;font-size:18px;font-weight:700;color:var(--est);text-align:center;margin-top:2px;">'+txt+'</div>';
+      return html;
     }
   });
 
@@ -2101,19 +2107,24 @@ function buildP8Block(tmw) {
 
   var cal = buildCfgCalendar(tmw, {
     getWeekExtras: function(mon, wi){
-      var st=p8Weeks[mon]||'';
-      var cls=st==='on'?'on-green':st==='skip'?'on-skip':'off';
-      var txt=st==='on'?'✓ 已選':st==='skip'?'— 不調整':'+ 加入';
-      return '<span class="cfg-wk-pill '+cls+'" onclick="toggleP8Week(&apos;'+mon+'&apos;)">'+txt+'</span> '+cfgConfirmPill('P8',mon);
+      return cfgConfirmPill('P8',mon);
     },
     getWeekTotal: function(mon, wi){
       var st=p8Weeks[mon]||'';
       return st==='on'?p8Cfg.wkQty+'隻':st==='skip'?'略過':'—';
     },
     getCellContent: function(ds, mon, wi){
+      var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+      var html='';
+      if(dow===1){
+        var st=p8Weeks[mon]||'';
+        var cls=st==='on'?'state-on-green':st==='skip'?'state-skip':'state-off';
+        var txt=st==='on'?'✓ 已選':st==='skip'?'— 略過':'+ 加入';
+        html+='<button class="cfg-day-btn '+cls+'" onclick="toggleP8Week(&apos;'+mon+'&apos;)">'+txt+'</button>';
+      }
       var q=p8DayEst(ds);
-      if(!q) return '';
-      return '<div style="font-family:Kalam,sans-serif;font-size:19px;font-weight:700;color:var(--green);text-align:center;">'+q+'</div>';
+      if(q) html+='<div style="font-family:Kalam,sans-serif;font-size:18px;font-weight:700;color:var(--green);text-align:center;margin-top:2px;">'+q+'</div>';
+      return html;
     }
   });
 
@@ -2144,10 +2155,7 @@ function buildQunlianBlock(tmw) {
 
   var cal = buildCfgCalendar(tmw, {
     getWeekExtras: function(mon, wi){
-      var w=qunlianWeeks[mon]||{main:'',double:''};
-      var p1='<span class="cfg-wk-pill '+(w.main==='on'?'on-amber':w.main==='skip'?'on-skip':'off')+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)">'+(w.main==='on'?'✓ 主餐':w.main==='skip'?'— 主餐':'+ 主餐')+'</span>';
-      var p2='<span class="cfg-wk-pill '+(w.double==='on'?'on-purple':w.double==='skip'?'on-skip':'off')+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)">'+(w.double==='on'?'✓ 雙拼':w.double==='skip'?'— 雙拼':'+ 雙拼')+'</span>';
-      return p1+' '+p2+' '+cfgConfirmPill('群聯',mon);
+      return cfgConfirmPill('群聯',mon);
     },
     getWeekTotal: function(mon, wi){
       var w=qunlianWeeks[mon]||{};
@@ -2156,13 +2164,22 @@ function buildQunlianBlock(tmw) {
       return t?t+'隻':'—';
     },
     getCellContent: function(ds, mon, wi){
-      var q=qunlianDayQty(ds);
-      if(!q) return '';
+      var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+      var html='';
+      if(dow===1){
+        var w=qunlianWeeks[mon]||{main:'',double:''};
+        var c1=w.main==='on'?'state-on-amber':w.main==='skip'?'state-skip':'state-off';
+        var c2=w.double==='on'?'state-on-purple':w.double==='skip'?'state-skip':'state-off';
+        html+='<button class="cfg-day-btn '+c1+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)">'+(w.main==='on'?'✓ 主餐':w.main==='skip'?'— 主餐':'+ 主餐')+'</button>';
+        html+='<button class="cfg-day-btn '+c2+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)">'+(w.double==='on'?'✓ 雙拼':w.double==='skip'?'— 雙拼':'+ 雙拼')+'</button>';
+      }
+      var q=qunlianDayQty(ds); if(!q) return html;
       var w=qunlianWeeks[mon]||{};
       var parts=[];
       if(w.main==='on') parts.push('<span style="color:var(--est);">主'+qlCfg.main+'</span>');
       if(w.double==='on') parts.push('<span style="color:var(--purple);">雙'+qlCfg.dbl+'</span>');
-      return '<div style="font-family:Patrick Hand,sans-serif;font-size:17px;font-weight:700;text-align:center;">'+parts.join('+')+'</div>';
+      if(parts.length) html+='<div style="font-family:Patrick Hand,sans-serif;font-size:15px;font-weight:700;text-align:center;margin-top:2px;">'+parts.join('+')+'</div>';
+      return html;
     }
   });
 
@@ -2303,14 +2320,10 @@ function buildLianDianBlock(tmw) {
   var cal = buildCfgCalendar(tmw, {
     isRelevantDay: function(ds){
       var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
-      return (dow===2||dow===4) && !isNatHoli(ds); // 週二或週四
+      return (dow===2||dow===4) && !isNatHoli(ds);
     },
     getWeekExtras: function(mon, wi){
-      var w=lianDianWeeks[mon]||{main:'',double:'',dinner:''};
-      var p1='<span class="cfg-wk-pill '+(w.main==='on'?'on-amber':'off')+'" onclick="toggleLd(&apos;'+mon+'&apos;,&apos;main&apos;)">'+(w.main==='on'?'✓ 主餐':'+ 主餐')+'</span>';
-      var p2='<span class="cfg-wk-pill '+(w.double==='on'?'on-purple':'off')+'" onclick="toggleLd(&apos;'+mon+'&apos;,&apos;double&apos;)">'+(w.double==='on'?'✓ 雙拼':'+ 雙拼')+'</span>';
-      var p3='<span class="cfg-wk-pill '+(w.dinner==='on'?'on-blue':'off')+'" onclick="toggleLd(&apos;'+mon+'&apos;,&apos;dinner&apos;)">'+(w.dinner==='on'?'✓ 晚餐':'+ 晚餐')+'</span>';
-      return p1+' '+p2+' '+p3+' '+cfgConfirmPill('聯電',mon);
+      return cfgConfirmPill('聯電',mon);
     },
     getWeekTotal: function(mon, wi){
       var tue=addDays(mon,1), thu=addDays(mon,3);
@@ -2318,14 +2331,26 @@ function buildLianDianBlock(tmw) {
       return t?t+'隻/週':'—';
     },
     getCellContent: function(ds, mon, wi){
-      var q=lianDianDayQty(ds); if(!q) return '';
       var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
-      var w=lianDianWeeks[mon]||{};
+      var w=lianDianWeeks[mon]||{main:'',double:'',dinner:''};
+      var html='';
+      if(dow===2){ // 週二：主餐
+        var c=w.main==='on'?'state-on-amber':'state-off';
+        html+='<button class="cfg-day-btn '+c+'" onclick="toggleLd(&apos;'+mon+'&apos;,&apos;main&apos;)">'+(w.main==='on'?'✓ 主餐':'+ 主餐')+'</button>';
+      }
+      if(dow===4){ // 週四：雙拼 + 晚餐
+        var c2=w.double==='on'?'state-on-purple':'state-off';
+        var c3=w.dinner==='on'?'state-on-blue':'state-off';
+        html+='<button class="cfg-day-btn '+c2+'" onclick="toggleLd(&apos;'+mon+'&apos;,&apos;double&apos;)">'+(w.double==='on'?'✓ 雙拼':'+ 雙拼')+'</button>';
+        html+='<button class="cfg-day-btn '+c3+'" onclick="toggleLd(&apos;'+mon+'&apos;,&apos;dinner&apos;)">'+(w.dinner==='on'?'✓ 晚餐':'+ 晚餐')+'</button>';
+      }
+      var q=lianDianDayQty(ds); if(!q) return html;
       var parts=[];
       if(dow===2 && w.main==='on') parts.push('<span style="color:var(--est);">主'+lianDianCfg.main+'</span>');
       if(dow===4 && w.double==='on') parts.push('<span style="color:var(--purple);">雙'+lianDianCfg.dbl+'</span>');
       if(dow===4 && w.dinner==='on') parts.push('<span style="color:var(--blue);">晚'+lianDianCfg.dinner+'</span>');
-      return '<div style="font-family:Patrick Hand,sans-serif;font-size:16px;font-weight:700;text-align:center;line-height:1.3;">'+parts.join('<br>')+'</div>';
+      if(parts.length) html+='<div style="font-family:Patrick Hand,sans-serif;font-size:14px;font-weight:700;text-align:center;line-height:1.3;margin-top:2px;">'+parts.join('<br>')+'</div>';
+      return html;
     }
   });
 
