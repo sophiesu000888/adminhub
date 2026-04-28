@@ -1701,6 +1701,10 @@ button {
         <input type="checkbox" id="catPopupStarCb" onchange="catPopupToggleStar()" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer;flex-shrink:0;">
         🌿 健康餐（品名加 * ）
       </label>
+      <!-- 新增至料理BD（只在混炒類別顯示） -->
+      <div id="catPopupDishBDRow" style="display:none;margin-bottom:8px;">
+        <button onclick="catPopupAddToDishDB()" style="width:100%;background:#7b1fa2;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">🍽️ 新增至料理BD（待確認）</button>
+      </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button onclick="catPopupSave()" style="flex:1;background:#1976d2;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
         <button onclick="catPopupMove()" style="flex:1;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➡️ 移動</button>
@@ -6632,6 +6636,16 @@ function openCatItemPopup(cat, itemName, anchorEl) {
     document.getElementById("catPopupGroupRow").style.display = "none";
   }
 
+  // 混炒類別：顯示「新增至料理BD」按鈕
+  const dishBDRow = document.getElementById("catPopupDishBDRow");
+  if (dishBDRow) {
+    if (cat === "混炒") {
+      dishBDRow.style.display = "block";
+    } else {
+      dishBDRow.style.display = "none";
+    }
+  }
+
   // 填入可移動的類別（排除目前所在類別）
   moveTarget.innerHTML = Object.keys(DB)
     .filter(c => c !== cat)
@@ -6671,6 +6685,21 @@ function catPopupMoveToGroup() {
   initMgmtItems();
   document.getElementById("catItemPopup").style.display = "none";
   showSaveToast(`✅「${_catPopupItem}」已移到「${targetLabel}」`);
+}
+
+function catPopupAddToDishDB() {
+  const name = _catPopupItem;
+  if (!name) return;
+  if (DISH_DB[name]) {
+    if (!confirm(`「${name}」已在料理BD中，是否重新覆蓋為待確認狀態？`)) return;
+  }
+  DISH_DB[name] = { category: '混炒', review: true, ingredients: [] };
+  DISH_NAMES.add(name);
+  DISH_BY_CAT['混炒'] = DISH_BY_CAT['混炒'] || [];
+  if (!DISH_BY_CAT['混炒'].includes(name)) DISH_BY_CAT['混炒'].push(name);
+  scheduleAutoSave();
+  document.getElementById('catItemPopup').style.display = 'none';
+  showSaveToast(`⚠️「${name}」已加入料理BD（待確認）`);
 }
 
 function catPopupToggleStar() {
