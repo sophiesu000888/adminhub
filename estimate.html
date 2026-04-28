@@ -4,6 +4,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -586,7 +587,10 @@ select.ds {
     <span class="st-icon">⚙</span>
     <span class="st-label">廠區設定</span>
   </div>
-
+  <div class="side-tab" id="stab-sync" onclick="manualSync()" title="從班表同步">
+    <span class="st-icon">🔄</span>
+    <span class="st-label">同步班表</span>
+  </div>
 </div>
 
 <!-- 共用遮罩 -->
@@ -2636,6 +2640,114 @@ function toggleStockRow() {
 }
 
 // ═══════════════════════════════════════
+// 班表連動（F20）
+// ═══════════════════════════════════════
+
+// 從班表 localStorage 讀取 F20 的 hol / night / night2
+// 並同步到 f20HoliDays / f20DinnerWeeks / f20Holi1500
+function importFromSchedule() {
+  try {
+    // shared.js 的 makeAutoSave 存的 key 就是第一個參數 'schedule'
+    var raw = localStorage.getItem('schedule');
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    if (!data || !data.months) return false;
+
+    // 彙整所有月份 F20 的 hol / night / night2
+    var allHol   = new Set(); // 假日值班 → f20HoliDays
+    var allNight = new Set(); // 晚班(blue 20:00) → f20DinnerWeeks
+    var allNight2= new Set(); // 晚班(green 20:30) → f20DinnerWeeks（同等晚班）
+    var allEarly = new Set(); // 未來 14:30/15:00 早班 → f20Holi1500（預留）
+
+    data.months.forEach(function(mo) {
+      var sd = mo.sitesData && mo.sitesData['f20'];
+      if (!sd) return;
+      var yr = mo.y, m = mo.m; // m 是 0-based
+      (sd.hol    || []).forEach(function(d) { allHol.add(yr+'-'+pad2(m+1)+'-'+pad2(d)); });
+      (sd.night  || []).forEach(function(d) { allNight.add(yr+'-'+pad2(m+1)+'-'+pad2(d)); });
+      (sd.night2 || []).forEach(function(d) { allNight2.add(yr+'-'+pad2(m+1)+'-'+pad2(d)); });
+      // 未來如果班表加了 sd.early（14:30/15:00），在這裡加：
+      // (sd.early || []).forEach(function(d) { allEarly.add(yr+'-'+pad2(m+1)+'-'+pad2(d)); });
+    });
+
+    // ① 假日值班 → f20HoliDays（以班表為準，全部覆寫）
+    f20HoliDays = {};
+    allHol.forEach(function(ds) { f20HoliDays[ds] = true; });
+
+    // ② 晚班 → f20DinnerWeeks（以「該週是否有任一晚班日」判斷，設 'on'）
+    f20DinnerWeeks = {};
+    var allNightDays = new Set([...allNight, ...allNight2]);
+    allNightDays.forEach(function(ds) {
+      var mon = weekMonForDate(ds); // 取得該日屬於哪個週一
+      if (mon) f20DinnerWeeks[mon] = 'on';
+    });
+
+    // ③ 15:00 → f20Holi1500（目前班表未有此欄位，預留；未來 sd.early 時啟用）
+    // 當班表加了 early 欄位後，取消下面的註解：
+    // f20Holi1500 = {};
+    // allEarly.forEach(function(ds) {
+    //   var mon = weekMonForDate(ds);
+    //   if (mon) f20Holi1500[mon] = 'on';
+    // });
+
+    recompSite('F20');
+    renderConfig();
+    renderOverview();
+    renderTopStats();
+    saveState();
+    return true;
+  } catch(e) {
+    console.warn('[班表連動] 讀取失敗:', e);
+    return false;
+  }
+}
+
+function pad2(n) { return n < 10 ? '0'+n : ''+n; }
+
+// 監聽 storage 事件（班表在同瀏覽器另一個 tab 存檔時自動觸發）
+window.addEventListener('storage', function(e) {
+  if (e.key === 'schedule') {
+    var ok = importFromSchedule();
+    if (ok) showSyncToast();
+  }
+});
+
+function manualSync() {
+  var ok = importFromSchedule();
+  if (ok) {
+    showSyncToast();
+  } else {
+    var t = document.getElementById('sync-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'sync-toast';
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-family:Patrick Hand,sans-serif;font-size:20px;font-weight:700;padding:10px 24px;border-radius:24px;box-shadow:2px 2px 0 rgba(0,0,0,.2);z-index:9999;transition:opacity .4s;';
+      document.body.appendChild(t);
+    }
+    t.style.background = '#c62828';
+    t.textContent = '⚠️ 找不到班表資料，請確認班表已開啟過';
+    t.style.color = 'white';
+    t.style.opacity = '1';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() { t.style.opacity = '0'; }, 3000);
+  }
+}
+
+
+  var t = document.getElementById('sync-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'sync-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e7b4b;color:white;font-family:Patrick Hand,sans-serif;font-size:20px;font-weight:700;padding:10px 24px;border-radius:24px;box-shadow:2px 2px 0 rgba(0,0,0,.2);z-index:9999;transition:opacity .4s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = '✅ 已從班表同步 F20 資料';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.style.opacity = '0'; }, 2500);
+}
+
+// ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
 var _initialized = false;
@@ -2701,6 +2813,8 @@ function _finishInit() {
   renderWeekNav();
   renderOverview();
   renderTopStats();
+  // 啟動時從班表同步一次
+  importFromSchedule();
 }
 
 // 本機 file:// 開啟時自動進入測試模式，不跳轉 index.html
