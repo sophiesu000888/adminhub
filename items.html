@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -453,7 +454,197 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .tab-btn:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
 .tab-btn:nth-child(1).active { background: #2980b9; color: white; border-color: #1a5a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn:nth-child(2).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
+.tab-btn:nth-child(3).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn.active { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
+
+/* ── DISH DB VIEW ── */
+#dish-view { display: none; }
+.dish-toolbar {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: 4px 4px 0 0 var(--ink);
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+#dish-search {
+  flex: 1; min-width: 160px;
+  padding: 6px 12px; border: 2px solid var(--border2);
+  border-radius: 8px; font-size: 28px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none; background: var(--s2);
+}
+#dish-search:focus { border-color: var(--ink); background: white; }
+.dish-filter-btn {
+  font-size: 24px; font-weight: 700;
+  background: white; color: var(--dim);
+  border: 2px solid var(--border2);
+  border-radius: 6px 14px 8px 12px / 12px 8px 14px 6px;
+  padding: 4px 14px; cursor: pointer; white-space: nowrap; transition: all .1s;
+  font-family: 'Noto Sans TC', sans-serif;
+  box-shadow: 2px 2px 0 0 var(--border2);
+}
+.dish-filter-btn:hover { border-color: #8e44ad; color: #8e44ad; }
+.dish-filter-btn.active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: 2px 2px 0 0 #5a1a8a; }
+.dish-stats { font-size: 26px; color: var(--muted); }
+.dish-stats strong { color: var(--ink); }
+
+/* dish card grid */
+.dish-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  padding-bottom: 20px;
+}
+.dish-card {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: 4px 4px 0 0 var(--ink);
+  padding: 16px 18px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  cursor: pointer; transition: transform .1s, box-shadow .1s;
+  position: relative;
+}
+.dish-card:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 0 var(--ink); }
+.dish-card.review-card {
+  border-color: #8e44ad;
+  box-shadow: 4px 4px 0 0 #8e44ad;
+}
+.dish-card.review-card:hover { box-shadow: 5px 5px 0 0 #8e44ad; }
+.dish-card-name {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 30px; font-weight: 700; color: var(--ink);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.dish-review-badge {
+  font-size: 20px; font-weight: 700;
+  background: #f0e6fb; color: #8e44ad;
+  border: 1.5px solid #8e44ad;
+  border-radius: 20px; padding: 2px 10px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.dish-card-meta {
+  font-size: 24px; color: var(--muted);
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.dish-ing-count {
+  background: var(--s2); color: var(--dim);
+  border-radius: 20px; padding: 2px 10px;
+  font-size: 22px; border: 1px solid var(--border2);
+}
+.dish-ing-count.empty { color: var(--red); border-color: #ffb3b3; background: #fff0f0; }
+.dish-card-actions {
+  display: flex; gap: 6px; margin-top: 2px;
+}
+.dish-edit-btn {
+  background: white; border: 2px solid var(--blue); color: var(--blue);
+  border-radius: 4px 9px 5px 8px / 8px 5px 9px 4px;
+  font-size: 22px; font-weight: 700; padding: 3px 12px;
+  cursor: pointer; font-family: inherit; transition: all .1s;
+  box-shadow: 2px 2px 0 0 var(--blue);
+}
+.dish-edit-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--blue); }
+.dish-del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--border2); font-size: 26px; padding: 2px 6px;
+  border-radius: 4px; transition: color .1s; line-height: 1;
+}
+.dish-del-btn:hover { color: var(--red); }
+.dish-empty-msg {
+  text-align: center; padding: 50px 20px; color: var(--muted); font-size: 30px;
+}
+
+/* ── DISH EDIT MODAL ── */
+#dishModal {
+  position: fixed; inset: 0;
+  background: rgba(45,45,45,0.5);
+  z-index: 99999;
+  display: none; align-items: flex-start; justify-content: center;
+  padding-top: var(--bar-h, 44px);
+  overflow-y: auto;
+}
+#dishModal.open { display: flex; }
+.dish-modal-box {
+  background: var(--s1);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--card-radius);
+  box-shadow: 6px 6px 0 0 var(--ink);
+  padding: 28px 32px 24px;
+  width: min(600px, calc(100vw - 32px));
+  margin: 20px auto;
+  animation: slideUp .18s ease;
+}
+.dish-modal-box h3 {
+  font-size: 30px; font-weight: 700; margin-bottom: 20px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  display: flex; align-items: center; gap: 10px;
+}
+.dish-modal-review-tag {
+  font-size: 20px; background: #f0e6fb; color: #8e44ad;
+  border: 1.5px solid #8e44ad; border-radius: 20px; padding: 2px 10px;
+}
+.dish-modal-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.dish-modal-field label {
+  font-size: 24px; font-weight: 700; color: var(--dim);
+}
+.dish-modal-field input, .dish-modal-field select, .dish-modal-field textarea {
+  padding: 8px 12px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 26px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none; background: var(--s2); color: var(--ink);
+  transition: border-color .1s;
+}
+.dish-modal-field input:focus,
+.dish-modal-field select:focus,
+.dish-modal-field textarea:focus { border-color: var(--ink); background: white; }
+
+/* ingredient rows */
+.ing-section-label {
+  font-size: 26px; font-weight: 700; color: var(--dim);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+}
+.ing-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.ing-row {
+  display: flex; gap: 7px; align-items: center;
+}
+.ing-row input {
+  padding: 7px 10px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 24px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none; background: var(--s2); color: var(--ink);
+  transition: border-color .1s;
+}
+.ing-row input:focus { border-color: var(--ink); background: white; }
+.ing-row .ing-name { flex: 2; }
+.ing-row .ing-qty  { flex: 1; }
+.ing-row .ing-unit { flex: 1; }
+.ing-del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--border2); font-size: 24px; padding: 2px 6px;
+  border-radius: 4px; transition: color .1s; line-height: 1; flex-shrink: 0;
+}
+.ing-del-btn:hover { color: var(--red); }
+.add-ing-btn {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 24px;
+  background: #f0fff4; color: #2e7d32;
+  border: 2px solid #2e7d32;
+  border-radius: 4px 10px 5px 9px / 9px 5px 10px 4px;
+  padding: 5px 16px; cursor: pointer;
+  box-shadow: 2px 2px 0 #2e7d32; transition: all .1s;
+}
+.add-ing-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 #2e7d32; }
+.dish-modal-review-toggle {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 26px; font-weight: 700; color: var(--dim);
+  padding: 10px 0 6px;
+}
+.dish-modal-review-toggle input[type="checkbox"] {
+  width: 22px; height: 22px; accent-color: #8e44ad; cursor: pointer;
+}
+.dish-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+
 
 /* ── MATRIX VIEW ── */
 #matrix-wrap {
@@ -829,6 +1020,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   <div id="tab-bar">
     <button class="tab-btn" onclick="switchTab('list')">📋 品項列表</button>
     <button class="tab-btn active" onclick="switchTab('matrix')">📊 一覽表</button>
+    <button class="tab-btn" onclick="switchTab('dish')">🍽️ 料理庫</button>
   </div>
 
   <!-- 列表 view -->
@@ -938,6 +1130,52 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     </div>
   </div>
 
+  <!-- 料理庫 view -->
+  <div id="dish-view">
+    <div class="dish-toolbar">
+      <input type="text" id="dish-search" placeholder="搜尋料理名稱…" oninput="dishSearchQ=this.value.toLowerCase();renderDishDB();">
+      <button class="dish-filter-btn" id="dish-filter-review" onclick="toggleDishReviewFilter()">⚠️ 待確認</button>
+      <button class="dish-filter-btn" id="dish-filter-done" onclick="toggleDishDoneFilter()">✅ 已完成</button>
+      <span class="dish-stats" id="dish-stats"></span>
+      <button class="btn" style="margin-left:auto;font-size:26px;padding:6px 16px;" onclick="openDishModal(null)">＋ 新增料理</button>
+    </div>
+    <div class="dish-grid" id="dish-grid"></div>
+  </div>
+
+</div>
+
+<!-- 料理庫 編輯 Modal -->
+<div id="dishModal" onclick="dishModalOverlayClick(event)">
+  <div class="dish-modal-box">
+    <h3 id="dish-modal-title">🍽️ 料理資料</h3>
+    <div class="dish-modal-field">
+      <label>料理名稱</label>
+      <input type="text" id="dm-name" placeholder="例：宮保雞丁">
+    </div>
+    <div class="dish-modal-field">
+      <label>類別</label>
+      <select id="dm-cat"></select>
+    </div>
+    <div class="dish-modal-field">
+      <label>備註</label>
+      <textarea id="dm-note" rows="2" placeholder="製作注意事項…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="dish-modal-review-toggle">
+      <input type="checkbox" id="dm-review">
+      <label for="dm-review" style="cursor:pointer;font-weight:700;color:#8e44ad;">⚠️ 標記為「待確認」（食材份量尚未填寫完整）</label>
+    </div>
+    <hr style="margin:14px 0;border:none;border-top:1.5px solid var(--border2);">
+    <div class="ing-section-label">
+      🥩 食材清單
+      <span style="font-size:20px;font-weight:400;color:var(--muted);">（名稱 / 用量 / 單位）</span>
+    </div>
+    <div class="ing-list" id="dm-ing-list"></div>
+    <button class="add-ing-btn" onclick="addIngRow()">＋ 新增食材</button>
+    <div class="dish-modal-actions">
+      <button class="btn-cancel" onclick="closeDishModal()">取消</button>
+      <button class="btn-confirm" onclick="confirmDishEdit()">💾 儲存</button>
+    </div>
+  </div>
 </div>
 
 <!-- 豎排標籤軌道 -->
@@ -1896,14 +2134,16 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     currentTab = tab;
     document.getElementById('list-view').style.display   = tab === 'list'   ? '' : 'none';
     document.getElementById('matrix-view').style.display = tab === 'matrix' ? '' : 'none';
+    document.getElementById('dish-view').style.display   = tab === 'dish'   ? '' : 'none';
     const _main = document.getElementById('main');
     _main.style.maxWidth = tab === 'matrix' ? 'none' : '';
     _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '';
     _main.style.paddingRight = tab === 'matrix' ? '65px' : '';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-      btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix'));
+      btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') || (i === 2 && tab === 'dish'));
     });
     if (tab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
+    if (tab === 'dish') { syncDishCatSelect(); renderDishDB(); }
   }
 
   // ── MATRIX FILTERS ──
@@ -2170,6 +2410,234 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     window.addEventListener('afterprint', cleanup);
     window.print();
   }
+
+  // ═══════════════════════════════════════════════
+  //  DISH DB
+  // ═══════════════════════════════════════════════
+  let DISH_DB = {};          // key = 料理名稱, value = { cat, note, review, ingredients:[{name,qty,unit}] }
+  let autoSaveDish;
+  let dishSearchQ = '';
+  let dishFilterReview = false;
+  let dishFilterDone   = false;
+  let _editingDishKey  = null;  // null = 新增, string = 編輯中的料理名
+
+  // 在 requireAuth 啟動後掛載 DISH_DB sync
+  // 因為 requireAuth 已在上方執行，用延遲方式插入
+  function _initDishDB() {
+    autoSaveDish = makeAutoSave('dishdb', () => DISH_DB);
+    startSync('dishdb', null, (content) => {
+      if (!content || typeof content !== 'object') return;
+      DISH_DB = content;
+      if (currentTab === 'dish') renderDishDB();
+    });
+  }
+  // 等 requireAuth 完成後執行（requireAuth 內已同步完成，直接延遲呼叫）
+  setTimeout(() => {
+    try { _initDishDB(); } catch(e) { console.warn('dish db init:', e); }
+  }, 800);
+
+  // ── 讓類別下拉同步 ──
+  function syncDishCatSelect() {
+    const sel = document.getElementById('dm-cat');
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">（未分類）</option>` +
+      CATS.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    if (CATS.includes(cur)) sel.value = cur;
+  }
+
+  // ── Render dish grid ──
+  function renderDishDB() {
+    const grid  = document.getElementById('dish-grid');
+    const stats = document.getElementById('dish-stats');
+    if (!grid) return;
+
+    let entries = Object.entries(DISH_DB); // [ [name, data], ... ]
+    const total = entries.length;
+
+    // search
+    if (dishSearchQ) entries = entries.filter(([k]) => k.toLowerCase().includes(dishSearchQ));
+    // filter
+    if (dishFilterReview) entries = entries.filter(([, d]) => d.review);
+    if (dishFilterDone)   entries = entries.filter(([, d]) => !d.review);
+
+    stats.innerHTML = `共 <strong>${total}</strong> 道料理，顯示 <strong>${entries.length}</strong> 筆`;
+
+    grid.innerHTML = '';
+    if (!entries.length) {
+      grid.innerHTML = `<div class="dish-empty-msg">${total === 0 ? '料理庫是空的，點右上角「＋ 新增料理」開始建立' : '沒有符合條件的料理'}</div>`;
+      return;
+    }
+
+    entries.sort(([a], [b]) => a.localeCompare(b, 'zh-TW'));
+    entries.forEach(([name, data]) => {
+      const card = document.createElement('div');
+      card.className = 'dish-card' + (data.review ? ' review-card' : '');
+      const ingCount = (data.ingredients || []).length;
+      const ingLabel = ingCount > 0
+        ? `<span class="dish-ing-count">🥩 ${ingCount} 項食材</span>`
+        : `<span class="dish-ing-count empty">⚠️ 尚無食材</span>`;
+      card.innerHTML = `
+        <div class="dish-card-name">
+          ${esc(name)}
+          ${data.review ? '<span class="dish-review-badge">⚠️ 待確認</span>' : ''}
+        </div>
+        <div class="dish-card-meta">
+          ${data.cat ? `<span style="font-size:22px;background:#f0e6fb;color:#8e44ad;border:1px solid #c39bd3;border-radius:20px;padding:1px 10px;">${esc(data.cat)}</span>` : ''}
+          ${ingLabel}
+          ${data.note ? `<span style="font-size:22px;color:var(--muted);" title="${esc(data.note)}">📝 ${esc(data.note.length > 20 ? data.note.slice(0,20)+'…' : data.note)}</span>` : ''}
+        </div>
+        <div class="dish-card-actions">
+          <button class="dish-edit-btn" onclick="openDishModal('${esc(name).replace(/'/g,"\\'")}')">✏️ 編輯</button>
+          <button class="dish-del-btn" onclick="deleteDish('${esc(name).replace(/'/g,"\\'")}',event)" title="刪除">✕</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleDishReviewFilter() {
+    dishFilterReview = !dishFilterReview;
+    if (dishFilterReview) dishFilterDone = false;
+    document.getElementById('dish-filter-review').classList.toggle('active', dishFilterReview);
+    document.getElementById('dish-filter-done').classList.toggle('active', dishFilterDone);
+    renderDishDB();
+  }
+  function toggleDishDoneFilter() {
+    dishFilterDone = !dishFilterDone;
+    if (dishFilterDone) dishFilterReview = false;
+    document.getElementById('dish-filter-review').classList.toggle('active', dishFilterReview);
+    document.getElementById('dish-filter-done').classList.toggle('active', dishFilterDone);
+    renderDishDB();
+  }
+
+  // ── Open dish modal ──
+  function openDishModal(name) {
+    _editingDishKey = name;
+    syncDishCatSelect();
+    const data = name ? (DISH_DB[name] || {}) : {};
+    document.getElementById('dish-modal-title').innerHTML =
+      name ? `✏️ 編輯料理：${esc(name)}` : '＋ 新增料理';
+    document.getElementById('dm-name').value  = name || '';
+    document.getElementById('dm-name').disabled = !!name; // 編輯時不能改名（用刪+新增）
+    document.getElementById('dm-cat').value   = data.cat  || '';
+    document.getElementById('dm-note').value  = data.note || '';
+    document.getElementById('dm-review').checked = !!data.review;
+    // render ingredients
+    renderIngRows(data.ingredients || []);
+    document.getElementById('dishModal').classList.add('open');
+    setTimeout(() => {
+      if (!name) document.getElementById('dm-name').focus();
+    }, 100);
+  }
+
+  function closeDishModal() {
+    document.getElementById('dishModal').classList.remove('open');
+    _editingDishKey = null;
+  }
+
+  function dishModalOverlayClick(e) {
+    if (e.target === document.getElementById('dishModal')) closeDishModal();
+  }
+
+  // ── Ingredient rows ──
+  function renderIngRows(ings) {
+    const list = document.getElementById('dm-ing-list');
+    list.innerHTML = '';
+    (ings || []).forEach((ing, i) => addIngRow(ing));
+  }
+
+  function addIngRow(ing) {
+    const list = document.getElementById('dm-ing-list');
+    const row = document.createElement('div');
+    row.className = 'ing-row';
+    row.innerHTML = `
+      <input class="ing-name" type="text" placeholder="食材名稱" value="${esc((ing||{}).name||'')}">
+      <input class="ing-qty"  type="text" placeholder="用量" value="${esc(String((ing||{}).qty||''))}">
+      <input class="ing-unit" type="text" placeholder="單位" value="${esc((ing||{}).unit||'')}">
+      <button class="ing-del-btn" onclick="this.closest('.ing-row').remove()" title="移除">✕</button>
+    `;
+    list.appendChild(row);
+    // focus new empty row
+    if (!ing) row.querySelector('.ing-name').focus();
+  }
+
+  function collectIngredients() {
+    return [...document.querySelectorAll('#dm-ing-list .ing-row')].map(row => ({
+      name: row.querySelector('.ing-name').value.trim(),
+      qty:  row.querySelector('.ing-qty').value.trim(),
+      unit: row.querySelector('.ing-unit').value.trim(),
+    })).filter(i => i.name);
+  }
+
+  // ── Save dish ──
+  function confirmDishEdit() {
+    const name = _editingDishKey || document.getElementById('dm-name').value.trim();
+    if (!name) { document.getElementById('dm-name').focus(); alert('請輸入料理名稱'); return; }
+    const data = {
+      cat:         document.getElementById('dm-cat').value.trim(),
+      note:        document.getElementById('dm-note').value.trim(),
+      review:      document.getElementById('dm-review').checked,
+      ingredients: collectIngredients(),
+      updatedAt:   Date.now(),
+    };
+    DISH_DB[name] = data;
+    if (autoSaveDish) autoSaveDish();
+    closeDishModal();
+    renderDishDB();
+    showDishToast(data.review
+      ? `⚠️ ${name} 已儲存（待確認）`
+      : `✅ ${name} 已儲存`);
+  }
+
+  // ── Delete dish ──
+  function deleteDish(name, e) {
+    if (e) e.stopPropagation();
+    if (!confirm(`確定刪除料理「${name}」？`)) return;
+    delete DISH_DB[name];
+    if (autoSaveDish) autoSaveDish();
+    renderDishDB();
+  }
+
+  // ── Toast (reuse or create) ──
+  function showDishToast(msg) {
+    let t = document.getElementById('saveToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'saveToast';
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:white;padding:10px 22px;border-radius:10px;font-size:26px;font-family:\'Noto Sans TC\',sans-serif;font-weight:700;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.3);pointer-events:none;transition:opacity .3s;white-space:nowrap;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg; t.style.opacity = '1';
+    clearTimeout(t._to);
+    t._to = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+  }
+
+  // ── Public API for menu.html to call via postMessage or direct ──
+  window.addToDishDB = function(name, cat, opts) {
+    // opts: { review, ingredients, overwrite }
+    opts = opts || {};
+    if (DISH_DB[name] && !opts.overwrite) {
+      if (!confirm(`「${name}」已存在料理庫，要覆蓋嗎？`)) return false;
+    }
+    DISH_DB[name] = {
+      cat: cat || '',
+      note: opts.note || '',
+      review: opts.review !== false,
+      ingredients: opts.ingredients || [],
+      updatedAt: Date.now(),
+    };
+    if (autoSaveDish) autoSaveDish();
+    if (currentTab === 'dish') renderDishDB();
+    showDishToast(`⚠️ ${name} 已加入料理BD（待確認）`);
+    return true;
+  };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('dishModal').classList.contains('open')) {
+      closeDishModal();
+    }
+  });
 
   function esc(s) {
     return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
