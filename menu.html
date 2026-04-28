@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -673,9 +674,11 @@ input.sel-l2-inp:disabled {
   font-size: 0.85rem; font-weight: 500;
   border: 1.5px solid rgba(45,45,45,0.1);
   white-space: nowrap;
-  width: 8em;
+  min-width: 8em;
   text-align: center;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
 }
 /* 可點擊編輯屬性 */
@@ -1272,9 +1275,221 @@ button {
     <span class="st-icon">⚙️</span>
     <span class="st-label">管理</span>
   </div>
+
 </div>
 
 <!-- 共用遮罩 -->
+
+
+<!-- 料理編輯浮層 -->
+<style>
+#dishEditPopup {
+  display: none;
+  position: fixed;
+  z-index: 10001;
+  background: #fffef9;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 18px 16px 16px;
+  width: 320px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem;
+}
+#dishEditTitle {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Top table: dish name + category */
+.dep-top-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.dep-top-table td {
+  border: 1.5px solid var(--ink);
+  padding: 0;
+}
+.dep-top-table input,
+.dep-top-table select {
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  outline: none;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem;
+  background: transparent;
+  color: var(--ink);
+  box-sizing: border-box;
+  appearance: none;
+}
+/* Ingredient section label */
+.dep-ing-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+/* Ingredient rows table */
+.dep-ing-table {
+  width: 100%;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+.dep-ing-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1.5px solid var(--ink);
+  min-width: 0;
+}
+.dep-ing-row:last-child {
+  border-bottom: none;
+}
+.dep-ing-cell-name {
+  flex: 1 1 0;
+  min-width: 0;
+  border-right: 1.5px solid var(--ink);
+}
+.dep-ing-cell-num {
+  flex: 0 0 64px;
+  width: 64px;
+  border-right: 1.5px solid var(--ink);
+}
+.dep-ing-cell-unit {
+  flex: 0 0 26px;
+  width: 26px;
+  text-align: center;
+  border-right: 1.5px solid var(--ink);
+}
+.dep-ing-cell-del {
+  flex: 0 0 32px;
+  width: 32px;
+  text-align: center;
+}
+.dep-ing-table input {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  outline: none;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem;
+  background: transparent;
+  color: var(--ink);
+  box-sizing: border-box;
+}
+.dep-ing-table input[type="number"] {
+  text-align: center;
+}
+.dep-ing-unit {
+  padding: 0 6px;
+  font-size: 1rem;
+  color: #666;
+  white-space: nowrap;
+}
+.dep-ing-del {
+  width: 32px;
+  text-align: center;
+  cursor: pointer;
+  color: #bbb;
+  font-size: 1.1rem;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.1s;
+}
+.dep-ing-del:hover { color: var(--red); }
+/* + 食材 button */
+.dep-add-ing-btn {
+  background: #fff8e7;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  padding: 6px 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  margin-bottom: 14px;
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: all 0.1s;
+}
+.dep-add-ing-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+/* Action buttons row */
+.dep-actions {
+  display: flex;
+  gap: 6px;
+}
+.dep-actions button {
+  flex: 1;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 8px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: all 0.1s;
+}
+.dep-actions button:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+.dep-btn-save  { background: #2d2d2d; color: #fff; border-color: var(--ink) !important; box-shadow: 2px 2px 0 var(--ink) !important; }
+.dep-btn-delete { background: #fff0f0; color: var(--red); border-color: var(--red) !important; box-shadow: 2px 2px 0 var(--red) !important; }
+.dep-btn-cancel { background: #f5f3ee; color: var(--ink); }
+</style>
+
+<div id="dishEditPopup">
+  <div id="dishEditTitle">✏️ 編輯料理</div>
+
+  <!-- Top: name + category -->
+  <table class="dep-top-table">
+    <tbody>
+      <tr>
+        <td style="width:55%">
+          <input id="dishEditName" type="text" placeholder="料理名稱">
+        </td>
+        <td>
+          <select id="dishEditCat">
+            <option value="蛋白質">蛋白質</option>
+            <option value="白葉菜">白葉菜</option>
+            <option value="綠葉菜">綠葉菜</option>
+            <option value="菇">菇</option>
+            <option value="瓜果">瓜果</option>
+            <option value="根莖">根莖</option>
+            <option value="海帶">海帶</option>
+            <option value="混炒">混炒</option>
+            <option value="其他">其他</option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Ingredient section -->
+  <div class="dep-ing-label">食材組成</div>
+  <div class="dep-ing-table" id="dishEditIngs"></div>
+
+  <button class="dep-add-ing-btn" onclick="dishEditAddIngRow()">+ 食材</button>
+
+  <!-- Action buttons -->
+  <div class="dep-actions">
+    <button class="dep-btn-save" onclick="dishEditSave()">✓ 儲存</button>
+    <button class="dep-btn-delete" onclick="dishEditDelete()">🗑 刪除</button>
+    <button class="dep-btn-cancel" onclick="document.getElementById('dishEditPopup').style.display='none'">取消</button>
+  </div>
+</div>
+
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeAllDrawers()"></div>
 
 
@@ -1373,8 +1588,8 @@ button {
     <div style="background:#fbe9e7;border-radius:10px;padding:14px 14px 10px;border:1.5px solid #ffab91;">
       <div style="font-size:1.1rem;font-weight:700;color:#bf360c;margin-bottom:10px;">🗂️ 資料庫匯出</div>
       <button onclick="exportCategoryExcel();closeAllDrawers();" style="background:#e65100;color:#fff;border:none;border-radius:8px;padding:12px 16px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:left;transition:background 0.15s;width:100%;" onmouseover="this.style.background='#bf360c'" onmouseout="this.style.background='#e65100'">
-        🗂️ 匯出品項類別 Excel 檔
-        <div style="font-size:0.85rem;font-weight:400;margin-top:3px;opacity:0.85;">將所有類別品項與顏色分組匯出為 Excel</div>
+        🗂️ 匯出資料庫 Excel 檔
+        <div style="font-size:0.85rem;font-weight:400;margin-top:3px;opacity:0.85;">品項類別　顏色分組　料理DB（含食材用量）</div>
       </button>
     </div>
 
@@ -1542,6 +1757,526 @@ Object.entries(COLOR_GROUPS).forEach(([key, g]) => {
   g.items.forEach(item => { FOOD_COLOR[item] = key; });
 });
 
+// ===== 料理資料庫 =====
+const DISH_DB = {
+  "梅汁紅白蘿蔔": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "白蘿蔔", grams: 20 },
+      { ingredient: "紅蘿蔔", grams: 20 },
+      { ingredient: "梅子醋", grams: 25 }
+    ]
+  },
+  "蠔油粉絲": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "冬粉", grams: 12 },
+      { ingredient: "高麗菜", grams: 5 },
+      { ingredient: "紅蘿蔔", grams: 3 }
+    ]
+  },
+  "杏鮑菇米血": {  
+    category: "菇",
+    review: false,
+    ingredients: [
+      { ingredient: "杏包菇頭", grams: 25 },
+      { ingredient: "米血丁", grams: 15 }
+    ]
+  },
+  "三絲芽菜": {  
+    category: "混炒",
+    review: false,
+    ingredients: [
+      { ingredient: "豆芽菜", grams: 40 },
+      { ingredient: "木耳絲", grams: 2 },
+      { ingredient: "紅蘿蔔", grams: 3 },
+      { ingredient: "素火腿", grams: 5 }
+    ]
+  },
+  "涼拌小黃瓜": {  
+    category: "瓜果",
+    review: false,
+    ingredients: [
+      { ingredient: "小黃瓜", grams: 25 },
+      { ingredient: "辣椒", grams: 2 },
+      { ingredient: "梅子醋", grams: 25 }
+    ]
+  },
+  "麻婆豆腐": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "板豆腐", grams: 45 },
+      { ingredient: "辣豆瓣", grams: 10 },
+      { ingredient: "毛豆仁", grams: 2 }
+    ]
+  },
+  "麵輪紅白蘿蔔": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "麵輪", grams: 5 },
+      { ingredient: "紅蘿蔔", grams: 10 },
+      { ingredient: "白蘿蔔(生鮮)", grams: 20 }
+    ]
+  },
+  "火腿肉末玉米": {  
+    category: "混炒",
+    review: false,
+    ingredients: [
+      { ingredient: "火腿丁", grams: 5 },
+      { ingredient: "玉米粒(散)", grams: 35 },
+      { ingredient: "毛豆仁", grams: 3 },
+      { ingredient: "絞肉", grams: 10 }
+    ]
+  },
+  "枸杞冬瓜": {  
+    category: "瓜果",
+    review: false,
+    ingredients: [
+      { ingredient: "冬瓜", grams: 40 },
+      { ingredient: "薑絲", grams: 2 },
+      { ingredient: "枸杞", grams: 1 }
+    ]
+  },
+  "蒜味洋地瓜": {    // ⚠️ 待確認
+    category: "根莖",
+    review: true,
+    ingredients: [
+      { ingredient: "洋地瓜", grams: 25 }
+    ]
+  },
+  "味增醬炒豆乾丁": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "豆干丁", grams: 40 },
+      { ingredient: "紅蘿蔔", grams: 3 },
+      { ingredient: "味噌", grams: 10 }
+    ]
+  },
+  "酸菜麵腸": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "麵腸切片", grams: 40 },
+      { ingredient: "酸菜切", grams: 5 }
+    ]
+  },
+  "煙燻豬耳": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "豬頭皮耳絲", grams: 25 }
+    ]
+  },
+  "茄汁百頁豆腐": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "百頁丁", grams: 40 },
+      { ingredient: "番茄醬", grams: 10 },
+      { ingredient: "青豆仁", grams: 2 }
+    ]
+  },
+  "炸地瓜": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "紅心地瓜", grams: 40 }
+    ]
+  },
+  "黑白木耳": {  
+    category: "菇",
+    review: false,
+    ingredients: [
+      { ingredient: "白木耳", grams: 3 },
+      { ingredient: "雲耳", grams: 1 },
+      { ingredient: "薑絲", grams: 2 }
+    ]
+  },
+  "蔥爆豆干": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "豆干切片", grams: 40 },
+      { ingredient: "洋蔥", grams: 5 },
+      { ingredient: "韭黃", grams: 5 }
+    ]
+  },
+  "薑絲南瓜": {  
+    category: "瓜果",
+    review: false,
+    ingredients: [
+      { ingredient: "南瓜", grams: 40 },
+      { ingredient: "薑絲", grams: 2 }
+    ]
+  },
+  "肉末豆乾丁": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "豆干丁", grams: 20 },
+      { ingredient: "紅蘿蔔", grams: 3 },
+      { ingredient: "木耳絲", grams: 2 },
+      { ingredient: "毛豆仁", grams: 3 },
+      { ingredient: "絞肉", grams: 2 }
+    ]
+  },
+  "沙茶玉米筍肉羹": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "手工中肉羹", grams: 35 },
+      { ingredient: "玉米筍", grams: 5 },
+      { ingredient: "沙茶醬", grams: 3 }
+    ]
+  },
+  "黑胡椒烤洋芋": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "馬鈴薯", grams: 40 },
+      { ingredient: "黑胡椒粒", grams: 1 }
+    ]
+  },
+  "洋蔥黑胡椒毛豆": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "毛豆仁", grams: 22 },
+      { ingredient: "洋蔥", grams: 5 },
+      { ingredient: "黑胡椒粒", grams: 1 }
+    ]
+  },
+  "條干海帶": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "條干", grams: 40 },
+      { ingredient: "海帶捲", grams: 5 },
+      { ingredient: "薑絲", grams: 2 }
+    ]
+  },
+  "日式關東煮": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "白蘿蔔(生鮮)", grams: 50 },
+      { ingredient: "紅蘿蔔", grams: 10 },
+      { ingredient: "海帶芽", grams: 1 },
+      { ingredient: "烹大師", grams: 2 }
+    ]
+  },
+  "水煮花生": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "水煮花生", grams: 20 },
+      { ingredient: "小黃瓜", grams: 5 },
+      { ingredient: "紅蘿蔔", grams: 5 }
+    ]
+  },
+  "南瓜豆腐": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "板豆腐", grams: 45 },
+      { ingredient: "南瓜", grams: 5 },
+      { ingredient: "青豆仁", grams: 2 }
+    ]
+  },
+  "麻油米血": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "米血丁", grams: 45 },
+      { ingredient: "薑片", grams: 5 },
+      { ingredient: "麻油", grams: 30 }
+    ]
+  },
+  "竹筍炒肉絲": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "桶筍絲", grams: 30 },
+      { ingredient: "肉絲", grams: 3 },
+      { ingredient: "紅蘿蔔", grams: 3 },
+      { ingredient: "木耳絲", grams: 2 }
+    ]
+  },
+  "柴魚紅白蘿蔔": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "白蘿蔔(生鮮)", grams: 25 },
+      { ingredient: "紅蘿蔔", grams: 15 },
+      { ingredient: "柴魚片", grams: 2 }
+    ]
+  },
+  "蜜芋頭": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "芋頭角", grams: 25 }
+    ]
+  },
+  "紅燒豆腐": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "板豆腐", grams: 45 },
+      { ingredient: "紅蘿蔔", grams: 5 },
+      { ingredient: "青豆仁", grams: 2 }
+    ]
+  },
+  "水煮玉米": {  
+    category: "瓜果",
+    review: false,
+    ingredients: [
+      { ingredient: "玉米", grams: 40 }
+    ]
+  },
+  "蒜拍小黃瓜": {  
+    category: "瓜果",
+    review: false,
+    ingredients: [
+      { ingredient: "小黃瓜", grams: 25 },
+      { ingredient: "辣椒", grams: 3 },
+      { ingredient: "蒜碎", grams: 3 }
+    ]
+  },
+  "涼拌素雞": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "素雞", grams: 35 },
+      { ingredient: "洋蔥", grams: 10 },
+      { ingredient: "蔥", grams: 2 },
+      { ingredient: "香菜", grams: 1 },
+      { ingredient: "辣椒", grams: 1 }
+    ]
+  },
+  "洋蔥麵輪": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "麵輪", grams: 10 },
+      { ingredient: "洋蔥", grams: 5 }
+    ]
+  },
+  "紅燒豆腸": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "豆腸", grams: 25 },
+      { ingredient: "青豆仁", grams: 1 }
+    ]
+  },
+  "三杯杏鮑菇": {  
+    category: "菇",
+    review: false,
+    ingredients: [
+      { ingredient: "杏包菇頭", grams: 25 },
+      { ingredient: "米血丁", grams: 15 },
+      { ingredient: "九層塔", grams: 1 }
+    ]
+  },
+  "烤地瓜": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "黃心地瓜", grams: 40 }
+    ]
+  },
+  "梅汁蓮藕": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "蓮藕", grams: 25 },
+      { ingredient: "梅子醋", grams: 25 }
+    ]
+  },
+  "醬爆天婦羅": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "白甜不辣條", grams: 40 },
+      { ingredient: "洋蔥", grams: 5 },
+      { ingredient: "辣豆瓣", grams: 5 }
+    ]
+  },
+  "滷四角豆腐": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "小四角油豆腐", grams: 40 }
+    ]
+  },
+  "芹菜菌菇干絲": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "白干絲", grams: 15 },
+      { ingredient: "芹菜", grams: 5 },
+      { ingredient: "美白菇", grams: 5 }
+    ]
+  },
+  "糖醋麵腸": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "麵腸切片", grams: 40 },
+      { ingredient: "糖醋汁", grams: 15 },
+      { ingredient: "洋蔥", grams: 10 }
+    ]
+  },
+  "蠔油寬粉": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "寬粉絲", grams: 50 },
+      { ingredient: "小黃瓜", grams: 3 }
+    ]
+  },
+  "醋溜洋地瓜": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "洋地瓜", grams: 25 },
+      { ingredient: "梅子醋", grams: 25 }
+    ]
+  },
+  "海帶干絲": {  
+    category: "混炒",
+    review: false,
+    ingredients: [
+      { ingredient: "海帶絲", grams: 5 },
+      { ingredient: "白干絲", grams: 35 },
+      { ingredient: "紅蘿蔔", grams: 5 },
+      { ingredient: "薑絲", grams: 2 }
+    ]
+  },
+  "韓式黃豆芽": {  
+    category: "白葉菜",
+    review: false,
+    ingredients: [
+      { ingredient: "黃豆芽", grams: 40 },
+      { ingredient: "韓式辣椒醬", grams: 10 },
+      { ingredient: "紅蘿蔔", grams: 3 },
+      { ingredient: "木耳絲", grams: 2 }
+    ]
+  },
+  "茄汁通心粉": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "通心麵", grams: 16 },
+      { ingredient: "洋蔥", grams: 10 },
+      { ingredient: "番茄醬", grams: 15 }
+    ]
+  },
+  "三角油豆腐": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "小三角油豆腐", grams: 50 }
+    ]
+  },
+  "雪菜肉末": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "雪裡紅", grams: 25 },
+      { ingredient: "絞肉", grams: 3 },
+      { ingredient: "蒜碎", grams: 3 },
+      { ingredient: "辣椒", grams: 3 }
+    ]
+  },
+  "涼拌黑豆干": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "大黑干", grams: 40 },
+      { ingredient: "辣椒", grams: 3 },
+      { ingredient: "蒜碎", grams: 3 }
+    ]
+  },
+  "宮保白花椰": {  
+    category: "白葉菜",
+    review: false,
+    ingredients: [
+      { ingredient: "白花菜", grams: 50 },
+      { ingredient: "二荊條", grams: 2 }
+    ]
+  },
+  "醬蘿蔔": {  
+    category: "根莖",
+    review: false,
+    ingredients: [
+      { ingredient: "白蘿蔔(生鮮)", grams: 25 },
+      { ingredient: "辣椒", grams: 1 }
+    ]
+  },
+  "醬爆筍茸": {  
+    category: "其他",
+    review: false,
+    ingredients: [
+      { ingredient: "筍茸", grams: 40 },
+      { ingredient: "辣椒", grams: 2 },
+      { ingredient: "蔥", grams: 2 }
+    ]
+  },
+  "蒜味敏豆": {  
+    category: "蛋白質",
+    review: false,
+    ingredients: [
+      { ingredient: "敏豆", grams: 40 },
+      { ingredient: "辣椒", grams: 2 },
+      { ingredient: "蒜碎", grams: 2 },
+      { ingredient: "美白菇", grams: 2 }
+    ]
+  },
+  "高麗菜料理": {    // ⚠️ 待確認
+    category: "白葉菜",
+    review: true,
+    ingredients: [
+      { ingredient: "高麗菜", grams: 80 },
+      { ingredient: "二荊條", grams: 2 },
+      { ingredient: "蔥", grams: 2 }
+    ]
+  },
+  "油菜料理": {    // ⚠️ 待確認
+    category: "綠葉菜",
+    review: true,
+    ingredients: [
+      { ingredient: "油菜", grams: 80 },
+      { ingredient: "洋蔥", grams: 10 },
+      { ingredient: "紅蘿蔔", grams: 3 }
+    ]
+  },
+  "青江菜料理": {    // ⚠️ 待確認
+    category: "綠葉菜",
+    review: true,
+    ingredients: [
+      { ingredient: "青江菜", grams: 80 },
+      { ingredient: "洋蔥", grams: 10 },
+      { ingredient: "紅蘿蔔", grams: 3 }
+    ]
+  },
+};
+const DISH_NAMES = new Set(Object.keys(DISH_DB));
+const DISH_NEEDS_REVIEW = new Set(Object.keys(DISH_DB).filter(k => DISH_DB[k].review));
+
+// 料理依類別分組
+const DISH_BY_CAT = {};
+for (const [name, data] of Object.entries(DISH_DB)) {
+  if (!DISH_BY_CAT[data.category]) DISH_BY_CAT[data.category] = [];
+  DISH_BY_CAT[data.category].push(name);
+}
+
 // ===== 食材資料庫 =====
 // items.html 同步過來的品項名稱集合（去掉 * 後的 baseName）
 // size > 0 時才啟用主菜紅框驗證，避免初始載入前誤標
@@ -1575,13 +2310,13 @@ const ROW_CATS = {
   "主菜":   ["-","主菜"],
   "副主菜": ["-","副主菜"],
   "米飯":   ["-","米飯"],
-  "1":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他"],
-  "2":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他"],
-  "3":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他"],
-  "4":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他"],
-  "5":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他"],
-  "6":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他"],
-  "7":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","輔料","其他"]
+  "1":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","其他"],
+  "2":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","其他"],
+  "3":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","其他"],
+  "4":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","其他"],
+  "5":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","其他"],
+  "6":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","其他"],
+  "7":      ["-","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","混炒","輔料","其他"]
 };
 
 let ROWS = ["主菜","副主菜","米飯","1","2","3","4","5","6","7"];
@@ -1704,6 +2439,7 @@ function collectDbData() {
     FOOD_COLOR: JSON.parse(JSON.stringify(FOOD_COLOR)),
     ROWS: JSON.parse(JSON.stringify(ROWS)),
     ROW_CATS: JSON.parse(JSON.stringify(ROW_CATS)),
+    DISH_DB: JSON.parse(JSON.stringify(DISH_DB)),
   };
 }
 
@@ -1734,6 +2470,18 @@ function applyDbData(saved) {
   if (saved.ROW_CATS) {
     Object.keys(ROW_CATS).forEach(k => delete ROW_CATS[k]);
     Object.assign(ROW_CATS, saved.ROW_CATS);
+  }
+  if (saved.DISH_DB) {
+    Object.keys(DISH_DB).forEach(k => delete DISH_DB[k]);
+    Object.assign(DISH_DB, saved.DISH_DB);
+    // 重建 DISH_NAMES 和 DISH_BY_CAT
+    DISH_NAMES.clear();
+    Object.keys(DISH_BY_CAT).forEach(k => delete DISH_BY_CAT[k]);
+    Object.entries(DISH_DB).forEach(([name, data]) => {
+      DISH_NAMES.add(name);
+      DISH_BY_CAT[data.category] = DISH_BY_CAT[data.category] || [];
+      if (!DISH_BY_CAT[data.category].includes(name)) DISH_BY_CAT[data.category].push(name);
+    });
   }
   rerenderDBPanels();
   initMgmtItems();
@@ -2827,9 +3575,38 @@ function exportCategoryExcel() {
   const wsColor = XLSX.utils.aoa_to_sheet(colorRows);
   XLSX.utils.book_append_sheet(wb, wsColor, "顏色分組");
 
+  // 工作表3：料理DB
+  // 每道料理一列，食材1/用量1、食材2/用量2… 橫向展開
+  // 先算最多幾個食材（決定欄數）
+  const maxIng = Object.values(DISH_DB).reduce((m, d) =>
+    Math.max(m, Array.isArray(d.ingredients) ? d.ingredients.length : 0), 0);
+  const dishHeader = ["料理名稱", "類別", "待審"];
+  for (let i = 1; i <= maxIng; i++) {
+    dishHeader.push(`食材${i}`, `用量${i}(g)`);
+  }
+  const dishRows = [dishHeader];
+  Object.entries(DISH_DB).forEach(([name, data]) => {
+    const row = [
+      name,
+      data.category || "",
+      data.review ? "是" : "否"
+    ];
+    const ings = Array.isArray(data.ingredients) ? data.ingredients : [];
+    for (let i = 0; i < maxIng; i++) {
+      if (ings[i]) {
+        row.push(ings[i].ingredient || "", ings[i].grams ?? "");
+      } else {
+        row.push("", "");
+      }
+    }
+    dishRows.push(row);
+  });
+  const wsDish = XLSX.utils.aoa_to_sheet(dishRows);
+  XLSX.utils.book_append_sheet(wb, wsDish, "料理DB");
+
   const dateStr = new Date().toLocaleDateString("zh-TW").replace(/\//g,"-");
-  XLSX.writeFile(wb, `menu_categories_${dateStr}.xlsx`);
-  showSaveToast("🗂️ 品項類別 Excel 已匯出");
+  XLSX.writeFile(wb, `menu_db_${dateStr}.xlsx`);
+  showSaveToast("🗂️ 資料庫 Excel 已匯出（品項類別 + 顏色分組 + 料理DB）");
 }
 
 async function applyMenuData(saved) {
@@ -2933,6 +3710,8 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
   function populateDatalistFromCat(cat) {
     const items = DB[cat] || [];
     _allItems = items.filter(i => i !== "-");
+    // 也加入同類別料理
+    (DISH_BY_CAT[cat] || []).forEach(d => { if (!_allItems.includes(d)) _allItems.push(d); });
   }
 
   function buildFullDatalist() {
@@ -2940,6 +3719,8 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     cats.filter(c => c !== "-").forEach(c => {
       (DB[c] || []).filter(i => i !== "-").forEach(i => allItems.add(i));
     });
+    // 加入料理庫
+    Object.keys(DISH_DB).forEach(d => allItems.add(d));
     _allItems = [...allItems];
   }
 
@@ -2973,6 +3754,19 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     dropdown.style.width = Math.max(rect.width, 120) + "px";
   }
 
+  function makeDishItemHtml(item, kw) {
+    const isReview = DISH_NEEDS_REVIEW.has(item);
+    const style = isReview
+      ? `style="color:#c0392b;font-weight:700;"` 
+      : `style="color:#1a6e3c;font-weight:700;"`;
+    const prefix = `<span ${style}>🍽 `;
+    if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${prefix}${item}</span></div>`;
+    const idx = item.toLowerCase().indexOf(kw);
+    if (idx < 0) return `<div class="fuzzy-dropdown-item" data-val="${item}">${prefix}${item}</span></div>`;
+    const hi = item.slice(0, idx) + `<mark>${item.slice(idx, idx+kw.length)}</mark>` + item.slice(idx+kw.length);
+    return `<div class="fuzzy-dropdown-item" data-val="${item}">${prefix}${hi}</span></div>`;
+  }
+
   function showDropdown(keyword) {
     const showAll = (!keyword || keyword === "_all_");
     const matched = showAll
@@ -2981,6 +3775,9 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     if (!matched.length) { hideDropdown(); return; }
     const kw = showAll ? "" : keyword.toLowerCase();
     _activeIdx = -1;
+
+    const matchedDishes = matched.filter(i => DISH_NAMES.has(i));
+    const matchedIngredients = matched.filter(i => !DISH_NAMES.has(i));
 
     // 若為主菜且無關鍵字 → 依 MENU_GROUPS 分組顯示
     const groups = MENU_GROUPS[rowKey];
@@ -2995,25 +3792,31 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
           html += `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
         });
       });
-      // 不在任何分組的品項
       const groupedItems = new Set(groups.flatMap(g => g.items));
-      const ungrouped = matched.filter(item => !groupedItems.has(item));
+      const ungrouped = matchedIngredients.filter(item => !groupedItems.has(item));
       if (ungrouped.length) {
         ungrouped.forEach(item => {
           html += `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
         });
       }
+      if (matchedDishes.length) {
+        html += `<div class="fuzzy-dropdown-group">🍽 料理</div>`;
+        matchedDishes.forEach(item => { html += makeDishItemHtml(item, kw); });
+      }
       dropdown.innerHTML = html;
     } else {
-      dropdown.innerHTML = matched.map(item => {
+      let html = matchedIngredients.map(item => {
         if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
         const idx = item.toLowerCase().indexOf(kw);
         if (idx < 0) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
-        const hi = item.slice(0, idx) +
-          `<mark>${item.slice(idx, idx + keyword.length)}</mark>` +
-          item.slice(idx + keyword.length);
+        const hi = item.slice(0, idx) + `<mark>${item.slice(idx, idx+keyword.length)}</mark>` + item.slice(idx+keyword.length);
         return `<div class="fuzzy-dropdown-item" data-val="${item}">${hi}</div>`;
       }).join("");
+      if (matchedDishes.length) {
+        if (matchedIngredients.length) html += `<div class="fuzzy-dropdown-group">🍽 料理</div>`;
+        html += matchedDishes.map(item => makeDishItemHtml(item, kw)).join("");
+      }
+      dropdown.innerHTML = html;
     }
     positionDropdown();
     dropdown.style.display = "block";
@@ -3029,12 +3832,29 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     inp2.value = val;
     hideDropdown();
     if (sel1.value === "-") {
-      for (const cat of cats) {
-        if (cat === "-") continue;
-        if ((DB[cat] || []).includes(val)) {
-          sel1.value = cat;
-          populateDatalistFromCat(cat);
-          break;
+      if (DISH_DB[val]) {
+        const dishCat = DISH_DB[val].category;
+        // 若 cats 裡有就直接選
+        if (cats.includes(dishCat)) {
+          sel1.value = dishCat;
+          populateDatalistFromCat(dishCat);
+        } else {
+          // 動態加入 option
+          const opt = document.createElement('option');
+          opt.value = dishCat;
+          opt.textContent = dishCat;
+          sel1.appendChild(opt);
+          sel1.value = dishCat;
+          populateDatalistFromCat(dishCat);
+        }
+      } else {
+        for (const cat of cats) {
+          if (cat === "-") continue;
+          if ((DB[cat] || []).includes(val)) {
+            sel1.value = cat;
+            populateDatalistFromCat(cat);
+            break;
+          }
         }
       }
     }
@@ -3092,6 +3912,13 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
       inp2.style.background = ""; inp2.style.color = "";
       inp2.style.fontWeight = ""; inp2.style.borderColor = "";
       td2.className = `td-l2 ${defaultStyleL2}`;
+    } else if (DISH_NAMES.has(item)) {
+      const isReview = DISH_NEEDS_REVIEW.has(item);
+      const bg = isReview ? "#fdecea" : "#e8f5e9";
+      const fg = isReview ? "#c0392b" : "#1a6e3c";
+      td2.style.background = bg; td2.style.color = fg;
+      inp2.style.background = bg; inp2.style.color = fg;
+      inp2.style.fontWeight = "700"; inp2.style.borderColor = "transparent";
     } else {
       const colors = getFoodColors(item);
       if (colors) {
@@ -3171,6 +3998,15 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
   // 暴露給外部直接呼叫，不走事件流程
   inp2._applyColor = applyItemColor;
   inp2._reset = applyClosedState;
+
+  // ── 料理 Tooltip ──
+  inp2.addEventListener('mouseenter', e => {
+    if (DISH_NAMES.has(inp2.value)) showDishTooltip(inp2.value, e);
+  });
+  inp2.addEventListener('mousemove', e => {
+    if (DISH_NAMES.has(inp2.value)) positionDishTooltip(e);
+  });
+  inp2.addEventListener('mouseleave', hideDishTooltip);
 
   // ── 品項複製 / 貼上按鈕 ──
   const cpWrap = document.createElement("div");
@@ -4000,7 +4836,19 @@ function exportHTML(itemOnlyMode) {
         const v2 = rawV2 && rawV2 !== "-" && rawV2 !== "-- 品項 --" ? rawV2 : "";
 
         let itemBgStyle = "";
-        if (v2) {
+        let itemDisplayHtml = v2;
+        if (v2 && DISH_NAMES.has(v2)) {
+          // 料理：綠底 + 展開食材
+          const isReview = DISH_NEEDS_REVIEW.has(v2);
+          itemBgStyle = isReview
+            ? "background:#fdecea;color:#c0392b;"
+            : "background:#e8f5e9;color:#1a6e3c;";
+          const ings = (DISH_DB[v2] && DISH_DB[v2].ingredients) ? DISH_DB[v2].ingredients : [];
+          const ingLines = ings.map(ing =>
+            `<div style="font-size:0.78rem;color:#444;font-weight:400;padding-left:4px;line-height:1.5;">・${ing.ingredient} <b>${ing.grams}g</b></div>`
+          ).join("");
+          itemDisplayHtml = `<div style="font-weight:700;margin-bottom:2px;">${v2}</div>${ingLines}`;
+        } else if (v2) {
           const colors = getFoodColors(v2);
           if (colors) {
             itemBgStyle = `background:${colors.bg};color:${colors.fg};`;
@@ -4009,9 +4857,9 @@ function exportHTML(itemOnlyMode) {
 
         if (!itemOnlyMode) {
           rowsHTML += `<td class="td-l1 ${baseS}" style="padding:4px 6px;">${v1}</td>`;
-          rowsHTML += `<td class="td-l2 ${baseS2}" style="padding:4px 6px;font-weight:600;${itemBgStyle}">${v2}</td>`;
+          rowsHTML += `<td class="td-l2 ${baseS2}" style="padding:4px 6px;font-weight:600;${itemBgStyle}">${itemDisplayHtml}</td>`;
         } else {
-          rowsHTML += `<td class="td-l2 ${baseS2}" style="padding:4px 6px;font-weight:600;${itemBgStyle}">${v2}</td>`;
+          rowsHTML += `<td class="td-l2 ${baseS2}" style="padding:4px 6px;font-weight:600;${itemBgStyle}">${itemDisplayHtml}</td>`;
         }
       });
 
@@ -4128,6 +4976,25 @@ function renderDB() {
       span.textContent = itemName;
       chip.appendChild(span);
 
+      // 計算此食材出現在幾道料理中
+      const dishCount = Object.values(DISH_DB).filter(d =>
+        Array.isArray(d.ingredients) && d.ingredients.some(ing => ing.ingredient === itemName)
+      ).length;
+      console.log(`[badge] ${itemName} → ${dishCount} 道料理，DISH_DB 共 ${Object.keys(DISH_DB).length} 筆`);
+      if (dishCount > 0) {
+        const badge = document.createElement("span");
+        badge.textContent = dishCount;
+        badge.title = `${itemName} 出現在 ${dishCount} 道料理中`;
+        badge.style.cssText = `
+          display:inline-flex;align-items:center;justify-content:center;
+          min-width:16px;height:16px;padding:0 4px;margin-left:5px;
+          background:#333;color:#fff;
+          border-radius:8px;font-size:10px;font-weight:700;line-height:1;
+          flex-shrink:0;pointer-events:none;
+        `;
+        chip.appendChild(badge);
+      }
+
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
         openColorItemPopup(key, itemName, chip);
@@ -4213,6 +5080,25 @@ function renderDB() {
         const span = document.createElement("span");
         span.textContent = itemName;
         chip.appendChild(span);
+
+        // 計算此食材出現在幾道料理中
+        const dishCount = Object.values(DISH_DB).filter(d =>
+          Array.isArray(d.ingredients) && d.ingredients.some(ing => ing.ingredient === itemName)
+        ).length;
+        if (dishCount > 0) {
+          const badge = document.createElement("span");
+          badge.textContent = dishCount;
+          badge.title = `${itemName} 出現在 ${dishCount} 道料理中`;
+          badge.style.cssText = `
+            display:inline-flex;align-items:center;justify-content:center;
+            min-width:16px;height:16px;padding:0 4px;margin-left:4px;
+            background:rgba(0,0,0,0.25);color:#fff;
+            border-radius:8px;font-size:10px;font-weight:700;line-height:1;
+            vertical-align:middle;pointer-events:none;
+          `;
+          chip.appendChild(badge);
+        }
+
         chip.addEventListener("click", (e) => { e.stopPropagation(); openColorItemPopup(null, itemName, chip); });
         catGrid.appendChild(chip);
       });
@@ -4247,6 +5133,19 @@ function renderCatDB() {
   if (!tabsBar || !tabContent) return;
   tabsBar.innerHTML = "";
   tabContent.innerHTML = "";
+
+  // 建立食材 → 料理 反向索引（以主食材為主）
+  const _ingToDishes = {};
+  Object.entries(DISH_DB).forEach(([dishName, data]) => {
+    if (!data.ingredients) return;
+    // 只取重量最重的食材（主食材）做索引
+    const sorted = [...data.ingredients].sort((a,b) => b.grams - a.grams);
+    const mainIng = sorted[0]?.ingredient;
+    if (mainIng) {
+      if (!_ingToDishes[mainIng]) _ingToDishes[mainIng] = [];
+      _ingToDishes[mainIng].push(dishName);
+    }
+  });
 
   const CAT_ORDER = ["主菜","副主菜","米飯","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他","輔料"];
   const cats = Object.entries(DB).sort(([a],[b]) => {
@@ -4344,7 +5243,149 @@ function renderCatDB() {
       if (cat !== "主菜") {
         chip.addEventListener("click", (e) => {
           e.stopPropagation();
-          openCatItemPopup(cat, itemName, chip);
+          const relatedDishes = _ingToDishes[itemName] || [];
+          if (relatedDishes.length === 0) {
+            // 沒有料理 → 開編輯 popup
+            openCatItemPopup(cat, itemName, chip);
+            return;
+          }
+          // 有料理 → 手風琴展開/收起
+          const existingAccordion = chip.nextElementSibling;
+          if (existingAccordion && existingAccordion.classList.contains('dish-accordion')) {
+            existingAccordion.remove();
+            chip.style.outline = '';
+            return;
+          }
+          // 關閉其他展開的手風琴
+          document.querySelectorAll('.dish-accordion').forEach(a => {
+            if (a.previousElementSibling) a.previousElementSibling.style.outline = '';
+            a.remove();
+          });
+          chip.style.outline = '2.5px solid var(--ink)';
+          chip.style.outlineOffset = '2px';
+          const accordion = document.createElement('div');
+          accordion.className = 'dish-accordion';
+          accordion.style.cssText = `
+            width: 100%;
+            background: #fffef9;
+            border: 2px solid var(--ink);
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-top: 4px;
+            box-shadow: 2px 2px 0 var(--ink);
+            animation: accordionOpen 0.15s ease;
+          `;
+          const title = document.createElement('div');
+          title.style.cssText = 'font-size:0.75rem;font-weight:700;color:#666;margin-bottom:6px;letter-spacing:0.5px;';
+          title.textContent = `🍽 以「${itemName}」為主食材的料理`;
+          accordion.appendChild(title);
+          const chips = document.createElement('div');
+          chips.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;';
+          relatedDishes.forEach(dishName => {
+            const dc = document.createElement('div');
+            dc.style.cssText = `
+              display:inline-flex;align-items:center;
+              background:#2d2d2d;color:#fff;
+              border:2px solid var(--ink);
+              border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+              padding:4px 10px;font-size:0.82rem;font-weight:700;
+              cursor:pointer;font-family:'Kalam','Noto Sans TC',sans-serif;
+              box-shadow:2px 2px 0 var(--ink);
+              transition:all 0.1s;
+            `;
+            dc.textContent = dishName;
+            dc.title = '點擊編輯此料理';
+            dc.addEventListener('mouseenter', () => { dc.style.transform='translate(1px,1px)'; dc.style.boxShadow='1px 1px 0 var(--ink)'; });
+            dc.addEventListener('mouseleave', () => { dc.style.transform=''; dc.style.boxShadow='2px 2px 0 var(--ink)'; });
+            dc.addEventListener('click', e => {
+              e.stopPropagation();
+              openDishEdit(dishName, e);
+            });
+            chips.appendChild(dc);
+          });
+          // 加一個「新增料理」按鈕
+          const addBtn = document.createElement('div');
+          addBtn.style.cssText = `
+            display:inline-flex;align-items:center;
+            background:#fff8e7;color:var(--ink);
+            border:2px dashed var(--ink);
+            border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+            padding:4px 10px;font-size:0.82rem;font-weight:700;
+            cursor:pointer;font-family:'Kalam','Noto Sans TC',sans-serif;
+            transition:all 0.1s;
+          `;
+          addBtn.textContent = '＋ 新增料理';
+          addBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            // 若已展開表單就收起
+            const existingForm = accordion.querySelector('.acc-new-dish-form');
+            if (existingForm) { existingForm.remove(); return; }
+            // 建立 inline 新增表單
+            const form = document.createElement('div');
+            form.className = 'acc-new-dish-form';
+            form.style.cssText = 'margin-top:10px;padding:10px;background:#fff8e7;border:2px solid var(--ink);border-radius:8px;box-shadow:2px 2px 0 var(--ink);display:flex;flex-direction:column;gap:6px;';
+            const CAT_OPTIONS = ['蛋白質','白葉菜','綠葉菜','菇','瓜果','根莖','海帶','混炒','其他'];
+            form.innerHTML = `
+              <div style="font-weight:700;font-size:0.88rem;color:var(--ink);margin-bottom:2px;">＋ 新增料理</div>
+              <div style="display:flex;gap:6px;">
+                <input type="text" class="acc-new-name" placeholder="料理名稱" value="${itemName}" style="flex:2;padding:5px 8px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.88rem;outline:none;">
+                <select class="acc-new-cat" style="flex:1;padding:5px 6px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.82rem;">
+                  ${CAT_OPTIONS.map(c=>`<option value="${c}">${c}</option>`).join('')}
+                </select>
+              </div>
+              <div class="acc-new-ings" style="display:flex;flex-direction:column;gap:4px;"></div>
+              <div style="display:flex;gap:6px;">
+                <button class="acc-btn-add-ing" style="background:#fff;border:2px solid var(--ink);border-radius:6px;padding:4px 10px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">+ 食材</button>
+                <button class="acc-btn-save" style="background:#2d2d2d;color:#fff;border:2px solid var(--ink);border-radius:6px;padding:4px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">✓ 儲存</button>
+                <button class="acc-btn-cancel" style="background:#f5f3ee;border:2px solid var(--ink);border-radius:6px;padding:4px 10px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">取消</button>
+              </div>
+            `;
+            // 自動猜類別（從 DISH_DB 或 itemName 所在 cat）
+            const catSel = form.querySelector('.acc-new-cat');
+            if (cat) { catSel.value = cat; }
+            // 預填一列食材
+            const ingsEl = form.querySelector('.acc-new-ings');
+            function addIngRow(ing='', g='') {
+              const row = document.createElement('div');
+              row.style.cssText='display:flex;gap:4px;align-items:center;';
+              row.innerHTML = `<input type="text" placeholder="食材名稱" value="${ing}" style="flex:2;padding:4px 6px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.82rem;outline:none;">
+                <input type="number" placeholder="0" value="${g}" min="0" step="0.5" style="flex:1;padding:4px 6px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.82rem;outline:none;">
+                <span style="font-size:0.78rem;color:#666;">g</span>
+                <button onclick="this.parentElement.remove()" style="border:none;background:none;cursor:pointer;font-size:0.9rem;color:#e53935;">✕</button>`;
+              ingsEl.appendChild(row);
+            }
+            addIngRow(itemName, '');
+            form.querySelector('.acc-btn-add-ing').addEventListener('click', e => { e.stopPropagation(); addIngRow(); });
+            form.querySelector('.acc-btn-cancel').addEventListener('click', e => { e.stopPropagation(); form.remove(); });
+            form.querySelector('.acc-btn-save').addEventListener('click', e => {
+              e.stopPropagation();
+              const name = form.querySelector('.acc-new-name').value.trim();
+              const c    = form.querySelector('.acc-new-cat').value;
+              const ings = [];
+              ingsEl.querySelectorAll('div').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const ing = inputs[0]?.value.trim();
+                const g   = parseFloat(inputs[1]?.value);
+                if (ing && !isNaN(g) && g > 0) ings.push({ ingredient: ing, grams: g });
+              });
+              if (!name) { alert('請輸入料理名稱'); return; }
+              if (!ings.length) { alert('請至少新增一項食材'); return; }
+              DISH_DB[name] = { category: c, review: false, ingredients: ings };
+              DISH_NAMES.add(name);
+              DISH_BY_CAT[c] = DISH_BY_CAT[c] || [];
+              if (!DISH_BY_CAT[c].includes(name)) DISH_BY_CAT[c].push(name);
+              scheduleAutoSave();
+              form.remove();
+              // 重新觸發 accordion 更新
+              accordion.remove();
+              chip.style.outline = '';
+              chip.click();
+            });
+            accordion.appendChild(form);
+          });
+          chips.appendChild(addBtn);
+          accordion.appendChild(chips);
+          chip.insertAdjacentElement('afterend', accordion);
         });
       }
       return chip;
@@ -4623,7 +5664,7 @@ document.addEventListener("click", (e) => {
 });
 
 // ===== 多抽屜系統 =====
-const DRAWER_IDS = ['mgmt','export','hist','colors','cats'];
+const DRAWER_IDS = ['mgmt','export','hist','colors','cats','dishes'];
 
 function openDrawer(id) {
   DRAWER_IDS.forEach(d => {
@@ -4638,6 +5679,7 @@ function openDrawer(id) {
   if (id === 'hist')   { renderHistoryPanel(); }
   if (id === 'colors') { initMgmtColors(); rerenderDBPanels(); }
   if (id === 'cats')   { rerenderDBPanels(); qaInitSelects(); }
+  if (id === 'dishes') { renderDishPanel(); }
 }
 
 function closeAllDrawers() {
@@ -5921,6 +6963,245 @@ function mgmtColorInputChange(inp) {
 
 // initMgmtItems() called via initApp()
 
+
+
+// ===== 料理食材 Tooltip =====
+const _dishTooltip = document.createElement('div');
+_dishTooltip.style.cssText = `
+  position: fixed;
+  z-index: 99999;
+  background: #1a1a2e;
+  color: #e8f5e9;
+  border: 1.5px solid #2e7d32;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  pointer-events: none;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  min-width: 160px;
+  max-width: 240px;
+  display: none;
+  font-family: 'Noto Sans TC', sans-serif;
+`;
+document.body.appendChild(_dishTooltip);
+
+function showDishTooltip(item, e) {
+  const data = DISH_DB[item];
+  if (!data || !data.ingredients) return;
+  const isReview = data.review;
+  let html = `<div style="font-weight:700;font-size:0.88rem;color:#a5d6a7;margin-bottom:6px;border-bottom:1px solid #2e7d32;padding-bottom:4px;">🍽 ${item}</div>`;
+  data.ingredients.forEach(ing => {
+    html += `<div style="display:flex;justify-content:space-between;gap:12px;">
+      <span style="color:#e8f5e9;">${ing.ingredient}</span>
+      <span style="color:#81c784;font-weight:600;">${ing.grams}g</span>
+    </div>`;
+  });
+  if (isReview) html += `<div style="color:#ef9a9a;font-size:0.75rem;margin-top:4px;">⚠️ 待確認料理名稱</div>`;
+  _dishTooltip.innerHTML = html;
+  _dishTooltip.style.display = 'block';
+  positionDishTooltip(e);
+}
+
+function positionDishTooltip(e) {
+  const x = e.clientX + 16;
+  const y = e.clientY + 16;
+  _dishTooltip.style.left = '0px';
+  _dishTooltip.style.top  = '0px';
+  const w = _dishTooltip.offsetWidth;
+  const h = _dishTooltip.offsetHeight;
+  _dishTooltip.style.left = (x + w > window.innerWidth  ? e.clientX - w - 8 : x) + 'px';
+  _dishTooltip.style.top  = (y + h > window.innerHeight ? e.clientY - h - 8 : y) + 'px';
+}
+
+function hideDishTooltip() {
+  _dishTooltip.style.display = 'none';
+}
+
+// 全域委派：任何 sel-l2-inp 移入時檢查是否為料理
+document.addEventListener('mouseover', e => {
+  const inp = e.target;
+  if (inp && inp.classList && inp.classList.contains('sel-l2-inp')) {
+    const val = inp.value ? inp.value.trim() : '';
+    if (val && DISH_NAMES.has(val)) {
+      showDishTooltip(val, e);
+      return;
+    }
+  }
+  hideDishTooltip();
+});
+document.addEventListener('mousemove', e => {
+  if (_dishTooltip.style.display === 'none') return;
+  const inp = e.target;
+  if (inp && inp.classList && inp.classList.contains('sel-l2-inp')) {
+    positionDishTooltip(e);
+  } else {
+    hideDishTooltip();
+  }
+});
+
+// ===== 料理庫管理 =====
+let _dishActiveCat = '全部';
+let _dishEditingKey = null;
+
+const DISH_CATS = ['全部','蛋白質','白葉菜','綠葉菜','菇','瓜果','根莖','海帶','混炒','其他'];
+
+function dishIngRowHtml(ing = '', g = '') {
+  return `<div class="dish-ing-row dep-ing-row">
+    <div class="dep-ing-cell-name"><input type="text" placeholder="食材名稱" value="${ing}"></div>
+    <div class="dep-ing-cell-num"><input type="number" placeholder="0" value="${g}" min="0" step="0.5"></div>
+    <div class="dep-ing-cell-unit"><span class="dep-ing-unit">g</span></div>
+    <div class="dep-ing-cell-del"><button class="dep-ing-del" onclick="this.closest('.dish-ing-row').remove()" title="移除">✕</button></div>
+  </div>`;
+}
+
+function dishAddIngRow() {
+  document.getElementById('dish-new-ings').insertAdjacentHTML('beforeend', dishIngRowHtml());
+}
+
+function dishEditAddIngRow() {
+  document.getElementById('dishEditIngs').insertAdjacentHTML('beforeend', dishIngRowHtml());
+}
+
+function dishReadIngs(containerId) {
+  const rows = document.getElementById(containerId).querySelectorAll('tr.dish-ing-row, div.dish-ing-row');
+  const ings = [];
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const ing = inputs[0].value.trim();
+    const g   = parseFloat(inputs[1].value);
+    if (ing && !isNaN(g) && g > 0) ings.push({ ingredient: ing, grams: g });
+  });
+  return ings;
+}
+
+function dishSaveNew() {
+  const name = document.getElementById('dish-new-name').value.trim();
+  const cat  = document.getElementById('dish-new-cat').value;
+  const ings = dishReadIngs('dish-new-ings');
+  if (!name) { alert('請輸入料理名稱'); return; }
+  if (!ings.length) { alert('請至少新增一項食材'); return; }
+  DISH_DB[name] = { category: cat, review: false, ingredients: ings };
+  DISH_NAMES.add(name);
+  DISH_BY_CAT[cat] = DISH_BY_CAT[cat] || [];
+  if (!DISH_BY_CAT[cat].includes(name)) DISH_BY_CAT[cat].push(name);
+  // 清空表單
+  document.getElementById('dish-new-name').value = '';
+  document.getElementById('dish-new-ings').innerHTML = '';
+  scheduleAutoSave();
+  renderDishPanel();
+}
+
+function renderDishPanel() {
+  const search = (document.getElementById('dish-search')?.value || '').trim().toLowerCase();
+
+  // Cat tabs
+  const tabsEl = document.getElementById('dish-cat-tabs');
+  tabsEl.innerHTML = DISH_CATS.map(c =>
+    `<button class="dish-cat-tab ${c === _dishActiveCat ? 'active' : ''}" onclick="_dishActiveCat='${c}';renderDishPanel()">${c}</button>`
+  ).join('');
+
+  // 過濾
+  const allDishes = Object.keys(DISH_DB);
+  const filtered = allDishes.filter(name => {
+    const catOk = _dishActiveCat === '全部' || DISH_DB[name].category === _dishActiveCat;
+    const searchOk = !search || name.includes(search);
+    return catOk && searchOk;
+  });
+
+  // 依類別分組顯示
+  const byC = {};
+  filtered.forEach(name => {
+    const c = DISH_DB[name].category;
+    byC[c] = byC[c] || [];
+    byC[c].push(name);
+  });
+
+  const listEl = document.getElementById('dish-list');
+  if (!filtered.length) { listEl.innerHTML = '<div style="color:#90a4ae;font-size:0.88rem;">沒有符合的料理</div>'; return; }
+
+  let html = '';
+  const catOrder = ['蛋白質','白葉菜','綠葉菜','菇','瓜果','根莖','海帶','混炒','其他'];
+  catOrder.forEach(cat => {
+    if (!byC[cat] || !byC[cat].length) return;
+    html += `<div class="dish-cat-section-title">${cat} <span style="font-size:0.75rem;opacity:0.6;">${byC[cat].length}道</span></div>`;
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">';
+    byC[cat].forEach(name => {
+      const isReview = DISH_DB[name].review;
+      html += `<div class="dish-chip ${isReview ? 'review' : ''}" onclick="openDishEdit('${name.replace(/'/g,"\'")}',event)">${isReview ? '⚠️ ' : ''}${name}</div>`;
+    });
+    html += '</div>';
+  });
+  listEl.innerHTML = html;
+}
+
+function openDishEdit(name, e) {
+  _dishEditingKey = name;
+  const data = DISH_DB[name];
+  if (!data) return;
+  document.getElementById('dishEditTitle').textContent = `✏️ ${name}`;
+  document.getElementById('dishEditName').value = name;
+  document.getElementById('dishEditCat').value = data.category;
+  const ingsEl = document.getElementById('dishEditIngs');
+  ingsEl.innerHTML = data.ingredients.map(i => dishIngRowHtml(i.ingredient, i.grams)).join('');
+  const popup = document.getElementById('dishEditPopup');
+  popup.style.display = 'block';
+  // 定位
+  const x = Math.min(e.clientX, window.innerWidth - 340);
+  const y = Math.min(e.clientY, window.innerHeight - 480);
+  popup.style.left = Math.max(8, x) + 'px';
+  popup.style.top  = Math.max(8, y) + 'px';
+}
+
+function dishEditSave() {
+  const oldName = _dishEditingKey;
+  const newName = document.getElementById('dishEditName').value.trim();
+  const cat     = document.getElementById('dishEditCat').value;
+  const ings    = dishReadIngs('dishEditIngs');
+  if (!newName) { alert('料理名稱不能為空'); return; }
+  if (!ings.length) { alert('請至少保留一項食材'); return; }
+
+  // 如果改名，刪舊的
+  if (oldName && oldName !== newName) {
+    const oldCat = DISH_DB[oldName]?.category;
+    delete DISH_DB[oldName];
+    DISH_NAMES.delete(oldName);
+    if (oldCat && DISH_BY_CAT[oldCat]) {
+      DISH_BY_CAT[oldCat] = DISH_BY_CAT[oldCat].filter(n => n !== oldName);
+    }
+  }
+
+  DISH_DB[newName] = { category: cat, review: false, ingredients: ings };
+  DISH_NAMES.add(newName);
+  DISH_BY_CAT[cat] = DISH_BY_CAT[cat] || [];
+  if (!DISH_BY_CAT[cat].includes(newName)) DISH_BY_CAT[cat].push(newName);
+
+  document.getElementById('dishEditPopup').style.display = 'none';
+  scheduleAutoSave();
+  renderDishPanel();
+}
+
+function dishEditDelete() {
+  const name = _dishEditingKey;
+  if (!name || !confirm(`確定要刪除「${name}」嗎？`)) return;
+  const cat = DISH_DB[name]?.category;
+  delete DISH_DB[name];
+  DISH_NAMES.delete(name);
+  if (cat && DISH_BY_CAT[cat]) {
+    DISH_BY_CAT[cat] = DISH_BY_CAT[cat].filter(n => n !== name);
+  }
+  document.getElementById('dishEditPopup').style.display = 'none';
+  scheduleAutoSave();
+  renderDishPanel();
+}
+
+// 點空白關閉編輯浮層
+document.addEventListener('mousedown', e => {
+  const popup = document.getElementById('dishEditPopup');
+  if (popup && popup.style.display !== 'none' && !popup.contains(e.target)) {
+    popup.style.display = 'none';
+  }
+});
 
 </script>
 </body>
