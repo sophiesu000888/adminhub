@@ -2734,18 +2734,9 @@ function manualSync() {
 }
 
 
+function showSyncToast() {
   var t = document.getElementById('sync-toast');
   if (!t) {
-    t = document.createElement('div');
-    t.id = 'sync-toast';
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e7b4b;color:white;font-family:Patrick Hand,sans-serif;font-size:20px;font-weight:700;padding:10px 24px;border-radius:24px;box-shadow:2px 2px 0 rgba(0,0,0,.2);z-index:9999;transition:opacity .4s;';
-    document.body.appendChild(t);
-  }
-  t.textContent = '✅ 已從班表同步 F20 資料';
-  t.style.opacity = '1';
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function() { t.style.opacity = '0'; }, 2500);
-}
 
 // ═══════════════════════════════════════
 // INIT
