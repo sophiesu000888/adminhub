@@ -1836,37 +1836,75 @@ button {
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
       <button onclick="addNewCategoryFromPanel()" style="background:#43a047;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➕ 新增類別</button>
-      <button onclick="deleteCurrentCategoryFromPanel()" style="background:#c62828;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🗑️ 刪除類別</button>
       <span id="catPanelActiveLabel" style="font-size:0.85rem;color:#90a4ae;"></span>
     </div>
     <div id="catTabsBar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;"></div>
     <div id="catTabContent"></div>
     <!-- 品項操作浮層 -->
     <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;min-width:220px;max-width:300px;">
-      <div style="font-weight:700;font-size:0.88rem;color:#37474f;margin-bottom:10px;" id="catPopupTitle">編輯品項</div>
-      <input id="catPopupInput" type="text" style="width:100%;padding:6px 9px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;font-size:0.85rem;margin-bottom:8px;box-sizing:border-box;" placeholder="品項名稱">
-      <div style="font-size:0.85rem;color:#90a4ae;margin-bottom:4px;">移到類別：</div>
-      <select id="catPopupMoveTarget" style="width:100%;margin-bottom:10px;font-size:0.85rem;padding:5px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;">
-      </select>
-      <div id="catPopupGroupRow" style="display:none;">
-        <div style="font-size:0.85rem;color:#2e7d32;font-weight:700;margin-bottom:4px;">移到分組：</div>
-        <select id="catPopupGroupTarget" style="width:100%;margin-bottom:8px;font-size:0.85rem;padding:5px 8px;border:1.5px solid #a5d6a7;border-radius:5px;font-family:inherit;background:#f1f8f1;color:#1b5e20;">
-        </select>
-        <button onclick="catPopupMoveToGroup()" style="width:100%;margin-bottom:8px;background:#2e7d32;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">📂 移到此分組</button>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:0.88rem;color:#37474f;margin-bottom:6px;" id="catPopupTitle">編輯品項</div>
+          <input id="catPopupInput" type="text" style="width:100%;padding:6px 9px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;font-size:0.85rem;box-sizing:border-box;" placeholder="品項名稱">
+        </div>
+        <!-- 健康餐勾選（只在主菜顯示） -->
+        <label id="catPopupStarRow" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;user-select:none;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:8px 10px;flex-shrink:0;min-width:52px;">
+          <input type="checkbox" id="catPopupStarCb" onchange="catPopupToggleStar()" style="width:18px;height:18px;accent-color:#2e7d32;cursor:pointer;">
+          <span style="font-size:1.1rem;">🌿</span>
+        </label>
       </div>
-      <label id="catPopupStarRow" style="display:none;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:0.9rem;font-weight:700;color:#2e7d32;user-select:none;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:6px;padding:7px 10px;">
-        <input type="checkbox" id="catPopupStarCb" onchange="catPopupToggleStar()" style="width:16px;height:16px;accent-color:#2e7d32;cursor:pointer;flex-shrink:0;">
-        🌿 健康餐（品名加 * ）
-      </label>
       <!-- 新增至料理BD（只在混炒類別顯示） -->
       <div id="catPopupDishBDRow" style="display:none;margin-bottom:8px;">
         <button onclick="catPopupAddToDishDB()" style="width:100%;background:#7b1fa2;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">🍽️ 新增至料理BD（待確認）</button>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button onclick="catPopupSave()" style="flex:1;background:#1976d2;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">✏️ 改名</button>
-        <button onclick="catPopupMove()" style="flex:1;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">➡️ 移動</button>
+        <button onclick="toggleCatMoveSection()" id="catPopupMoveBtn" style="flex:1;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🔧 修改</button>
         <button onclick="catPopupDelete()" style="flex:1;background:#c62828;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🗑️ 刪除</button>
         <button onclick="document.getElementById('catItemPopup').style.display='none'" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
+      </div>
+      <!-- 修改類別區塊（預設隱藏，在按鈕下方） -->
+      <div id="catPopupMoveSection" style="display:none;margin-top:10px;border-top:1.5px solid #e0e0e0;padding-top:10px;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <thead>
+            <tr>
+              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:50%;">目前類別：</th>
+              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:50%;">修改類別為：</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding-right:8px;">
+                <div id="catPopupCurrentCatDisplay" style="padding:5px 8px;border:1.5px solid #b0bec5;border-radius:5px;background:#f5f5f5;color:#37474f;font-weight:700;"></div>
+              </td>
+              <td>
+                <select id="catPopupMoveTarget" style="width:100%;padding:5px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;font-size:0.85rem;"></select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div id="catPopupGroupRow" style="display:none;margin-top:8px;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+            <thead>
+              <tr>
+                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:50%;">目前分組：</th>
+                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:50%;">修改分組為：</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding-right:8px;">
+                  <div id="catPopupCurrentGroupDisplay" style="padding:5px 8px;border:1.5px solid #a5d6a7;border-radius:5px;background:#f1f8f1;color:#1b5e20;font-weight:700;"></div>
+                </td>
+                <td>
+                  <select id="catPopupGroupTarget" style="width:100%;padding:5px 8px;border:1.5px solid #a5d6a7;border-radius:5px;font-family:inherit;background:#f1f8f1;color:#1b5e20;font-size:0.85rem;"></select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <button onclick="catPopupMoveToGroup()" style="width:100%;margin-top:6px;background:#2e7d32;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">📂 移到此分組</button>
+        </div>
+        <button onclick="catPopupMove()" style="width:100%;margin-top:8px;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">✓ 確認修改類別</button>
       </div>
     </div>
   </div>
@@ -5375,12 +5413,36 @@ function renderCatDB() {
     btn.style.borderColor = style.titleBg;
     btn.style.color = isActive ? "#fff" : style.titleBg;
     btn.style.background = isActive ? style.titleBg : "#fff";
-    btn.textContent = cat;
+    btn.style.display = 'inline-flex';
+    btn.style.alignItems = 'center';
+    btn.style.gap = '4px';
+    btn.style.paddingRight = '6px';
     btn.dataset.catKey = cat;
+
+    const btnLabel = document.createElement('span');
+    btnLabel.textContent = cat;
+    btn.appendChild(btnLabel);
+
+    // 刪除按鈕（直接在 tab 上）
+    const delX = document.createElement('span');
+    delX.textContent = '✕';
+    delX.title = `刪除「${cat}」類別`;
+    delX.style.cssText = 'font-size:1.05rem;opacity:0.6;margin-left:4px;line-height:1;padding:1px 4px;border-radius:3px;cursor:pointer;transition:opacity .1s;';
+    delX.addEventListener('mouseenter', () => { delX.style.opacity = '1'; delX.style.background = 'rgba(255,0,0,0.2)'; });
+    delX.addEventListener('mouseleave', () => { delX.style.opacity = '0.6'; delX.style.background = 'none'; });
+    delX.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`確定刪除「${cat}」類別及其所有品項？`)) return;
+      delete DB[cat];
+      scheduleAutoSave();
+      renderCatDB();
+    });
+    btn.appendChild(delX);
+
     btn.addEventListener("click", () => {
       _catPanelActiveCat = cat;
       tabsBar.querySelectorAll(".cat-tab-btn").forEach(b => {
-        const s = CAT_STYLES[b.textContent] || { titleBg:"#607d8b" };
+        const s = CAT_STYLES[b.querySelector('span')?.textContent || b.textContent] || { titleBg:"#607d8b" };
         b.style.background = "#fff";
         b.style.color = s.titleBg;
         b.classList.remove("active");
@@ -5539,87 +5601,6 @@ function renderCatDB() {
             });
             chips.appendChild(dc);
           });
-          // 加一個「新增料理」按鈕
-          const addBtn = document.createElement('div');
-          addBtn.style.cssText = `
-            display:inline-flex;align-items:center;
-            background:#fff8e7;color:var(--ink);
-            border:2px dashed var(--ink);
-            border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
-            padding:4px 10px;font-size:0.82rem;font-weight:700;
-            cursor:pointer;font-family:'Kalam','Noto Sans TC',sans-serif;
-            transition:all 0.1s;
-          `;
-          addBtn.textContent = '＋ 新增料理';
-          addBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            // 若已展開表單就收起
-            const existingForm = accordion.querySelector('.acc-new-dish-form');
-            if (existingForm) { existingForm.remove(); return; }
-            // 建立 inline 新增表單
-            const form = document.createElement('div');
-            form.className = 'acc-new-dish-form';
-            form.style.cssText = 'margin-top:10px;padding:10px;background:#fff8e7;border:2px solid var(--ink);border-radius:8px;box-shadow:2px 2px 0 var(--ink);display:flex;flex-direction:column;gap:6px;';
-            const CAT_OPTIONS = ['蛋白質','白葉菜','綠葉菜','菇','瓜果','根莖','海帶','混炒','其他'];
-            form.innerHTML = `
-              <div style="font-weight:700;font-size:0.88rem;color:var(--ink);margin-bottom:2px;">＋ 新增料理</div>
-              <div style="display:flex;gap:6px;">
-                <input type="text" class="acc-new-name" placeholder="料理名稱" value="${itemName}" style="flex:2;padding:5px 8px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.88rem;outline:none;">
-                <select class="acc-new-cat" style="flex:1;padding:5px 6px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.82rem;">
-                  ${CAT_OPTIONS.map(c=>`<option value="${c}">${c}</option>`).join('')}
-                </select>
-              </div>
-              <div class="acc-new-ings" style="display:flex;flex-direction:column;gap:4px;"></div>
-              <div style="display:flex;gap:6px;">
-                <button class="acc-btn-add-ing" style="background:#fff;border:2px solid var(--ink);border-radius:6px;padding:4px 10px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">+ 食材</button>
-                <button class="acc-btn-save" style="background:#2d2d2d;color:#fff;border:2px solid var(--ink);border-radius:6px;padding:4px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">✓ 儲存</button>
-                <button class="acc-btn-cancel" style="background:#f5f3ee;border:2px solid var(--ink);border-radius:6px;padding:4px 10px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;">取消</button>
-              </div>
-            `;
-            // 自動猜類別（從 DISH_DB 或 itemName 所在 cat）
-            const catSel = form.querySelector('.acc-new-cat');
-            if (cat) { catSel.value = cat; }
-            // 預填一列食材
-            const ingsEl = form.querySelector('.acc-new-ings');
-            function addIngRow(ing='', g='') {
-              const row = document.createElement('div');
-              row.style.cssText='display:flex;gap:4px;align-items:center;';
-              row.innerHTML = `<input type="text" placeholder="食材名稱" value="${ing}" style="flex:2;padding:4px 6px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.82rem;outline:none;">
-                <input type="number" placeholder="0" value="${g}" min="0" step="0.5" style="flex:1;padding:4px 6px;border:2px solid var(--ink);border-radius:6px;font-family:inherit;font-size:0.82rem;outline:none;">
-                <span style="font-size:0.78rem;color:#666;">g</span>
-                <button onclick="this.parentElement.remove()" style="border:none;background:none;cursor:pointer;font-size:0.9rem;color:#e53935;">✕</button>`;
-              ingsEl.appendChild(row);
-            }
-            addIngRow(itemName, '');
-            form.querySelector('.acc-btn-add-ing').addEventListener('click', e => { e.stopPropagation(); addIngRow(); });
-            form.querySelector('.acc-btn-cancel').addEventListener('click', e => { e.stopPropagation(); form.remove(); });
-            form.querySelector('.acc-btn-save').addEventListener('click', e => {
-              e.stopPropagation();
-              const name = form.querySelector('.acc-new-name').value.trim();
-              const c    = form.querySelector('.acc-new-cat').value;
-              const ings = [];
-              ingsEl.querySelectorAll('div').forEach(row => {
-                const inputs = row.querySelectorAll('input');
-                const ing = inputs[0]?.value.trim();
-                const g   = parseFloat(inputs[1]?.value);
-                if (ing && !isNaN(g) && g > 0) ings.push({ ingredient: ing, grams: g });
-              });
-              if (!name) { alert('請輸入料理名稱'); return; }
-              if (!ings.length) { alert('請至少新增一項食材'); return; }
-              DISH_DB[name] = { category: c, review: false, ingredients: ings };
-              DISH_NAMES.add(name);
-              DISH_BY_CAT[c] = DISH_BY_CAT[c] || [];
-              if (!DISH_BY_CAT[c].includes(name)) DISH_BY_CAT[c].push(name);
-              scheduleAutoSave();
-              form.remove();
-              // 重新觸發 accordion 更新
-              accordion.remove();
-              chip.style.outline = '';
-              chip.click();
-            });
-            accordion.appendChild(form);
-          });
-          chips.appendChild(addBtn);
           accordion.appendChild(chips);
           chip.insertAdjacentElement('afterend', accordion);
         });
@@ -6867,7 +6848,6 @@ function openCatItemPopup(cat, itemName, anchorEl) {
   _catPopupItem = itemName;
   const popup = document.getElementById("catItemPopup");
   const inp = document.getElementById("catPopupInput");
-  const moveTarget = document.getElementById("catPopupMoveTarget");
   const title = document.getElementById("catPopupTitle");
 
   title.textContent = "品項：" + itemName;
@@ -6880,26 +6860,26 @@ function openCatItemPopup(cat, itemName, anchorEl) {
     const hasStar = itemName.endsWith("*");
     starRow.style.display = "flex";
     starCb.checked = hasStar;
-
-    // 顯示分組選單
     const groupRow = document.getElementById("catPopupGroupRow");
     const groupSel = document.getElementById("catPopupGroupTarget");
+    const curGroupDisp = document.getElementById("catPopupCurrentGroupDisplay");
     const groups = MENU_GROUPS["主菜"] || [];
     if (groups.length) {
-      // 找目前所在分組
       const currentGroup = groups.find(g =>
         g.items.some(i => i.replace(/\*$/, '') === itemName.replace(/\*$/, ''))
       );
       groupSel.innerHTML = groups.map(g =>
         `<option value="${g.label}" ${currentGroup && g.label === currentGroup.label ? 'selected' : ''}>${g.label}</option>`
       ).join('');
-      groupRow.style.display = "block";
+      if (curGroupDisp) curGroupDisp.textContent = currentGroup ? currentGroup.label : '（未分組）';
+      if (groupRow) groupRow.style.display = 'none'; // 預設隱藏
     } else {
-      groupRow.style.display = "none";
+      if (groupRow) groupRow.style.display = "none";
     }
   } else {
     starRow.style.display = "none";
-    document.getElementById("catPopupGroupRow").style.display = "none";
+    const groupRow = document.getElementById("catPopupGroupRow");
+    if (groupRow) groupRow.style.display = "none";
   }
 
   // 混炒類別：顯示「新增至料理BD」按鈕
@@ -6912,11 +6892,18 @@ function openCatItemPopup(cat, itemName, anchorEl) {
     }
   }
 
-  // 填入可移動的類別（排除目前所在類別）
+  // 填入可移動的類別，並顯示目前類別，預設隱藏整個區塊
+  const moveSection = document.getElementById("catPopupMoveSection");
+  const moveTarget  = document.getElementById("catPopupMoveTarget");
+  const curCatDisp  = document.getElementById("catPopupCurrentCatDisplay");
+  if (curCatDisp) curCatDisp.textContent = cat;
   moveTarget.innerHTML = Object.keys(DB)
     .filter(c => c !== cat)
     .map(c => `<option value="${c}">${c}</option>`)
     .join('');
+  if (moveSection) moveSection.style.display = 'none';
+  const moveBtn = document.getElementById('catPopupMoveBtn');
+  if (moveBtn) moveBtn.textContent = '🔧 修改類別';
 
   // 定位浮層
   const rect = anchorEl.getBoundingClientRect();
@@ -7069,6 +7056,21 @@ function catPopupSave() {
   popup.style.display = "none";
   rerenderDBPanels();
   initMgmtItems();
+}
+
+function toggleCatMoveSection() {
+  const moveSection = document.getElementById("catPopupMoveSection");
+  const moveBtn     = document.getElementById("catPopupMoveBtn");
+  const groupRow    = document.getElementById("catPopupGroupRow");
+  const isHidden    = !moveSection || moveSection.style.display === 'none';
+  if (isHidden) {
+    if (moveSection) moveSection.style.display = 'block';
+    if (groupRow && _catPopupCat === '主菜') groupRow.style.display = 'block';
+    if (moveBtn) moveBtn.textContent = '🔧 修改 ▲';
+  } else {
+    if (moveSection) moveSection.style.display = 'none';
+    if (moveBtn) moveBtn.textContent = '🔧 修改';
+  }
 }
 
 function catPopupMove() {
