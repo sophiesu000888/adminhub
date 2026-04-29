@@ -577,21 +577,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   overflow: hidden;
 }
 .dish-modal-header {
-  padding: 18px 24px 14px;
+  padding: 12px 20px 10px;
   border-bottom: 2px solid var(--border2);
   flex-shrink: 0;
 }
 .dish-modal-header h3 {
-  font-size: 26px; font-weight: 700; margin: 0;
+  font-size: 22px; font-weight: 700; margin: 0;
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   display: flex; align-items: center; gap: 10px;
 }
 .dish-modal-body {
-  flex: 1; overflow-y: auto; padding: 16px 24px;
+  flex: 1; overflow-y: auto; padding: 12px 20px;
   -webkit-overflow-scrolling: touch;
 }
 .dish-modal-footer {
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-top: 2px solid var(--border2);
   flex-shrink: 0;
   display: flex; gap: 10px; justify-content: flex-end;
@@ -600,13 +600,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   font-size: 18px; background: #f0e6fb; color: #8e44ad;
   border: 1.5px solid #8e44ad; border-radius: 20px; padding: 2px 10px;
 }
-.dish-modal-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.dish-modal-field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
 .dish-modal-field label {
-  font-size: 22px; font-weight: 700; color: var(--dim);
+  font-size: 18px; font-weight: 700; color: var(--dim);
 }
 .dish-modal-field input, .dish-modal-field select, .dish-modal-field textarea {
-  padding: 7px 10px; border: 2px solid var(--border2);
-  border-radius: 6px; font-size: 24px;
+  padding: 5px 10px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 20px;
   font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2); color: var(--ink);
   transition: border-color .1s;
@@ -617,16 +617,16 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
 /* ingredient rows */
 .ing-section-label {
-  font-size: 22px; font-weight: 700; color: var(--dim);
-  margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  font-size: 18px; font-weight: 700; color: var(--dim);
+  margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
 }
-.ing-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.ing-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 7px; }
 .ing-row {
-  display: flex; gap: 5px; align-items: center;
+  display: flex; gap: 4px; align-items: center;
 }
 .ing-row input {
-  padding: 6px 8px; border: 2px solid var(--border2);
-  border-radius: 6px; font-size: 22px;
+  padding: 4px 7px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 18px;
   font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2); color: var(--ink);
   transition: border-color .1s; min-width: 0;
@@ -637,26 +637,26 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .ing-row .ing-unit { flex: 1; }
 .ing-del-btn {
   background: none; border: none; cursor: pointer;
-  color: var(--border2); font-size: 22px; padding: 2px 5px;
+  color: var(--border2); font-size: 18px; padding: 2px 4px;
   border-radius: 4px; transition: color .1s; line-height: 1; flex-shrink: 0;
 }
 .ing-del-btn:hover { color: var(--red); }
 .add-ing-btn {
-  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 22px;
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 18px;
   background: #f0fff4; color: #2e7d32;
   border: 2px solid #2e7d32;
   border-radius: 4px 10px 5px 9px / 9px 5px 10px 4px;
-  padding: 5px 14px; cursor: pointer;
+  padding: 4px 12px; cursor: pointer;
   box-shadow: 2px 2px 0 #2e7d32; transition: all .1s;
 }
 .add-ing-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 #2e7d32; }
 .dish-modal-review-toggle {
-  display: flex; align-items: flex-start; gap: 10px;
-  font-size: 22px; font-weight: 700; color: #8e44ad;
-  padding: 8px 0 4px;
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 18px; font-weight: 700; color: #8e44ad;
+  padding: 6px 0 4px;
 }
 .dish-modal-review-toggle input[type="checkbox"] {
-  width: 20px; height: 20px; accent-color: #8e44ad; cursor: pointer; flex-shrink: 0; margin-top: 3px;
+  width: 17px; height: 17px; accent-color: #8e44ad; cursor: pointer; flex-shrink: 0; margin-top: 2px;
 }
 .dish-modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 
@@ -1191,7 +1191,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       </div>
       <div class="dish-modal-field">
         <label>備註</label>
-        <textarea id="dm-note" rows="2" placeholder="製作注意事項…" style="resize:none;"></textarea>
+        <textarea id="dm-note" rows="1" placeholder="製作注意事項…" style="resize:none;"></textarea>
       </div>
       <div class="dish-modal-review-toggle">
         <input type="checkbox" id="dm-review">
@@ -1200,7 +1200,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <hr style="margin:10px 0;border:none;border-top:1.5px solid var(--border2);">
       <div class="ing-section-label">
         🥩 食材清單
-        <span style="font-size:18px;font-weight:400;color:var(--muted);">（名稱 / 用量 / 單位）</span>
+        <span style="font-size:15px;font-weight:400;color:var(--muted);">（食材名稱 / 用量 / 單位）</span>
       </div>
       <div class="ing-list" id="dm-ing-list"></div>
       <button class="add-ing-btn" onclick="addIngRow()">＋ 新增食材</button>
@@ -2530,7 +2530,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       tbody.appendChild(grpTr);
 
       rows.forEach(([name, data]) => {
-        const ingCount = (data.ingredients || []).length;
+        const ingCount = (data.ingredients || []).filter(i => i && (i.ingredient || i.name)).length;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="font-weight:700;font-size:28px;">${esc(name)}</td>
@@ -2611,23 +2611,26 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const list = document.getElementById('dm-ing-list');
     const row = document.createElement('div');
     row.className = 'ing-row';
+    // 相容兩種格式：menu.html 用 {ingredient, grams}，items.html 用 {name, qty, unit}
+    const name = (ing && (ing.ingredient || ing.name)) || '';
+    const qty  = (ing && (ing.grams != null ? ing.grams : ing.qty)) || '';
+    const unit = (ing && ing.unit) || 'g';
     row.innerHTML = `
-      <input class="ing-name" type="text" placeholder="食材名稱" value="${esc((ing||{}).name||'')}">
-      <input class="ing-qty"  type="text" placeholder="用量" value="${esc(String((ing||{}).qty||''))}">
-      <input class="ing-unit" type="text" placeholder="單位" value="${esc((ing||{}).unit||'')}">
+      <input class="ing-name" type="text" placeholder="食材名稱" value="${esc(String(name))}">
+      <input class="ing-qty"  type="text" placeholder="用量" value="${esc(String(qty))}">
+      <input class="ing-unit" type="text" placeholder="單位" value="${esc(String(unit))}">
       <button class="ing-del-btn" onclick="this.closest('.ing-row').remove()" title="移除">✕</button>
     `;
     list.appendChild(row);
-    // focus new empty row
     if (!ing) row.querySelector('.ing-name').focus();
   }
 
   function collectIngredients() {
     return [...document.querySelectorAll('#dm-ing-list .ing-row')].map(row => ({
-      name: row.querySelector('.ing-name').value.trim(),
-      qty:  row.querySelector('.ing-qty').value.trim(),
-      unit: row.querySelector('.ing-unit').value.trim(),
-    })).filter(i => i.name);
+      ingredient: row.querySelector('.ing-name').value.trim(),
+      grams:      row.querySelector('.ing-qty').value.trim(),
+      unit:       row.querySelector('.ing-unit').value.trim(),
+    })).filter(i => i.ingredient);
   }
 
   // ── Save dish ──
