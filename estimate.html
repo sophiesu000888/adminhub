@@ -5,6 +5,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -409,7 +410,7 @@ select.ds {
 
 /* ── SIDE DRAWER ── */
 .side-drawer {
-  position: fixed; top: 44px; right: -45vw; width: 40vw; max-width: 95vw;
+  position: fixed; top: 44px; right: -61vw; width: 60vw; max-width: 95vw;
   height: calc(100vh - 44px); background: var(--paper); z-index: 600;
   border-left: 2.5px solid var(--border); box-shadow: -4px 0 20px rgba(0,0,0,.15);
   transition: right .25s ease; display: flex; flex-direction: column;
@@ -607,6 +608,7 @@ select.ds {
   <div class="drawer-body">
     <div class="sec-title" style="margin-top:4px;">廠區出貨設定</div>
     <div id="site-filter-bar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
+    <button onclick="recompAllAndRender()" style="width:100%;margin-bottom:14px;padding:10px;background:#2d2d2d;color:white;border:none;border-radius:8px;font-size:26px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:3px 3px 0 rgba(0,0,0,0.3);">🔄 全部重算（修正顯示錯誤）</button>
     <div class="acc-list" id="acc-list"></div>
   </div>
 </div>
@@ -1581,7 +1583,7 @@ function renderAccBlock(id, content) {
   var badge = getBlockBadge(id);
   var emoji = {F20:'🏢',AP6B:'🏢',P8:'🍱','群聯':'🏭','央廚':'🍳','聯電':'🏭'}[id]||'🏢';
   var desc  = {F20:'午餐固定 '+f20Cfg.lunchBase+'隻・15:00 +'+f20Cfg.lunch1500+'隻・晚餐 +'+f20Cfg.dinnerQty+'隻',
-               AP6B:'固定午餐・奇數週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
+               AP6B:'固定午餐・偶數週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
                '群聯':'主餐'+qlCfg.main+'隻/天 / 雙拼'+qlCfg.dbl+'隻/天','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
                '聯電':'主餐'+lianDianCfg.main+'隻 / 雙拼'+lianDianCfg.dbl+'隻 / 晚餐'+lianDianCfg.dinner+'隻（以日為單位）'}[id]||'';
   var headerCls = 'acc-header' + (open?' open':'');
@@ -2092,6 +2094,12 @@ function buildAP6BBlock(tmw) {
   return qtyPanel+
     '<div style="font-size:24px;color:var(--dim);margin-bottom:10px;font-family:&apos;Patrick Hand&apos;,sans-serif;"><b style="color:var(--purple);">偶數週</b>有晚餐（ISO 週次判斷）</div>'+
     cal;
+}
+
+function recompAllAndRender() {
+  SITES.forEach(function(site) { recompSite(site); });
+  renderConfig(); renderOverview(); renderTopStats(); updStockCalc(); saveState();
+  alert('✅ 全部重算完成！');
 }
 
 function applyAP6BQty(){
