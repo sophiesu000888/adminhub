@@ -216,6 +216,15 @@ thead th:first-child { width: 36px; text-align: center; }
 thead th.col-site  { width: 100px; cursor: pointer; user-select: none; white-space: nowrap; }
 thead th.col-site:hover { background: rgba(45,45,45,0.06); }
 thead th.col-site .site-toggle-icon { font-size: 18px; opacity: 0.5; margin-left: 4px; }
+
+/* 一覽表廠區欄個別折疊 */
+.mx-site-col-collapsed { width: 18px !important; min-width: 18px !important; max-width: 18px !important; padding: 0 !important; overflow: hidden !important; white-space: nowrap; cursor: pointer; }
+.mx-site-col-collapsed .mx-site-label { display: none; }
+.mx-site-col-collapsed .mx-site-arrow { display: none; }
+.mx-site-col-collapsed::after { content: ''; display: block; height: 100%; }
+th.mx-site-col-collapsed { text-align: center; font-size: 0; }
+th.mx-site-col-collapsed::after { content: '⇒'; font-size: 14px; color: rgba(255,255,255,0.7); display: block; line-height: 1; padding-top: 4px; }
+td.mx-site-col-collapsed { font-size: 0 !important; color: transparent !important; }
 /* 折疊狀態 */
 .matrix-site-collapsed thead th.col-site { width: 14px; padding: 0; overflow: hidden; }
 .matrix-site-collapsed thead th.col-site .site-col-label { display: none; }
@@ -2424,11 +2433,26 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     thH.className = 'col-healthy';
     thH.style.cssText = 'width:96px;min-width:96px;text-align:center;white-space:nowrap;';
     hr.appendChild(thH);
-    visibleSites.forEach(site => {
+    // 折疊狀態：記錄哪些廠區被折疊
+    if (!window._mxCollapsedSites) window._mxCollapsedSites = new Set();
+
+    visibleSites.forEach((site, siteIdx) => {
       const th = document.createElement('th');
-      th.textContent = site;
+      const isCollapsed = window._mxCollapsedSites.has(site);
+      const label = document.createElement('span');
+      label.className = 'mx-site-label';
+      label.textContent = site;
+      th.appendChild(label);
       if (site.includes('健')) th.classList.add('col-ken');
       else if (site.includes('風')) th.classList.add('col-feng');
+      if (isCollapsed) th.classList.add('mx-site-col-collapsed');
+      th.style.cursor = 'pointer';
+      th.title = isCollapsed ? `展開「${site}」` : `點擊折疊「${site}」`;
+      th.addEventListener('click', () => {
+        if (window._mxCollapsedSites.has(site)) window._mxCollapsedSites.delete(site);
+        else window._mxCollapsedSites.add(site);
+        renderMatrix();
+      });
       hr.appendChild(th);
     });
     thead.appendChild(hr);
@@ -2477,6 +2501,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           const td = document.createElement('td');
           if (site.includes('健')) td.classList.add('col-ken');
           else if (site.includes('風')) td.classList.add('col-feng');
+          if (window._mxCollapsedSites && window._mxCollapsedSites.has(site)) {
+            td.classList.add('mx-site-col-collapsed');
+          }
           const key = name + '|||' + site;
           const prices = priceMap[key];
           if (prices && prices.length) {
