@@ -1138,7 +1138,22 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <span class="dish-stats" id="dish-stats"></span>
       <button class="btn" style="margin-left:auto;font-size:26px;padding:6px 16px;" onclick="openDishModal(null)">＋ 新增料理</button>
     </div>
-    <div class="dish-grid" id="dish-grid"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">料理名稱</th>
+            <th class="col-cat">類別</th>
+            <th style="min-width:80px;white-space:nowrap;">食材</th>
+            <th style="min-width:120px;">狀態</th>
+            <th style="min-width:200px;">備註</th>
+            <th class="col-del"></th>
+          </tr>
+        </thead>
+        <tbody id="dish-tbody"></tbody>
+      </table>
+      <div id="dish-empty-msg" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:30px;">料理庫是空的，點右上角「＋ 新增料理」開始建立</div>
+    </div>
   </div>
 
 </div>
@@ -2450,12 +2465,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (allCats.includes(cur)) sel.value = cur;
   }
 
-  // ── Render dish grid ──
+  // ── Render dish table ──
   function renderDishDB() {
-    const grid  = document.getElementById('dish-grid');
-    const stats = document.getElementById('dish-stats');
-    console.log('[DishDB] renderDishDB called, grid=', grid, 'DISH_DB=', DISH_DB);
-    if (!grid) { console.warn('[DishDB] dish-grid not found!'); return; }
+    const tbody = document.getElementById('dish-tbody');
+    const stats  = document.getElementById('dish-stats');
+    const empty  = document.getElementById('dish-empty-msg');
+    console.log('[DishDB] renderDishDB called, tbody=', tbody, 'DISH_DB=', DISH_DB);
+    if (!tbody) { console.warn('[DishDB] dish-tbody not found!'); return; }
 
     let entries = Object.entries(DISH_DB);
     const total = entries.length;
@@ -2467,36 +2483,56 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
     if (stats) stats.innerHTML = `共 <strong>${total}</strong> 道料理，顯示 <strong>${entries.length}</strong> 筆`;
 
-    grid.innerHTML = '';
+    tbody.innerHTML = '';
     if (!entries.length) {
-      grid.innerHTML = `<div class="dish-empty-msg">${total === 0 ? '料理庫是空的，點右上角「＋ 新增料理」開始建立' : '沒有符合條件的料理'}</div>`;
+      if (empty) empty.style.display = '';
       return;
     }
+    if (empty) empty.style.display = 'none';
 
     entries.sort(([a], [b]) => a.localeCompare(b, 'zh-TW'));
+
+    // 依類別分組
+    const catMap = {};
     entries.forEach(([name, data]) => {
-      const card = document.createElement('div');
-      card.className = 'dish-card' + (data.review ? ' review-card' : '');
-      const ingCount = (data.ingredients || []).length;
-      const ingLabel = ingCount > 0
-        ? `<span class="dish-ing-count">🥩 ${ingCount} 項食材</span>`
-        : `<span class="dish-ing-count empty">⚠️ 尚無食材</span>`;
-      card.innerHTML = `
-        <div class="dish-card-name">
-          ${esc(name)}
-          ${data.review ? '<span class="dish-review-badge">⚠️ 待確認</span>' : ''}
-        </div>
-        <div class="dish-card-meta">
-          ${data.category ? `<span style="font-size:22px;background:#f0e6fb;color:#8e44ad;border:1px solid #c39bd3;border-radius:20px;padding:1px 10px;">${esc(data.category)}</span>` : ''}
-          ${ingLabel}
-          ${data.note ? `<span style="font-size:22px;color:var(--muted);" title="${esc(data.note)}">📝 ${esc(data.note.length > 20 ? data.note.slice(0,20)+'…' : data.note)}</span>` : ''}
-        </div>
-        <div class="dish-card-actions">
-          <button class="dish-edit-btn" onclick="openDishModal('${esc(name).replace(/'/g,"\\'")}')">✏️ 編輯</button>
-          <button class="dish-del-btn" onclick="deleteDish('${esc(name).replace(/'/g,"\\'")}',event)" title="刪除">✕</button>
-        </div>
-      `;
-      grid.appendChild(card);
+      const cat = data.category || '（未分類）';
+      if (!catMap[cat]) catMap[cat] = [];
+      catMap[cat].push([name, data]);
+    });
+
+    Object.entries(catMap).sort(([a],[b]) => a.localeCompare(b,'zh-TW')).forEach(([cat, rows]) => {
+      // group header
+      const grpTr = document.createElement('tr');
+      grpTr.className = 'group-row';
+      grpTr.innerHTML = `<td colspan="6" style="background:#5a1a8a;color:white;">
+        ${esc(cat)}　<span style="font-weight:400;font-size:22px;opacity:0.8;">${rows.length} 道</span>
+      </td>`;
+      tbody.appendChild(grpTr);
+
+      rows.forEach(([name, data]) => {
+        const ingCount = (data.ingredients || []).length;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:700;font-size:28px;">${esc(name)}</td>
+          <td><span class="cat-badge" style="background:#f0e6fb;color:#5a1a8a;border:1.5px solid #8e44ad;">${esc(data.category||'—')}</span></td>
+          <td style="text-align:center;">
+            ${ingCount > 0
+              ? `<span style="font-size:24px;color:var(--act);">🥩 ${ingCount}</span>`
+              : `<span style="font-size:24px;color:var(--red);">—</span>`}
+          </td>
+          <td>
+            ${data.review
+              ? `<span style="font-size:22px;font-weight:700;background:#f0e6fb;color:#8e44ad;border:1.5px solid #8e44ad;border-radius:20px;padding:2px 12px;">⚠️ 待確認</span>`
+              : `<span style="font-size:22px;font-weight:700;background:#f0fff4;color:var(--act);border:1.5px solid var(--act);border-radius:20px;padding:2px 12px;">✅ 完成</span>`}
+          </td>
+          <td style="font-size:24px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(data.note||'')}">${esc(data.note||'—')}</td>
+          <td style="text-align:center;white-space:nowrap;">
+            <button class="edit-btn" onclick="openDishModal('${esc(name).replace(/'/g,"\\'")}')">✏️ Edit</button>
+            <button class="del-btn" onclick="deleteDish('${esc(name).replace(/'/g,"\\'")}',event)" title="刪除">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     });
   }
 
