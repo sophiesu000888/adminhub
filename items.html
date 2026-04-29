@@ -463,10 +463,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   background: white; color: var(--ink);
 }
 .tab-btn:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
-.tab-btn:nth-child(1).active { background: #2980b9; color: white; border-color: #1a5a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
-.tab-btn:nth-child(2).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
+.tab-btn:nth-child(1).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
+.tab-btn:nth-child(2).active { background: #2980b9; color: white; border-color: #1a5a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn:nth-child(3).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
-.tab-btn:nth-child(4).active { background: #b8942a; color: white; border-color: #8a6a10; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn.active { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 
 /* ── DISH DB VIEW ── */
@@ -1094,8 +1093,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   <!-- 頁籤 -->
   <div id="tab-bar">
-    <button class="tab-btn" onclick="switchTab('list')">📋 品項列表</button>
     <button class="tab-btn active" onclick="switchTab('matrix')">📊 一覽表</button>
+    <button class="tab-btn" onclick="switchTab('list')">📋 品項列表</button>
     <button class="tab-btn" onclick="switchTab('dish')">🍽️ 料理庫</button>
   </div>
 
@@ -1907,7 +1906,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <td style="text-align:center;">
         <input type="checkbox" class="row-cb" data-ri="${ri}" ${selectedRis.has(ri)?'checked':''} onchange="toggleRow(this)">
       </td>
-      <td class="col-site-cell" style="--site-color:${(() => { const _SITE_COLORS = [{bg:'#e74c3c'},{bg:'#e67e22'},{bg:'#f39c12'},{bg:'#27ae60'},{bg:'#2980b9'},{bg:'#8e44ad'},{bg:'#16a085'},{bg:'#d35400'},{bg:'#c0392b'}]; const si = SITES.indexOf(it.site||''); return si >= 0 ? _SITE_COLORS[si % _SITE_COLORS.length].bg : '#aaa'; })()}"><span class="site-badge ${sc}">${esc(it.site||'—')}</span></td>
+      <td class="col-site-cell" style="--site-color:${(_SITE_COLORS[parseInt((sc||'site-c0').replace('site-c',''))]||{bg:'#aaa'}).bg}"><span class="site-badge ${sc}">${esc(it.site||'—')}</span></td>
       <td>${esc(it.name)}</td>
       <td class="price-val">${it.price ? '$' + esc(it.price) : '—'}</td>
       <td><span class="cat-badge ${cc}">${esc(cat)}</span></td>
@@ -2291,7 +2290,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     _main.style.paddingRight = tab === 'matrix' ? '65px' : '65px';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
       btn.classList.toggle('active',
-        (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') || (i === 2 && tab === 'dish'));
+        (i === 0 && tab === 'matrix') || (i === 1 && tab === 'list') || (i === 2 && tab === 'dish'));
     });
 
     // 側邊按鈕隨 tab 切換
