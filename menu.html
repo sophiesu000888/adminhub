@@ -5656,7 +5656,41 @@ function renderCatDB() {
         ungrouped.forEach(i => catGrid.appendChild(makeCatChip(i)));
       }
     } else {
-      realItems.forEach(i => catGrid.appendChild(makeCatChip(i)));
+      // 混炒類別：品項本身就是料理，直接用料理 chip 樣式顯示
+      if (cat === '混炒') {
+        // 加說明標題
+        const hint = document.createElement('div');
+        hint.style.cssText = 'font-size:0.8rem;font-weight:700;color:#666;margin-bottom:8px;letter-spacing:0.5px;';
+        hint.textContent = '🍽 混炒料理';
+        catGrid.appendChild(hint);
+        const dishRow = document.createElement('div');
+        dishRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;';
+        realItems.forEach(itemName => {
+          const dc = document.createElement('div');
+          dc.style.cssText = `
+            display:inline-flex;align-items:center;
+            background:#2d2d2d;color:#fff;
+            border:2px solid var(--ink);
+            border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+            padding:4px 10px;font-size:0.82rem;font-weight:700;
+            cursor:pointer;font-family:'Kalam','Noto Sans TC',sans-serif;
+            box-shadow:2px 2px 0 var(--ink);
+            transition:all 0.1s;
+          `;
+          dc.textContent = itemName;
+          dc.title = '點擊編輯此品項';
+          dc.addEventListener('mouseenter', () => { dc.style.transform='translate(1px,1px)'; dc.style.boxShadow='1px 1px 0 var(--ink)'; });
+          dc.addEventListener('mouseleave', () => { dc.style.transform=''; dc.style.boxShadow='2px 2px 0 var(--ink)'; });
+          dc.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openCatItemPopup(cat, itemName, dc);
+          });
+          dishRow.appendChild(dc);
+        });
+        catGrid.appendChild(dishRow);
+      } else {
+        realItems.forEach(i => catGrid.appendChild(makeCatChip(i)));
+      }
     }
     panel.appendChild(catGrid);
     tabContent.appendChild(panel);
