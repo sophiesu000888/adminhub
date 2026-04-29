@@ -615,7 +615,56 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .dish-modal-field select:focus,
 .dish-modal-field textarea:focus { border-color: var(--ink); background: white; }
 
-/* ingredient rows */
+/* unit custom dropdown */
+.unit-wrap { position: relative; flex: 1; min-width: 0; }
+.unit-input {
+  width: 100%; padding: 4px 24px 4px 7px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 18px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none; background: var(--s2); color: var(--ink);
+  transition: border-color .1s; cursor: pointer; min-width: 0;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.unit-input:focus { border-color: var(--ink); background-color: white; }
+.unit-dropdown {
+  display: none; position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+  background: white; border: 2px solid var(--ink);
+  border-radius: 6px; box-shadow: 3px 3px 0 var(--ink);
+  z-index: 9999; max-height: 200px; overflow-y: auto;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.unit-dropdown.open { display: block; }
+.unit-opt {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px; font-size: 17px; cursor: pointer;
+  border-bottom: 1px solid var(--border2);
+}
+.unit-opt:last-child { border-bottom: none; }
+.unit-opt:hover { background: #f0e6fb; }
+.unit-opt .unit-opt-del {
+  background: none; border: none; cursor: pointer; color: var(--border2);
+  font-size: 14px; padding: 1px 4px; border-radius: 3px; line-height: 1;
+  flex-shrink: 0; display: none;
+}
+.unit-opt:hover .unit-opt-del { display: inline; }
+.unit-opt .unit-opt-del:hover { color: var(--red); }
+.unit-add-row {
+  display: flex; gap: 0; border-top: 2px solid var(--border2);
+}
+.unit-add-input {
+  flex: 1; padding: 5px 8px; border: none; outline: none;
+  font-size: 17px; font-family: 'Noto Sans TC', sans-serif;
+  border-radius: 0 0 0 6px; background: #f8f8f8;
+}
+.unit-add-btn {
+  padding: 5px 10px; background: var(--ink); color: white;
+  border: none; cursor: pointer; font-size: 17px; font-weight: 700;
+  border-radius: 0 0 6px 0; white-space: nowrap;
+}
+.unit-add-btn:hover { background: #444; }
+
 .ing-section-label {
   font-size: 18px; font-weight: 700; color: var(--dim);
   margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
@@ -1147,12 +1196,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   <!-- 料理庫 view -->
   <div id="dish-view" style="display:none;">
-    <div class="dish-toolbar">
-      <input type="text" id="dish-search" placeholder="搜尋料理名稱…" oninput="dishSearchQ=this.value.toLowerCase();renderDishDB();">
-      <button class="dish-filter-btn" id="dish-filter-review" onclick="toggleDishReviewFilter()">⚠️ 待確認</button>
-      <button class="dish-filter-btn" id="dish-filter-done" onclick="toggleDishDoneFilter()">✅ 已完成</button>
-      <span class="dish-stats" id="dish-stats"></span>
-      <button class="btn" style="margin-left:auto;font-size:26px;padding:6px 16px;" onclick="openDishModal(null)">＋ 新增料理</button>
+    <div class="dish-toolbar" style="flex-direction:column;gap:8px;">
+      <!-- 第一排：類別篩選 -->
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:24px;font-weight:700;color:#8e44ad;white-space:nowrap;">類別</span>
+        <div id="dish-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        <button id="dish-clear-cat-btn" class="clear-row-btn" onclick="clearDishCatFilter()" style="display:none;">✕ 清除</button>
+      </div>
+      <!-- 第二排：搜尋 + 狀態篩選 + 統計 + 新增 -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="dish-search" placeholder="搜尋料理名稱…" oninput="dishSearchQ=this.value.toLowerCase();renderDishDB();">
+        <button class="dish-filter-btn" id="dish-filter-review" onclick="toggleDishReviewFilter()">⚠️ 待確認</button>
+        <button class="dish-filter-btn" id="dish-filter-done" onclick="toggleDishDoneFilter()">✅ 已完成</button>
+        <span class="dish-stats" id="dish-stats"></span>
+        <button class="btn" style="margin-left:auto;font-size:26px;padding:6px 16px;" onclick="openDishModal(null)">＋ 新增料理</button>
+      </div>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -1160,9 +1218,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           <tr>
             <th class="col-name">料理名稱</th>
             <th class="col-cat">類別</th>
-            <th style="min-width:80px;white-space:nowrap;">食材</th>
+            <th style="min-width:80px;white-space:nowrap;text-align:center;">食材數</th>
             <th style="min-width:120px;">狀態</th>
-            <th style="min-width:200px;">備註</th>
             <th class="col-del"></th>
           </tr>
         </thead>
@@ -1181,23 +1238,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <h3 id="dish-modal-title">🍽️ 料理資料</h3>
     </div>
     <div class="dish-modal-body">
-      <div class="dish-modal-field">
-        <label>料理名稱</label>
-        <input type="text" id="dm-name" placeholder="例：宮保雞丁">
-      </div>
-      <div class="dish-modal-field">
-        <label>類別</label>
-        <select id="dm-cat"></select>
-      </div>
-      <div class="dish-modal-field">
-        <label>備註</label>
-        <textarea id="dm-note" rows="1" placeholder="製作注意事項…" style="resize:none;"></textarea>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <div class="dish-modal-field" style="flex:2;margin-bottom:0;">
+          <label>料理名稱</label>
+          <input type="text" id="dm-name" placeholder="例：宮保雞丁">
+        </div>
+        <div class="dish-modal-field" style="flex:1;margin-bottom:0;">
+          <label>類別</label>
+          <select id="dm-cat"></select>
+        </div>
       </div>
       <div class="dish-modal-review-toggle">
         <input type="checkbox" id="dm-review">
         <label for="dm-review" style="cursor:pointer;">⚠️ 標記為「待確認」（食材份量尚未填寫完整）</label>
       </div>
-      <hr style="margin:10px 0;border:none;border-top:1.5px solid var(--border2);">
+      <hr style="margin:8px 0;border:none;border-top:1.5px solid var(--border2);">
       <div class="ing-section-label">
         🥩 食材清單
         <span style="font-size:15px;font-weight:400;color:var(--muted);">（食材名稱 / 用量 / 單位）</span>
@@ -1539,7 +1594,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       const incoming = content.DISH_DB;
       if (!incoming || typeof incoming !== 'object') return;
       DISH_DB = incoming;
-      if (currentTab === 'dish') renderDishDB();
+      if (currentTab === 'dish') { buildDishCatBtns(); renderDishDB(); }
     });
   });
 
@@ -2195,7 +2250,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') || (i === 2 && tab === 'dish'));
     });
     if (tab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
-    if (tab === 'dish') { syncDishCatSelect(); renderDishDB(); }
+    if (tab === 'dish') { syncDishCatSelect(); buildDishCatBtns(); renderDishDB(); }
   }
 
   // ── MATRIX FILTERS ──
@@ -2471,6 +2526,37 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   let dishSearchQ = '';
   let dishFilterReview = false;
   let dishFilterDone   = false;
+  let dishFilterCats   = new Set(); // 空 = 全部
+
+  function buildDishCatBtns() {
+    const cats = [...new Set(Object.values(DISH_DB).map(d => d.category).filter(Boolean))].sort((a,b) => a.localeCompare(b,'zh-TW'));
+    const div = document.getElementById('dish-cat-btns');
+    const clearBtn = document.getElementById('dish-clear-cat-btn');
+    if (!div) return;
+    div.innerHTML = '';
+    cats.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-tag' + (dishFilterCats.has(cat) ? ' active' : '');
+      btn.textContent = cat;
+      btn.style.cssText = dishFilterCats.has(cat)
+        ? 'background:#8e44ad;color:white;border-color:#5a1a8a;box-shadow:2px 2px 0 #5a1a8a;'
+        : '';
+      btn.onclick = () => {
+        if (dishFilterCats.has(cat)) { dishFilterCats.delete(cat); btn.classList.remove('active'); btn.style.cssText=''; }
+        else { dishFilterCats.add(cat); btn.classList.add('active'); btn.style.cssText='background:#8e44ad;color:white;border-color:#5a1a8a;box-shadow:2px 2px 0 #5a1a8a;'; }
+        if (clearBtn) clearBtn.style.display = dishFilterCats.size > 0 ? '' : 'none';
+        renderDishDB();
+      };
+      div.appendChild(btn);
+    });
+    if (clearBtn) clearBtn.style.display = dishFilterCats.size > 0 ? '' : 'none';
+  }
+
+  function clearDishCatFilter() {
+    dishFilterCats.clear();
+    buildDishCatBtns();
+    renderDishDB();
+  }
   let _editingDishKey  = null;  // null = 新增, string = 編輯中的料理名
 
   // ── 讓類別下拉同步 ──
@@ -2498,6 +2584,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     console.log('[DishDB] total entries:', total);
 
     if (dishSearchQ) entries = entries.filter(([k]) => k.toLowerCase().includes(dishSearchQ));
+    if (dishFilterCats.size > 0) entries = entries.filter(([, d]) => dishFilterCats.has(d.category));
     if (dishFilterReview) entries = entries.filter(([, d]) => d.review);
     if (dishFilterDone)   entries = entries.filter(([, d]) => !d.review);
 
@@ -2524,7 +2611,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       // group header
       const grpTr = document.createElement('tr');
       grpTr.className = 'group-row';
-      grpTr.innerHTML = `<td colspan="6" style="background:#5a1a8a;color:white;">
+      grpTr.innerHTML = `<td colspan="5" style="background:#5a1a8a;color:white;">
         ${esc(cat)}　<span style="font-weight:400;font-size:22px;opacity:0.8;">${rows.length} 道</span>
       </td>`;
       tbody.appendChild(grpTr);
@@ -2545,7 +2632,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
               ? `<span style="font-size:22px;font-weight:700;background:#f0e6fb;color:#8e44ad;border:1.5px solid #8e44ad;border-radius:20px;padding:2px 12px;">⚠️ 待確認</span>`
               : `<span style="font-size:22px;font-weight:700;background:#f0fff4;color:var(--act);border:1.5px solid var(--act);border-radius:20px;padding:2px 12px;">✅ 完成</span>`}
           </td>
-          <td style="font-size:24px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(data.note||'')}">${esc(data.note||'—')}</td>
           <td style="text-align:center;white-space:nowrap;">
             <button class="edit-btn" onclick="openDishModal('${esc(name).replace(/'/g,"\\'")}')">✏️ Edit</button>
             <button class="del-btn" onclick="deleteDish('${esc(name).replace(/'/g,"\\'")}',event)" title="刪除">✕</button>
@@ -2581,7 +2667,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     document.getElementById('dm-name').value  = name || '';
     document.getElementById('dm-name').disabled = !!name; // 編輯時不能改名（用刪+新增）
     document.getElementById('dm-cat').value   = data.category || '';
-    document.getElementById('dm-note').value  = data.note || '';
     document.getElementById('dm-review').checked = !!data.review;
     // render ingredients
     renderIngRows(data.ingredients || []);
@@ -2607,29 +2692,147 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     (ings || []).forEach((ing, i) => addIngRow(ing));
   }
 
+  // ── 單位管理 ──
+  let _unitList = ['g','kg','個','支','隻','片','顆','ml','匙'];
+  let _activeUnitWrap = null;
+
+  function _closeAllUnitDropdowns(except) {
+    document.querySelectorAll('.unit-dropdown.open').forEach(d => {
+      if (d !== except) d.classList.remove('open');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.unit-wrap')) _closeAllUnitDropdowns(null);
+  });
+
+  function _buildUnitDropdown(wrap, inputEl) {
+    const dd = wrap.querySelector('.unit-dropdown');
+    const optsDiv = dd.querySelector('.unit-opts');
+    optsDiv.innerHTML = '';
+    _unitList.forEach(u => {
+      const opt = document.createElement('div');
+      opt.className = 'unit-opt';
+      opt.innerHTML = `<span>${esc(u)}</span><button class="unit-opt-del" title="刪除此單位">✕</button>`;
+      opt.querySelector('span').addEventListener('click', () => {
+        inputEl.value = u;
+        dd.classList.remove('open');
+      });
+      opt.querySelector('.unit-opt-del').addEventListener('click', (e) => {
+        e.stopPropagation();
+        _unitList = _unitList.filter(x => x !== u);
+        _buildUnitDropdown(wrap, inputEl);
+        // 更新所有其他已開啟的 unit dropdown
+        document.querySelectorAll('.unit-wrap').forEach(w => {
+          if (w !== wrap) {
+            const inp = w.querySelector('.unit-input');
+            _buildUnitDropdown(w, inp);
+          }
+        });
+      });
+      optsDiv.appendChild(opt);
+    });
+  }
+
+  function _makeUnitWrap(currentUnit) {
+    const wrap = document.createElement('div');
+    wrap.className = 'unit-wrap';
+    wrap.innerHTML = `
+      <input class="ing-unit unit-input" type="text" value="${esc(currentUnit)}" placeholder="單位" autocomplete="off">
+      <div class="unit-dropdown">
+        <div class="unit-opts"></div>
+        <div class="unit-add-row">
+          <input class="unit-add-input" type="text" placeholder="新增單位…">
+          <button class="unit-add-btn">＋</button>
+        </div>
+      </div>
+    `;
+    const inputEl  = wrap.querySelector('.unit-input');
+    const dd       = wrap.querySelector('.unit-dropdown');
+    const addInput = wrap.querySelector('.unit-add-input');
+    const addBtn   = wrap.querySelector('.unit-add-btn');
+
+    _buildUnitDropdown(wrap, inputEl);
+
+    inputEl.addEventListener('focus', () => {
+      _closeAllUnitDropdowns(dd);
+      _buildUnitDropdown(wrap, inputEl);
+      dd.classList.add('open');
+    });
+    inputEl.addEventListener('input', () => {
+      // 手打時過濾
+      const q = inputEl.value.trim().toLowerCase();
+      wrap.querySelectorAll('.unit-opt').forEach(opt => {
+        opt.style.display = !q || opt.querySelector('span').textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    inputEl.addEventListener('blur', (e) => {
+      // 延遲，讓 click 事件先觸發
+      setTimeout(() => {
+        const val = inputEl.value.trim();
+        if (val && !_unitList.includes(val)) {
+          _unitList.push(val);
+        }
+        if (!wrap.contains(document.activeElement)) dd.classList.remove('open');
+      }, 180);
+    });
+
+    const doAdd = () => {
+      const val = addInput.value.trim();
+      if (!val) return;
+      if (!_unitList.includes(val)) {
+        _unitList.push(val);
+        // 更新所有 unit dropdown
+        document.querySelectorAll('.unit-wrap').forEach(w => {
+          const inp = w.querySelector('.unit-input');
+          _buildUnitDropdown(w, inp);
+        });
+      }
+      inputEl.value = val;
+      addInput.value = '';
+      dd.classList.remove('open');
+    };
+    addBtn.addEventListener('click', doAdd);
+    addInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+
+    return wrap;
+  }
+
   function addIngRow(ing) {
     const list = document.getElementById('dm-ing-list');
     const row = document.createElement('div');
     row.className = 'ing-row';
-    // 相容兩種格式：menu.html 用 {ingredient, grams}，items.html 用 {name, qty, unit}
     const name = (ing && (ing.ingredient || ing.name)) || '';
     const qty  = (ing && (ing.grams != null ? ing.grams : ing.qty)) || '';
     const unit = (ing && ing.unit) || 'g';
-    row.innerHTML = `
-      <input class="ing-name" type="text" placeholder="食材名稱" value="${esc(String(name))}">
-      <input class="ing-qty"  type="text" placeholder="用量" value="${esc(String(qty))}">
-      <input class="ing-unit" type="text" placeholder="單位" value="${esc(String(unit))}">
-      <button class="ing-del-btn" onclick="this.closest('.ing-row').remove()" title="移除">✕</button>
-    `;
+
+    const nameInput = document.createElement('input');
+    nameInput.className = 'ing-name'; nameInput.type = 'text';
+    nameInput.placeholder = '食材名稱'; nameInput.value = esc(String(name));
+
+    const qtyInput = document.createElement('input');
+    qtyInput.className = 'ing-qty'; qtyInput.type = 'text';
+    qtyInput.placeholder = '用量'; qtyInput.value = esc(String(qty));
+
+    const unitWrap = _makeUnitWrap(unit);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'ing-del-btn'; delBtn.title = '移除'; delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => row.remove());
+
+    row.appendChild(nameInput);
+    row.appendChild(qtyInput);
+    row.appendChild(unitWrap);
+    row.appendChild(delBtn);
     list.appendChild(row);
-    if (!ing) row.querySelector('.ing-name').focus();
+    if (!ing) nameInput.focus();
   }
 
   function collectIngredients() {
     return [...document.querySelectorAll('#dm-ing-list .ing-row')].map(row => ({
       ingredient: row.querySelector('.ing-name').value.trim(),
       grams:      row.querySelector('.ing-qty').value.trim(),
-      unit:       row.querySelector('.ing-unit').value.trim(),
+      unit:       row.querySelector('.unit-input').value.trim(),
     })).filter(i => i.ingredient);
   }
 
@@ -2639,13 +2842,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (!name) { document.getElementById('dm-name').focus(); alert('請輸入料理名稱'); return; }
     const data = {
       category:    document.getElementById('dm-cat').value.trim(),
-      note:        document.getElementById('dm-note').value.trim(),
       review:      document.getElementById('dm-review').checked,
       ingredients: collectIngredients(),
     };
     DISH_DB[name] = data;
     if (autoSaveDish) autoSaveDish();
     closeDishModal();
+    buildDishCatBtns();
     renderDishDB();
     showDishToast(data.review
       ? `⚠️ ${name} 已儲存（待確認）`
@@ -2658,6 +2861,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (!confirm(`確定刪除料理「${name}」？`)) return;
     delete DISH_DB[name];
     if (autoSaveDish) autoSaveDish();
+    buildDishCatBtns();
     renderDishDB();
   }
 
