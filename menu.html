@@ -5423,7 +5423,35 @@ function renderCatDB() {
     btnLabel.textContent = cat;
     btn.appendChild(btnLabel);
 
-    // 刪除按鈕（直接在 tab 上）
+    // ✏️ 改名按鈕
+    const editPen = document.createElement('span');
+    editPen.textContent = '✏️';
+    editPen.title = `改名「${cat}」`;
+    editPen.style.cssText = 'font-size:0.8rem;opacity:0.5;margin-left:2px;padding:1px 3px;border-radius:3px;cursor:pointer;transition:opacity .1s;line-height:1;';
+    editPen.addEventListener('mouseenter', () => { editPen.style.opacity = '1'; editPen.style.background = 'rgba(255,255,255,0.3)'; });
+    editPen.addEventListener('mouseleave', () => { editPen.style.opacity = '0.5'; editPen.style.background = 'none'; });
+    editPen.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newName = prompt(`將類別「${cat}」改名為：`, cat);
+      if (!newName || newName.trim() === cat || !newName.trim()) return;
+      const trimmed = newName.trim();
+      if (DB[trimmed]) { alert(`類別「${trimmed}」已存在`); return; }
+      // 改名：複製資料到新 key，刪除舊 key
+      DB[trimmed] = DB[cat];
+      delete DB[cat];
+      // 同步更新 ROW_CATS
+      Object.keys(ROW_CATS).forEach(row => {
+        if (ROW_CATS[row] === cat) ROW_CATS[row] = trimmed;
+      });
+      // 同步更新 DISH_DB 的 category
+      Object.values(DISH_DB).forEach(d => { if (d.category === cat) d.category = trimmed; });
+      if (_catPanelActiveCat === cat) _catPanelActiveCat = trimmed;
+      scheduleAutoSave();
+      renderCatDB();
+    });
+    btn.appendChild(editPen);
+
+    // ✕ 刪除按鈕
     const delX = document.createElement('span');
     delX.textContent = '✕';
     delX.title = `刪除「${cat}」類別`;
