@@ -1841,7 +1841,7 @@ button {
     <div id="catTabsBar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;"></div>
     <div id="catTabContent"></div>
     <!-- 品項操作浮層 -->
-    <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;min-width:220px;max-width:300px;">
+    <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;min-width:240px;max-width:min(340px, calc(100vw - 20px));box-sizing:border-box;">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
         <div style="flex:1;">
           <div style="font-weight:700;font-size:0.88rem;color:#37474f;margin-bottom:6px;" id="catPopupTitle">編輯品項</div>
@@ -6903,12 +6903,13 @@ function openCatItemPopup(cat, itemName, anchorEl) {
     .join('');
   if (moveSection) moveSection.style.display = 'none';
   const moveBtn = document.getElementById('catPopupMoveBtn');
-  if (moveBtn) moveBtn.textContent = '🔧 修改類別';
+  if (moveBtn) moveBtn.textContent = '🔧 修改';
 
   // 定位浮層
   const rect = anchorEl.getBoundingClientRect();
   popup.style.display = "block";
-  const pw = popup.offsetWidth || 300;
+  popup.style.left = '0px'; popup.style.top = '0px';
+  const pw = popup.offsetWidth;
   const ph = popup.offsetHeight;
   let left = rect.left;
   let top = rect.bottom + 6;
@@ -7062,6 +7063,7 @@ function toggleCatMoveSection() {
   const moveSection = document.getElementById("catPopupMoveSection");
   const moveBtn     = document.getElementById("catPopupMoveBtn");
   const groupRow    = document.getElementById("catPopupGroupRow");
+  const popup       = document.getElementById("catItemPopup");
   const isHidden    = !moveSection || moveSection.style.display === 'none';
   if (isHidden) {
     if (moveSection) moveSection.style.display = 'block';
@@ -7070,6 +7072,18 @@ function toggleCatMoveSection() {
   } else {
     if (moveSection) moveSection.style.display = 'none';
     if (moveBtn) moveBtn.textContent = '🔧 修改';
+  }
+  // 重新調整位置，防止超出視窗
+  if (popup && popup.style.display !== 'none') {
+    const pw = popup.offsetWidth, ph = popup.offsetHeight;
+    let left = parseInt(popup.style.left) || 0;
+    let top  = parseInt(popup.style.top)  || 0;
+    if (left + pw > window.innerWidth  - 10) left = window.innerWidth  - pw - 10;
+    if (top  + ph > window.innerHeight - 10) top  = window.innerHeight - ph - 10;
+    if (left < 10) left = 10;
+    if (top  < 10) top  = 10;
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
   }
 }
 
