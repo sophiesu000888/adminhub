@@ -2370,6 +2370,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
 
   function renderMatrix() {
+    const clearBtn = document.getElementById('clear-mx-cat-btn');
     if (clearBtn) clearBtn.style.display = mxFilterCats.size > 0 ? '' : 'none';
     const healthyBtn = document.getElementById('mx-healthy-btn');
     if (healthyBtn) healthyBtn.classList.toggle('active', mxFilterHealthy);
