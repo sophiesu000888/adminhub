@@ -2613,7 +2613,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (allCats.includes(cur)) sel.value = cur;
   }
 
-  // ── Render dish list (2欄並排) ──
+  // ── Render dish list (4欄，食材相似排序，hover tooltip) ──
   function renderDishDB() {
     const tbody = document.getElementById('dish-tbody');
     const stats  = document.getElementById('dish-stats');
@@ -2637,8 +2637,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     }
     if (empty) empty.style.display = 'none';
 
-    entries.sort(([a], [b]) => a.localeCompare(b, 'zh-TW'));
-
+    // 依類別分組
     const catMap = {};
     entries.forEach(([name, data]) => {
       const cat = data.category || '（未分類）';
@@ -2646,51 +2645,86 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       catMap[cat].push([name, data]);
     });
 
-    Object.entries(catMap).sort(([a],[b]) => a.localeCompare(b,'zh-TW')).forEach(([cat, rows]) => {
-      // group header — 橫跨全寬
+    // 食材相似度排序：greedy 近鄰法，讓共同食材多的排在一起
+    function sortBySimilarity(rows) {
+      if (rows.length <= 1) return rows;
+      const getIngs = (data) => new Set((data.ingredients||[]).map(i => i.ingredient||i.name||'').filter(Boolean));
+      const similarity = (a, b) => {
+        const sa = getIngs(a), sb = getIngs(b);
+        if (!sa.size && !sb.size) return 0;
+        let common = 0;
+        sa.forEach(i => { if (sb.has(i)) common++; });
+        return common / Math.max(sa.size, sb.size, 1);
+      };
+      const sorted = [rows[0]];
+      const remaining = rows.slice(1);
+      while (remaining.length) {
+        const last = sorted[sorted.length - 1];
+        let bestIdx = 0, bestScore = -1;
+        remaining.forEach(([, d], i) => {
+          const s = similarity(last[1], d);
+          if (s > bestScore) { bestScore = s; bestIdx = i; }
+        });
+        sorted.push(remaining.splice(bestIdx, 1)[0]);
+      }
+      return sorted;
+    }
+
+    Object.entries(catMap).sort(([a],[b]) => a.localeCompare(b,'zh-TW')).forEach(([cat, rawRows]) => {
+      const rows = sortBySimilarity([...rawRows]);
+
+      // group header
       const grpDiv = document.createElement('div');
       grpDiv.style.cssText = 'background:#5a1a8a;color:white;padding:8px 16px;font-weight:700;font-size:26px;letter-spacing:1px;';
       grpDiv.innerHTML = `${esc(cat)}<span style="font-weight:400;font-size:20px;opacity:.75;margin-left:10px;">${rows.length} 道</span>`;
       tbody.appendChild(grpDiv);
 
-      // 2欄 grid
+      // 4欄 grid
       const grid = document.createElement('div');
-      grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border2);';
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);';
       rows.forEach(([name, data], idx) => {
         const ingCount = (data.ingredients || []).filter(i => i && (i.ingredient || i.name)).length;
+        const isEvenRow = Math.floor(idx / 4) % 2 === 1;
         const cell = document.createElement('div');
         cell.style.cssText = [
-          'display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;',
-          'border-bottom:1px solid var(--border2);',
-          idx % 2 === 0 ? 'border-right:1px solid var(--border2);' : '',
-          idx % 4 >= 2 ? 'background:var(--s2);' : '',
+          'display:flex;flex-direction:column;justify-content:space-between;gap:6px;',
+          'padding:10px 12px;cursor:default;transition:background .1s;',
+          'border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);',
+          (idx % 4 === 3) ? 'border-right:none;' : '',
+          isEvenRow ? 'background:var(--s2);' : '',
         ].join('');
+
         cell.innerHTML = `
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;font-size:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap;">
+          <div style="font-weight:700;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(name)}">${esc(name)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+            <div style="display:flex;gap:5px;align-items:center;">
               ${ingCount > 0
-                ? `<span style="font-size:20px;color:var(--act);">🥩 ${ingCount} 項</span>`
-                : `<span style="font-size:20px;color:var(--red);">⚠️ 無食材</span>`}
+                ? `<span style="font-size:18px;color:var(--act);">🥩 ${ingCount}</span>`
+                : `<span style="font-size:18px;color:var(--red);">⚠️</span>`}
               ${data.review
-                ? `<span style="font-size:18px;font-weight:700;background:#f0e6fb;color:#8e44ad;border:1.5px solid #8e44ad;border-radius:20px;padding:1px 8px;">待確認</span>`
-                : `<span style="font-size:18px;font-weight:700;background:#f0fff4;color:var(--act);border:1.5px solid var(--act);border-radius:20px;padding:1px 8px;">✅</span>`}
+                ? `<span style="font-size:16px;font-weight:700;background:#f0e6fb;color:#8e44ad;border:1.5px solid #8e44ad;border-radius:20px;padding:1px 7px;">待確認</span>`
+                : ''}
+            </div>
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+              <button class="edit-btn" style="font-size:18px;padding:2px 8px;" onclick="openDishModal('${esc(name).replace(/'/g,"\\'")}')">✏️</button>
+              <button class="del-btn" style="font-size:20px;" onclick="deleteDish('${esc(name).replace(/'/g,"\\'")}',event)">✕</button>
             </div>
           </div>
-          <div style="display:flex;gap:5px;flex-shrink:0;">
-            <button class="edit-btn" style="font-size:20px;padding:3px 10px;" onclick="openDishModal('${esc(name).replace(/'/g,"\\'")}')">✏️</button>
-            <button class="del-btn" style="font-size:22px;" onclick="deleteDish('${esc(name).replace(/'/g,"\\'")}',event)" title="刪除">✕</button>
-          </div>
         `;
-        cell.addEventListener('click', (e) => { if (e.target.closest('button')) return; showDishTip(name, e); });
+        // hover → tooltip
+        cell.addEventListener('mouseenter', (e) => showDishTip(name, e));
+        cell.addEventListener('mousemove',  (e) => _positionDishTip(e));
         cell.addEventListener('mouseleave', hideDishTip);
         grid.appendChild(cell);
       });
-      // 若奇數筆，補空格佔位
-      if (rows.length % 2 === 1) {
-        const blank = document.createElement('div');
-        blank.style.cssText = 'border-bottom:1px solid var(--border2);background:var(--s2);';
-        grid.appendChild(blank);
+      // 補空格讓最後一列滿4欄
+      const rem = rows.length % 4;
+      if (rem) {
+        for (let i = 0; i < 4 - rem; i++) {
+          const blank = document.createElement('div');
+          blank.style.cssText = 'border-bottom:1px solid var(--border2);background:var(--s2);';
+          grid.appendChild(blank);
+        }
       }
       tbody.appendChild(grid);
     });
