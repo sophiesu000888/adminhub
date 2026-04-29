@@ -1489,6 +1489,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
       _remoteUpdate = false;
     });
+
+    // ── DISH DB sync（需要 user，放在 requireAuth 內）──
+    autoSaveDish = makeAutoSave('dishdb', () => DISH_DB);
+    startSync('dishdb', user, (content) => {
+      if (!content || typeof content !== 'object') return;
+      DISH_DB = content;
+      if (currentTab === 'dish') renderDishDB();
+    });
   });
 
   // ── 從 note 欄位解析類別 ──
@@ -2420,21 +2428,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   let dishFilterReview = false;
   let dishFilterDone   = false;
   let _editingDishKey  = null;  // null = 新增, string = 編輯中的料理名
-
-  // 在 requireAuth 啟動後掛載 DISH_DB sync
-  // 因為 requireAuth 已在上方執行，用延遲方式插入
-  function _initDishDB() {
-    autoSaveDish = makeAutoSave('dishdb', () => DISH_DB);
-    startSync('dishdb', null, (content) => {
-      if (!content || typeof content !== 'object') return;
-      DISH_DB = content;
-      if (currentTab === 'dish') renderDishDB();
-    });
-  }
-  // 等 requireAuth 完成後執行（requireAuth 內已同步完成，直接延遲呼叫）
-  setTimeout(() => {
-    try { _initDishDB(); } catch(e) { console.warn('dish db init:', e); }
-  }, 800);
 
   // ── 讓類別下拉同步 ──
   function syncDishCatSelect() {
