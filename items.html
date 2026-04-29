@@ -458,7 +458,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .tab-btn.active { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 
 /* ── DISH DB VIEW ── */
-#dish-view { display: none; }
 .dish-toolbar {
   background: var(--s1);
   border: 2.5px solid var(--ink);
@@ -2144,9 +2143,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     document.getElementById('matrix-view').style.display = tab === 'matrix' ? 'block' : 'none';
     document.getElementById('dish-view').style.display   = tab === 'dish'   ? 'block' : 'none';
     const _main = document.getElementById('main');
-    _main.style.maxWidth = tab === 'matrix' ? 'none' : '';
-    _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '';
-    _main.style.paddingRight = tab === 'matrix' ? '65px' : '';
+    _main.style.maxWidth    = tab === 'matrix' ? 'none' : '1380px';
+    _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '20px';
+    _main.style.paddingRight = tab === 'matrix' ? '65px' : '65px';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
       btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') || (i === 2 && tab === 'dish'));
     });
@@ -2443,18 +2442,18 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function renderDishDB() {
     const grid  = document.getElementById('dish-grid');
     const stats = document.getElementById('dish-stats');
-    if (!grid) return;
+    console.log('[DishDB] renderDishDB called, grid=', grid, 'DISH_DB=', DISH_DB);
+    if (!grid) { console.warn('[DishDB] dish-grid not found!'); return; }
 
-    let entries = Object.entries(DISH_DB); // [ [name, data], ... ]
+    let entries = Object.entries(DISH_DB);
     const total = entries.length;
+    console.log('[DishDB] total entries:', total);
 
-    // search
     if (dishSearchQ) entries = entries.filter(([k]) => k.toLowerCase().includes(dishSearchQ));
-    // filter
     if (dishFilterReview) entries = entries.filter(([, d]) => d.review);
     if (dishFilterDone)   entries = entries.filter(([, d]) => !d.review);
 
-    stats.innerHTML = `共 <strong>${total}</strong> 道料理，顯示 <strong>${entries.length}</strong> 筆`;
+    if (stats) stats.innerHTML = `共 <strong>${total}</strong> 道料理，顯示 <strong>${entries.length}</strong> 筆`;
 
     grid.innerHTML = '';
     if (!entries.length) {
