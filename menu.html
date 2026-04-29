@@ -1843,7 +1843,7 @@ button {
     <div id="catTabsBar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;"></div>
     <div id="catTabContent"></div>
     <!-- 品項操作浮層 -->
-    <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;width:300px;max-width:calc(100vw - 20px);box-sizing:border-box;overflow:hidden;">
+    <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;width:300px;max-width:calc(100vw - 20px);box-sizing:border-box;overflow:visible;">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
         <div style="flex:1;">
           <div style="font-weight:700;font-size:0.88rem;color:#37474f;margin-bottom:6px;" id="catPopupTitle">編輯品項</div>
@@ -1865,48 +1865,33 @@ button {
         <button onclick="catPopupDelete()" style="flex:1;background:#c62828;color:#fff;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">🗑️ 刪除</button>
         <button onclick="document.getElementById('catItemPopup').style.display='none'" style="flex:1;background:#eceff1;color:#37474f;border:none;border-radius:5px;padding:6px 0;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">取消</button>
       </div>
-      <!-- 修改類別區塊（預設隱藏，在按鈕下方） -->
       <div id="catPopupMoveSection" style="display:none;margin-top:10px;border-top:1.5px solid #e0e0e0;padding-top:10px;">
-        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;table-layout:fixed;">
-          <thead>
-            <tr>
-              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:40%;">目前類別</th>
-              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:60%;">修改為</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding-right:6px;vertical-align:middle;">
-                <div id="catPopupCurrentCatDisplay" style="padding:4px 6px;border:1.5px solid #b0bec5;border-radius:5px;background:#f5f5f5;color:#37474f;font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-              </td>
-              <td style="vertical-align:middle;">
-                <select id="catPopupMoveTarget" style="width:100%;padding:4px 6px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;font-size:0.82rem;box-sizing:border-box;"></select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div id="catPopupGroupRow" style="display:none;margin-top:8px;">
-          <table style="width:100%;border-collapse:collapse;font-size:0.85rem;table-layout:fixed;">
-            <thead>
-              <tr>
-                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:40%;">目前分組</th>
-                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:60%;">修改為</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="padding-right:6px;vertical-align:middle;">
-                  <div id="catPopupCurrentGroupDisplay" style="padding:4px 6px;border:1.5px solid #a5d6a7;border-radius:5px;background:#f1f8f1;color:#1b5e20;font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-                </td>
-                <td style="vertical-align:middle;">
-                  <select id="catPopupGroupTarget" style="width:100%;padding:4px 6px;border:1.5px solid #a5d6a7;border-radius:5px;font-family:inherit;background:#f1f8f1;color:#1b5e20;font-size:0.82rem;box-sizing:border-box;"></select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <button onclick="catPopupMoveToGroup()" style="width:100%;margin-top:6px;background:#2e7d32;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">📂 移到此分組</button>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+          <div style="flex:1;">
+            <div style="font-size:0.78rem;color:#90a4ae;font-weight:600;margin-bottom:3px;">目前類別</div>
+            <div id="catPopupCurrentCatDisplay" style="padding:4px 8px;border:1.5px solid #b0bec5;border-radius:5px;background:#f5f5f5;color:#37474f;font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          </div>
+          <div style="font-size:1.1rem;color:#b0bec5;flex-shrink:0;padding-top:16px;">→</div>
+          <div style="flex:1;">
+            <div style="font-size:0.78rem;color:#90a4ae;font-weight:600;margin-bottom:3px;">修改為</div>
+            <select id="catPopupMoveTarget" style="width:100%;padding:4px 6px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;font-size:0.82rem;box-sizing:border-box;"></select>
+          </div>
         </div>
-        <button onclick="catPopupMove()" style="width:100%;margin-top:8px;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">✓ 確認修改類別</button>
+        <div id="catPopupGroupRow" style="display:none;margin-bottom:6px;">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+            <div style="flex:1;">
+              <div style="font-size:0.78rem;color:#2e7d32;font-weight:600;margin-bottom:3px;">目前分組</div>
+              <div id="catPopupCurrentGroupDisplay" style="padding:4px 8px;border:1.5px solid #a5d6a7;border-radius:5px;background:#f1f8f1;color:#1b5e20;font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+            </div>
+            <div style="font-size:1.1rem;color:#a5d6a7;flex-shrink:0;padding-top:16px;">→</div>
+            <div style="flex:1;">
+              <div style="font-size:0.78rem;color:#2e7d32;font-weight:600;margin-bottom:3px;">修改為</div>
+              <select id="catPopupGroupTarget" style="width:100%;padding:4px 6px;border:1.5px solid #a5d6a7;border-radius:5px;font-family:inherit;background:#f1f8f1;color:#1b5e20;font-size:0.82rem;box-sizing:border-box;"></select>
+            </div>
+          </div>
+          <button onclick="catPopupMoveToGroup()" style="width:100%;background:#2e7d32;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">📂 移到此分組</button>
+        </div>
+        <button onclick="catPopupMove()" style="width:100%;margin-top:4px;background:#ff9800;color:#fff;border:none;border-radius:5px;padding:7px 0;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">✓ 確認修改類別</button>
       </div>
     </div>
   </div>
@@ -6942,16 +6927,18 @@ function openCatItemPopup(cat, itemName, anchorEl) {
   const rect = anchorEl.getBoundingClientRect();
   popup.style.display = "block";
   popup.style.left = '0px'; popup.style.top = '0px';
-  const pw = popup.offsetWidth;
-  const ph = popup.offsetHeight;
-  let left = rect.left;
-  let top = rect.bottom + 6;
-  if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
-  if (left < 10) left = 10;
-  if (top + ph > window.innerHeight - 10) top = rect.top - ph - 6;
-  if (top < 10) top = 10;
-  popup.style.left = left + "px";
-  popup.style.top = top + "px";
+  requestAnimationFrame(function() {
+    var pw = popup.offsetWidth;
+    var ph = popup.offsetHeight;
+    var left = rect.left;
+    var top = rect.bottom + 6;
+    if (left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
+    if (left < 10) left = 10;
+    if (top + ph > window.innerHeight - 10) top = rect.top - ph - 6;
+    if (top < 10) top = 10;
+    popup.style.left = left + "px";
+    popup.style.top = top + "px";
+  });
 
   inp.focus();
   inp.select();
@@ -7108,15 +7095,17 @@ function toggleCatMoveSection() {
   }
   // 重新調整位置，防止超出視窗
   if (popup && popup.style.display !== 'none') {
-    const pw = popup.offsetWidth, ph = popup.offsetHeight;
-    let left = parseInt(popup.style.left) || 0;
-    let top  = parseInt(popup.style.top)  || 0;
-    if (left + pw > window.innerWidth  - 10) left = window.innerWidth  - pw - 10;
-    if (top  + ph > window.innerHeight - 10) top  = window.innerHeight - ph - 10;
-    if (left < 10) left = 10;
-    if (top  < 10) top  = 10;
-    popup.style.left = left + 'px';
-    popup.style.top  = top  + 'px';
+    requestAnimationFrame(function() {
+      var pw = popup.offsetWidth, ph = popup.offsetHeight;
+      var left = parseInt(popup.style.left) || 0;
+      var top  = parseInt(popup.style.top)  || 0;
+      if (left + pw > window.innerWidth  - 10) left = window.innerWidth  - pw - 10;
+      if (top  + ph > window.innerHeight - 10) top  = window.innerHeight - ph - 10;
+      if (left < 10) left = 10;
+      if (top  < 10) top  = 10;
+      popup.style.left = left + 'px';
+      popup.style.top  = top  + 'px';
+    });
   }
 }
 
