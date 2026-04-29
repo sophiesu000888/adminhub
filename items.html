@@ -455,6 +455,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .tab-btn:nth-child(1).active { background: #2980b9; color: white; border-color: #1a5a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn:nth-child(2).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn:nth-child(3).active { background: #8e44ad; color: white; border-color: #5a1a8a; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
+.tab-btn:nth-child(4).active { background: #b8942a; color: white; border-color: #8a6a10; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 .tab-btn.active { background: var(--ink); color: white; box-shadow: none; transform: translate(2px,2px); border-radius: 3px 12px 4px 10px / 10px 4px 12px 3px; }
 
 /* ── DISH DB VIEW ── */
@@ -468,7 +469,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
 }
 #dish-search {
-  flex: 1; min-width: 160px;
+  width: 220px; min-width: 140px;
   padding: 6px 12px; border: 2px solid var(--border2);
   border-radius: 8px; font-size: 28px;
   font-family: 'Noto Sans TC', sans-serif;
@@ -1085,6 +1086,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     <button class="tab-btn" onclick="switchTab('list')">📋 品項列表</button>
     <button class="tab-btn active" onclick="switchTab('matrix')">📊 一覽表</button>
     <button class="tab-btn" onclick="switchTab('dish')">🍽️ 料理庫</button>
+    <button class="tab-btn" onclick="switchTab('history')">📅 歷史日曆</button>
   </div>
 
   <!-- 列表 view -->
@@ -1221,6 +1223,29 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     ">
       <div id="dish-tbody"></div>
       <div id="dish-empty-msg" style="display:none;text-align:center;padding:40px;color:var(--muted);font-size:30px;">料理庫是空的，點右上角「＋ 新增料理」開始建立</div>
+    </div>
+  </div>
+
+  <!-- 歷史日曆 view -->
+  <div id="history-view" style="display:none;">
+    <div class="toolbar" style="align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+      <button onclick="histCalNav(-1)" style="font-size:28px;font-weight:700;background:white;border:2.5px solid var(--ink);border-radius:8px;padding:4px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);font-family:inherit;">‹</button>
+      <span id="hist-cal-title" style="font-family:'Kalam','Noto Sans TC',sans-serif;font-size:36px;font-weight:700;letter-spacing:2px;min-width:160px;text-align:center;"></span>
+      <button onclick="histCalNav(1)" style="font-size:28px;font-weight:700;background:white;border:2.5px solid var(--ink);border-radius:8px;padding:4px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);font-family:inherit;">›</button>
+      <button onclick="histCalGoToday()" style="font-size:24px;font-weight:700;background:var(--s2);border:2px solid var(--border2);border-radius:8px;padding:4px 14px;cursor:pointer;font-family:inherit;">今天</button>
+      <span id="hist-cal-stats" style="font-size:24px;color:var(--muted);margin-left:4px;"></span>
+    </div>
+    <div style="background:var(--s1);border:2.5px solid var(--ink);border-radius:var(--card-radius);box-shadow:4px 4px 0 var(--ink);overflow:hidden;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--ink);">
+        <div style="text-align:center;padding:10px 0;color:#f99;font-size:24px;font-weight:700;">日</div>
+        <div style="text-align:center;padding:10px 0;color:white;font-size:24px;font-weight:700;">一</div>
+        <div style="text-align:center;padding:10px 0;color:white;font-size:24px;font-weight:700;">二</div>
+        <div style="text-align:center;padding:10px 0;color:white;font-size:24px;font-weight:700;">三</div>
+        <div style="text-align:center;padding:10px 0;color:white;font-size:24px;font-weight:700;">四</div>
+        <div style="text-align:center;padding:10px 0;color:white;font-size:24px;font-weight:700;">五</div>
+        <div style="text-align:center;padding:10px 0;color:#f99;font-size:24px;font-weight:700;">六</div>
+      </div>
+      <div id="hist-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);"></div>
     </div>
   </div>
 
@@ -1572,6 +1597,17 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       render();
       if (currentTab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
       _remoteUpdate = false;
+    });
+
+    // ── HISTORY sync（唯讀，只看哪幾天有資料）──
+    startSync('history', user, (content) => {
+      const incoming = typeof content === 'string'
+        ? (() => { try { return JSON.parse(content); } catch(e) { return null; } })()
+        : content;
+      if (Array.isArray(incoming)) {
+        _historyDates = new Set(incoming.map(h => h.date).filter(Boolean));
+        if (currentTab === 'history') renderHistCal();
+      }
     });
 
     // ── DISH DB sync：從 menudb 讀取 content.DISH_DB，儲存也寫回同一份 ──
@@ -2234,18 +2270,22 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   function switchTab(tab) {
     currentTab = tab;
-    document.getElementById('list-view').style.display   = tab === 'list'   ? 'block' : 'none';
-    document.getElementById('matrix-view').style.display = tab === 'matrix' ? 'block' : 'none';
-    document.getElementById('dish-view').style.display   = tab === 'dish'   ? 'block' : 'none';
+    document.getElementById('list-view').style.display    = tab === 'list'    ? 'block' : 'none';
+    document.getElementById('matrix-view').style.display  = tab === 'matrix'  ? 'block' : 'none';
+    document.getElementById('dish-view').style.display    = tab === 'dish'    ? 'block' : 'none';
+    document.getElementById('history-view').style.display = tab === 'history' ? 'block' : 'none';
     const _main = document.getElementById('main');
     _main.style.maxWidth    = tab === 'matrix' ? 'none' : '1380px';
     _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '20px';
     _main.style.paddingRight = tab === 'matrix' ? '65px' : '65px';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-      btn.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') || (i === 2 && tab === 'dish'));
+      btn.classList.toggle('active',
+        (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') ||
+        (i === 2 && tab === 'dish') || (i === 3 && tab === 'history'));
     });
     if (tab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
     if (tab === 'dish') { syncDishCatSelect(); buildDishCatBtns(); renderDishDB(); }
+    if (tab === 'history') { renderHistCal(); }
   }
 
   // ── MATRIX FILTERS ──
@@ -2518,6 +2558,85 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   // ═══════════════════════════════════════════════
   let DISH_DB = {};          // key = 料理名稱, value = { cat, note, review, ingredients:[{name,qty,unit}] }
   let autoSaveDish;
+  let _historyDates = new Set();
+  let _histCalYear  = new Date().getFullYear();
+  let _histCalMonth = new Date().getMonth();
+
+  function histCalNav(dir) {
+    _histCalMonth += dir;
+    if (_histCalMonth > 11) { _histCalMonth = 0; _histCalYear++; }
+    if (_histCalMonth < 0)  { _histCalMonth = 11; _histCalYear--; }
+    renderHistCal();
+  }
+  function histCalGoToday() {
+    const now = new Date();
+    _histCalYear = now.getFullYear(); _histCalMonth = now.getMonth();
+    renderHistCal();
+  }
+
+  function renderHistCal() {
+    const titleEl = document.getElementById('hist-cal-title');
+    const gridEl  = document.getElementById('hist-cal-grid');
+    const statsEl = document.getElementById('hist-cal-stats');
+    if (!gridEl) return;
+    const y = _histCalYear, m = _histCalMonth;
+    if (titleEl) titleEl.textContent = `${y} . ${String(m+1).padStart(2,'0')}`;
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    let monthCount = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if (_historyDates.has(ds)) monthCount++;
+    }
+    if (statsEl) statsEl.innerHTML = `本月 <strong style="color:var(--blue);">${monthCount}</strong> 天有紀錄`;
+    gridEl.innerHTML = '';
+    for (let i = 0; i < firstDay; i++) {
+      const b = document.createElement('div');
+      b.style.cssText = 'min-height:80px;background:#f0ece4;border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);';
+      gridEl.appendChild(b);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const hasData = _historyDates.has(ds);
+      const isToday = ds === todayStr;
+      const dow = (firstDay + d - 1) % 7;
+      const isSun = dow === 0, isSat = dow === 6;
+      const cell = document.createElement('div');
+      cell.style.cssText = [
+        'min-height:80px;padding:10px 12px;position:relative;transition:background .1s;',
+        'border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);',
+        hasData ? 'background:#dbeeff;' : 'background:white;',
+        isToday ? 'outline:3px solid var(--ink);outline-offset:-3px;z-index:1;' : '',
+      ].join('');
+      const numEl = document.createElement('div');
+      numEl.style.cssText = [
+        'font-family:\'Kalam\',\'Noto Sans TC\',sans-serif;font-size:34px;font-weight:700;line-height:1;',
+        isSun ? 'color:#c0392b;' : isSat ? 'color:#2980b9;' : 'color:var(--ink);',
+      ].join('');
+      if (isToday) {
+        numEl.innerHTML = `<span style="background:var(--ink);color:white;border-radius:50%;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;font-size:28px;">${d}</span>`;
+      } else {
+        numEl.textContent = d;
+      }
+      cell.appendChild(numEl);
+      if (hasData) {
+        const badge = document.createElement('div');
+        badge.style.cssText = 'margin-top:6px;font-size:20px;color:#1a6aa8;font-weight:700;';
+        badge.textContent = '✓ 有紀錄';
+        cell.appendChild(badge);
+      }
+      gridEl.appendChild(cell);
+    }
+    const totalCells = firstDay + daysInMonth;
+    const rem = totalCells % 7;
+    if (rem) for (let i = 0; i < 7 - rem; i++) {
+      const b = document.createElement('div');
+      b.style.cssText = 'min-height:80px;background:#f0ece4;border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);';
+      gridEl.appendChild(b);
+    }
+  }
   let dishSearchQ = '';
   let dishFilterReview = false;
   let dishFilterDone   = false;
@@ -2753,7 +2872,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     document.getElementById('dish-modal-title').innerHTML =
       name ? `✏️ 編輯料理：${esc(name)}` : '＋ 新增料理';
     document.getElementById('dm-name').value  = name || '';
-    document.getElementById('dm-name').disabled = !!name; // 編輯時不能改名（用刪+新增）
+    document.getElementById('dm-name').disabled = false; // 允許改名
     document.getElementById('dm-cat').value   = data.category || '';
     document.getElementById('dm-review').checked = !!data.review;
     // render ingredients
@@ -2926,21 +3045,25 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   // ── Save dish ──
   function confirmDishEdit() {
-    const name = _editingDishKey || document.getElementById('dm-name').value.trim();
-    if (!name) { document.getElementById('dm-name').focus(); alert('請輸入料理名稱'); return; }
+    const newName = document.getElementById('dm-name').value.trim();
+    if (!newName) { document.getElementById('dm-name').focus(); alert('請輸入料理名稱'); return; }
     const data = {
       category:    document.getElementById('dm-cat').value.trim(),
       review:      document.getElementById('dm-review').checked,
       ingredients: collectIngredients(),
     };
-    DISH_DB[name] = data;
+    // 改名：刪除舊 key，寫入新 key
+    if (_editingDishKey && _editingDishKey !== newName) {
+      delete DISH_DB[_editingDishKey];
+    }
+    DISH_DB[newName] = data;
     if (autoSaveDish) autoSaveDish();
     closeDishModal();
     buildDishCatBtns();
     renderDishDB();
     showDishToast(data.review
-      ? `⚠️ ${name} 已儲存（待確認）`
-      : `✅ ${name} 已儲存`);
+      ? `⚠️ ${newName} 已儲存（待確認）`
+      : `✅ ${newName} 已儲存`);
   }
 
   // ── Delete dish ──
