@@ -1086,7 +1086,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     <button class="tab-btn" onclick="switchTab('list')">📋 品項列表</button>
     <button class="tab-btn active" onclick="switchTab('matrix')">📊 一覽表</button>
     <button class="tab-btn" onclick="switchTab('dish')">🍽️ 料理庫</button>
-    <button class="tab-btn" onclick="switchTab('history')">📅 歷史日曆</button>
   </div>
 
   <!-- 列表 view -->
@@ -1200,13 +1199,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   <div id="dish-view" style="display:none;">
     <div class="dish-toolbar" style="flex-direction:column;gap:8px;">
       <!-- 第一排：類別篩選 -->
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-start;">
         <span style="font-size:24px;font-weight:700;color:#8e44ad;white-space:nowrap;">類別</span>
         <div id="dish-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         <button id="dish-clear-cat-btn" class="clear-row-btn" onclick="clearDishCatFilter()" style="display:none;">✕ 清除</button>
       </div>
       <!-- 第二排：搜尋 + 狀態篩選 + 統計 + 新增 -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start;">
         <input type="text" id="dish-search" placeholder="搜尋料理名稱…" oninput="dishSearchQ=this.value.toLowerCase();renderDishDB();">
         <button class="dish-filter-btn" id="dish-filter-review" onclick="toggleDishReviewFilter()">⚠️ 待確認</button>
         <button class="dish-filter-btn" id="dish-filter-done" onclick="toggleDishDoneFilter()">✅ 已完成</button>
