@@ -2526,7 +2526,54 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   let dishSearchQ = '';
   let dishFilterReview = false;
   let dishFilterDone   = false;
-  let dishFilterCats   = new Set(); // 空 = 全部
+  let dishFilterCats   = new Set();
+
+  // ── 食材 Tooltip（仿 menu.html 深色風格）──
+  const _dishTip = document.createElement('div');
+  _dishTip.style.cssText = `
+    position:fixed; z-index:99999;
+    background:#1a1a2e; color:#e8f5e9;
+    border:1.5px solid #2e7d32; border-radius:10px;
+    padding:10px 14px; font-size:15px; line-height:1.8;
+    pointer-events:none; box-shadow:0 4px 18px rgba(0,0,0,.35);
+    min-width:160px; max-width:280px; display:none;
+    font-family:'Noto Sans TC',sans-serif;
+  `;
+  document.body.appendChild(_dishTip);
+
+  function showDishTip(name, e) {
+    const data = DISH_DB[name];
+    if (!data) return;
+    const ings = data.ingredients || [];
+    let html = `<div style="font-weight:700;font-size:15px;color:#a5d6a7;margin-bottom:6px;border-bottom:1px solid #2e7d32;padding-bottom:4px;">🍽 ${esc(name)}</div>`;
+    if (ings.length) {
+      ings.forEach(ing => {
+        const ingName = ing.ingredient || ing.name || '';
+        const qty     = ing.grams != null ? ing.grams : (ing.qty || '');
+        const unit    = ing.unit || 'g';
+        html += `<div style="display:flex;justify-content:space-between;gap:16px;">
+          <span style="color:#e8f5e9;">${esc(ingName)}</span>
+          <span style="color:#81c784;font-weight:600;white-space:nowrap;">${esc(String(qty))}${esc(unit)}</span>
+        </div>`;
+      });
+    } else {
+      html += `<div style="color:#ef9a9a;font-size:14px;">尚無食材資料</div>`;
+    }
+    if (data.review) html += `<div style="color:#ef9a9a;font-size:13px;margin-top:4px;">⚠️ 待確認</div>`;
+    _dishTip.innerHTML = html;
+    _dishTip.style.display = 'block';
+    _positionDishTip(e);
+  }
+
+  function _positionDishTip(e) {
+    const x = e.clientX + 16, y = e.clientY + 16;
+    _dishTip.style.left = '0px'; _dishTip.style.top = '0px';
+    const w = _dishTip.offsetWidth, h = _dishTip.offsetHeight;
+    _dishTip.style.left = (x + w > window.innerWidth  ? e.clientX - w - 8 : x) + 'px';
+    _dishTip.style.top  = (y + h > window.innerHeight ? e.clientY - h - 8 : y) + 'px';
+  }
+
+  function hideDishTip() { _dishTip.style.display = 'none'; } // 空 = 全部
 
   function buildDishCatBtns() {
     const cats = [...new Set(Object.values(DISH_DB).map(d => d.category).filter(Boolean))].sort((a,b) => a.localeCompare(b,'zh-TW'));
@@ -2586,7 +2633,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (dishSearchQ) entries = entries.filter(([k]) => k.toLowerCase().includes(dishSearchQ));
     if (dishFilterCats.size > 0) entries = entries.filter(([, d]) => dishFilterCats.has(d.category));
     if (dishFilterReview) entries = entries.filter(([, d]) => d.review);
-    if (dishFilterDone)   entries = entries.filter(([, d]) => !d.review);
+    if (dishFilterDone)   entries = entries.filter(([, d]) => !d.review && (d.ingredients||[]).length > 0);
 
     if (stats) stats.innerHTML = `共 <strong>${total}</strong> 道料理，顯示 <strong>${entries.length}</strong> 筆`;
 
@@ -2619,6 +2666,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       rows.forEach(([name, data]) => {
         const ingCount = (data.ingredients || []).filter(i => i && (i.ingredient || i.name)).length;
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', (e) => { if (e.target.closest('button')) return; showDishTip(name, e); });
+        tr.addEventListener('mouseleave', hideDishTip);
         tr.innerHTML = `
           <td style="font-weight:700;font-size:28px;">${esc(name)}</td>
           <td><span class="cat-badge" style="background:#f0e6fb;color:#5a1a8a;border:1.5px solid #8e44ad;">${esc(data.category||'—')}</span></td>
