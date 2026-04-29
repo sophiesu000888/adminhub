@@ -1113,7 +1113,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   </div><!-- /list-view -->
 
   <!-- 一覽表 view -->
-  <div id="matrix-view">
+  <div id="matrix-view" style="display:block;">
     <!-- 一覽表篩選工具列 -->
     <div class="toolbar" style="margin-bottom:12px;">
       <div class="toolbar-row">
@@ -1131,7 +1131,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   </div>
 
   <!-- 料理庫 view -->
-  <div id="dish-view">
+  <div id="dish-view" style="display:none;">
     <div class="dish-toolbar">
       <input type="text" id="dish-search" placeholder="搜尋料理名稱…" oninput="dishSearchQ=this.value.toLowerCase();renderDishDB();">
       <button class="dish-filter-btn" id="dish-filter-review" onclick="toggleDishReviewFilter()">⚠️ 待確認</button>
@@ -2140,9 +2140,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   function switchTab(tab) {
     currentTab = tab;
-    document.getElementById('list-view').style.display   = tab === 'list'   ? '' : 'none';
-    document.getElementById('matrix-view').style.display = tab === 'matrix' ? '' : 'none';
-    document.getElementById('dish-view').style.display   = tab === 'dish'   ? '' : 'none';
+    document.getElementById('list-view').style.display   = tab === 'list'   ? 'block' : 'none';
+    document.getElementById('matrix-view').style.display = tab === 'matrix' ? 'block' : 'none';
+    document.getElementById('dish-view').style.display   = tab === 'dish'   ? 'block' : 'none';
     const _main = document.getElementById('main');
     _main.style.maxWidth = tab === 'matrix' ? 'none' : '';
     _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '';
