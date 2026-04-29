@@ -508,7 +508,7 @@ input.sel-l2-inp:disabled {
   border-right: 1px solid rgba(45,45,45,0.1);
   border-bottom: 1px solid rgba(45,45,45,0.1);
   cursor: default; transition: background 0.1s;
-  box-sizing: border-box;
+  box-sizing: border-box; overflow: hidden;
 }
 .hist-cal-cell:nth-child(7n) { border-right: none; }
 .hist-cal-cell.has-data { background: #e3f0ff; cursor: pointer; }
@@ -518,6 +518,7 @@ input.sel-l2-inp:disabled {
 .hist-cal-num {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   font-size: 18px; font-weight: 700; line-height: 1;
+  white-space: nowrap;
 }
 .hist-cal-num.is-sun { color: #c0392b; }
 .hist-cal-num.is-sat { color: #2980b9; }
@@ -528,6 +529,7 @@ input.sel-l2-inp:disabled {
 }
 .hist-cal-dot {
   margin-top: 5px; font-size: 18px; font-weight: 700; color: #1a6aa8;
+  white-space: nowrap;
 }
 
 /* 日期點擊展開 modal */
