@@ -213,7 +213,18 @@ thead th {
   font-size: 26px; letter-spacing: 1px; white-space: nowrap;
 }
 thead th:first-child { width: 36px; text-align: center; }
-thead th.col-site  { width: 100px; }
+thead th.col-site  { width: 100px; cursor: pointer; user-select: none; white-space: nowrap; }
+thead th.col-site:hover { background: rgba(45,45,45,0.06); }
+thead th.col-site .site-toggle-icon { font-size: 18px; opacity: 0.5; margin-left: 4px; }
+/* 折疊狀態 */
+.matrix-site-collapsed thead th.col-site { width: 14px; padding: 0; overflow: hidden; }
+.matrix-site-collapsed thead th.col-site .site-col-label { display: none; }
+.matrix-site-collapsed td.col-site-cell { width: 14px; padding: 0; overflow: hidden; }
+.matrix-site-collapsed td.col-site-cell .site-badge { display: none; }
+.matrix-site-collapsed td.col-site-cell::after {
+  content: ''; display: block; width: 10px; height: 100%;
+  background: var(--site-color, #ccc); border-radius: 2px; margin: 0 auto;
+}
 thead th.col-name  { width: 220px; min-width: 120px; max-width: 220px; }
 thead th.col-price { width: 100px; }
 thead th.col-cat   { width: 130px; }
@@ -466,7 +477,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   box-shadow: 4px 4px 0 0 var(--ink);
   padding: 12px 18px;
   margin-bottom: 14px;
-  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
 }
 #dish-search {
   width: 220px; min-width: 140px;
@@ -1138,7 +1149,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <thead>
         <tr>
           <th style="width:44px;text-align:center;"><input type="checkbox" class="row-cb" id="select-all" title="全選" onchange="toggleSelectAll(this.checked)"></th>
-          <th class="col-site">廠區</th>
+          <th class="col-site" onclick="toggleSiteCol()" title="點擊折疊/展開廠區欄"><span class="site-col-label">廠區</span><span class="site-toggle-icon">⇔</span></th>
           <th class="col-name">品項</th>
           <th class="col-price">價格</th>
           <th class="col-cat">類別</th>
@@ -1199,18 +1210,17 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   <div id="dish-view" style="display:none;">
     <div class="dish-toolbar" style="flex-direction:column;gap:8px;">
       <!-- 第一排：類別篩選 -->
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-start;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;">
         <span style="font-size:24px;font-weight:700;color:#8e44ad;white-space:nowrap;">類別</span>
         <div id="dish-cat-btns" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         <button id="dish-clear-cat-btn" class="clear-row-btn" onclick="clearDishCatFilter()" style="display:none;">✕ 清除</button>
       </div>
-      <!-- 第二排：搜尋 + 狀態篩選 + 統計 + 新增 -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start;">
+      <!-- 第二排：搜尋 + 狀態篩選 + 統計 -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;">
         <input type="text" id="dish-search" placeholder="搜尋料理名稱…" oninput="dishSearchQ=this.value.toLowerCase();renderDishDB();">
         <button class="dish-filter-btn" id="dish-filter-review" onclick="toggleDishReviewFilter()">⚠️ 待確認</button>
         <button class="dish-filter-btn" id="dish-filter-done" onclick="toggleDishDoneFilter()">✅ 已完成</button>
         <span class="dish-stats" id="dish-stats"></span>
-        <button class="btn" style="margin-left:auto;font-size:26px;padding:6px 16px;" onclick="openDishModal(null)">＋ 新增料理</button>
       </div>
     </div>
     <div id="dish-list-wrap" style="
@@ -1881,6 +1891,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         group.forEach(({ it, ri }) => tbody.appendChild(makeRow(it, ri)));
       });
     }
+    // 重新套用折疊狀態
+    const wrap = document.querySelector('.tbl-wrap');
+    if (wrap) wrap.classList.toggle('matrix-site-collapsed', _siteColCollapsed);
   }
 
   function makeRow(it, ri) {
@@ -1894,7 +1907,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <td style="text-align:center;">
         <input type="checkbox" class="row-cb" data-ri="${ri}" ${selectedRis.has(ri)?'checked':''} onchange="toggleRow(this)">
       </td>
-      <td><span class="site-badge ${sc}">${esc(it.site||'—')}</span></td>
+      <td class="col-site-cell" style="--site-color:${(() => { const _SITE_COLORS = [{bg:'#e74c3c'},{bg:'#e67e22'},{bg:'#f39c12'},{bg:'#27ae60'},{bg:'#2980b9'},{bg:'#8e44ad'},{bg:'#16a085'},{bg:'#d35400'},{bg:'#c0392b'}]; const si = SITES.indexOf(it.site||''); return si >= 0 ? _SITE_COLORS[si % _SITE_COLORS.length].bg : '#aaa'; })()}"><span class="site-badge ${sc}">${esc(it.site||'—')}</span></td>
       <td>${esc(it.name)}</td>
       <td class="price-val">${it.price ? '$' + esc(it.price) : '—'}</td>
       <td><span class="cat-badge ${cc}">${esc(cat)}</span></td>
@@ -2272,19 +2285,36 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     document.getElementById('list-view').style.display    = tab === 'list'    ? 'block' : 'none';
     document.getElementById('matrix-view').style.display  = tab === 'matrix'  ? 'block' : 'none';
     document.getElementById('dish-view').style.display    = tab === 'dish'    ? 'block' : 'none';
-    document.getElementById('history-view').style.display = tab === 'history' ? 'block' : 'none';
     const _main = document.getElementById('main');
     _main.style.maxWidth    = tab === 'matrix' ? 'none' : '1380px';
     _main.style.paddingLeft  = tab === 'matrix' ? '8px'  : '20px';
     _main.style.paddingRight = tab === 'matrix' ? '65px' : '65px';
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
       btn.classList.toggle('active',
-        (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') ||
-        (i === 2 && tab === 'dish') || (i === 3 && tab === 'history'));
+        (i === 0 && tab === 'list') || (i === 1 && tab === 'matrix') || (i === 2 && tab === 'dish'));
     });
+
+    // 側邊按鈕隨 tab 切換
+    const tabAdd    = document.getElementById('tab-add');
+    const tabExport = document.getElementById('tab-export');
+    if (tab === 'dish') {
+      tabAdd.querySelector('.st-icon').textContent  = '＋';
+      tabAdd.querySelector('.st-label').textContent = '新增料理';
+      tabAdd.onclick = () => openDishModal(null);
+      tabExport.querySelector('.st-icon').textContent  = '📤';
+      tabExport.querySelector('.st-label').textContent = '匯出料理庫';
+      tabExport.onclick = exportDishExcel;
+    } else {
+      tabAdd.querySelector('.st-icon').textContent  = '＋';
+      tabAdd.querySelector('.st-label').textContent = '新增';
+      tabAdd.onclick = () => toggleDrawer('add');
+      tabExport.querySelector('.st-icon').textContent  = '📤';
+      tabExport.querySelector('.st-label').textContent = '匯出';
+      tabExport.onclick = () => toggleDrawer('export');
+    }
+
     if (tab === 'matrix') { buildMatrixFilters(); renderMatrix(); }
     if (tab === 'dish') { syncDishCatSelect(); buildDishCatBtns(); renderDishDB(); }
-    if (tab === 'history') { renderHistCal(); }
   }
 
   // ── MATRIX FILTERS ──
@@ -2331,7 +2361,16 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     autoSave();
   }
 
-  function renderMatrix() {
+  let _siteColCollapsed = false;
+  function toggleSiteCol() {
+    _siteColCollapsed = !_siteColCollapsed;
+    const wrap = document.querySelector('.tbl-wrap');
+    if (wrap) wrap.classList.toggle('matrix-site-collapsed', _siteColCollapsed);
+    const icon = document.querySelector('thead th.col-site .site-toggle-icon');
+    if (icon) icon.textContent = _siteColCollapsed ? '⇒' : '⇔';
+  }
+
+
     const clearBtn = document.getElementById('clear-mx-cat-btn');
     if (clearBtn) clearBtn.style.display = mxFilterCats.size > 0 ? '' : 'none';
     const healthyBtn = document.getElementById('mx-healthy-btn');
@@ -3089,7 +3128,31 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     t._to = setTimeout(() => { t.style.opacity = '0'; }, 2200);
   }
 
-  // ── Public API for menu.html to call via postMessage or direct ──
+  function exportDishExcel() {
+    // 建立 CSV 內容
+    const rows = [['料理名稱', '類別', '狀態', '食材1', '用量1', '單位1', '食材2', '用量2', '單位2', '食材3', '用量3', '單位3']];
+    Object.entries(DISH_DB).sort(([a],[b]) => a.localeCompare(b,'zh-TW')).forEach(([name, data]) => {
+      const ings = data.ingredients || [];
+      const row = [
+        name,
+        data.category || '',
+        data.review ? '待確認' : '完成',
+      ];
+      ings.slice(0, 10).forEach(ing => {
+        row.push(ing.ingredient || ing.name || '');
+        row.push(ing.grams != null ? ing.grams : (ing.qty || ''));
+        row.push(ing.unit || 'g');
+      });
+      rows.push(row);
+    });
+    const csv = '\uFEFF' + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `料理庫_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    showDishToast('📤 料理庫已匯出');
+  }
   window.addToDishDB = function(name, cat, opts) {
     // opts: { review, ingredients, overwrite }
     opts = opts || {};
