@@ -560,9 +560,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   position: fixed; inset: 0;
   background: rgba(45,45,45,0.5);
   z-index: 99999;
-  display: none; align-items: flex-start; justify-content: center;
-  padding-top: var(--bar-h, 44px);
-  overflow-y: auto;
+  display: none; align-items: center; justify-content: center;
+  padding: var(--bar-h, 44px) 16px 16px;
 }
 #dishModal.open { display: flex; }
 .dish-modal-box {
@@ -570,27 +569,44 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   border: 2.5px solid var(--ink);
   border-radius: var(--card-radius);
   box-shadow: 6px 6px 0 0 var(--ink);
-  padding: 28px 32px 24px;
-  width: min(600px, calc(100vw - 32px));
-  margin: 20px auto;
+  padding: 0;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - var(--bar-h, 44px) - 32px);
+  display: flex; flex-direction: column;
   animation: slideUp .18s ease;
+  overflow: hidden;
 }
-.dish-modal-box h3 {
-  font-size: 30px; font-weight: 700; margin-bottom: 20px;
+.dish-modal-header {
+  padding: 18px 24px 14px;
+  border-bottom: 2px solid var(--border2);
+  flex-shrink: 0;
+}
+.dish-modal-header h3 {
+  font-size: 26px; font-weight: 700; margin: 0;
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   display: flex; align-items: center; gap: 10px;
 }
+.dish-modal-body {
+  flex: 1; overflow-y: auto; padding: 16px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.dish-modal-footer {
+  padding: 12px 24px;
+  border-top: 2px solid var(--border2);
+  flex-shrink: 0;
+  display: flex; gap: 10px; justify-content: flex-end;
+}
 .dish-modal-review-tag {
-  font-size: 20px; background: #f0e6fb; color: #8e44ad;
+  font-size: 18px; background: #f0e6fb; color: #8e44ad;
   border: 1.5px solid #8e44ad; border-radius: 20px; padding: 2px 10px;
 }
-.dish-modal-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.dish-modal-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .dish-modal-field label {
-  font-size: 24px; font-weight: 700; color: var(--dim);
+  font-size: 22px; font-weight: 700; color: var(--dim);
 }
 .dish-modal-field input, .dish-modal-field select, .dish-modal-field textarea {
-  padding: 8px 12px; border: 2px solid var(--border2);
-  border-radius: 6px; font-size: 26px;
+  padding: 7px 10px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 24px;
   font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2); color: var(--ink);
   transition: border-color .1s;
@@ -601,19 +617,19 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
 /* ingredient rows */
 .ing-section-label {
-  font-size: 26px; font-weight: 700; color: var(--dim);
-  margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+  font-size: 22px; font-weight: 700; color: var(--dim);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
 }
-.ing-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.ing-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .ing-row {
-  display: flex; gap: 7px; align-items: center;
+  display: flex; gap: 5px; align-items: center;
 }
 .ing-row input {
-  padding: 7px 10px; border: 2px solid var(--border2);
-  border-radius: 6px; font-size: 24px;
+  padding: 6px 8px; border: 2px solid var(--border2);
+  border-radius: 6px; font-size: 22px;
   font-family: 'Noto Sans TC', sans-serif;
   outline: none; background: var(--s2); color: var(--ink);
-  transition: border-color .1s;
+  transition: border-color .1s; min-width: 0;
 }
 .ing-row input:focus { border-color: var(--ink); background: white; }
 .ing-row .ing-name { flex: 2; }
@@ -621,28 +637,28 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .ing-row .ing-unit { flex: 1; }
 .ing-del-btn {
   background: none; border: none; cursor: pointer;
-  color: var(--border2); font-size: 24px; padding: 2px 6px;
+  color: var(--border2); font-size: 22px; padding: 2px 5px;
   border-radius: 4px; transition: color .1s; line-height: 1; flex-shrink: 0;
 }
 .ing-del-btn:hover { color: var(--red); }
 .add-ing-btn {
-  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 24px;
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 22px;
   background: #f0fff4; color: #2e7d32;
   border: 2px solid #2e7d32;
   border-radius: 4px 10px 5px 9px / 9px 5px 10px 4px;
-  padding: 5px 16px; cursor: pointer;
+  padding: 5px 14px; cursor: pointer;
   box-shadow: 2px 2px 0 #2e7d32; transition: all .1s;
 }
 .add-ing-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 #2e7d32; }
 .dish-modal-review-toggle {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 26px; font-weight: 700; color: var(--dim);
-  padding: 10px 0 6px;
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 22px; font-weight: 700; color: #8e44ad;
+  padding: 8px 0 4px;
 }
 .dish-modal-review-toggle input[type="checkbox"] {
-  width: 22px; height: 22px; accent-color: #8e44ad; cursor: pointer;
+  width: 20px; height: 20px; accent-color: #8e44ad; cursor: pointer; flex-shrink: 0; margin-top: 3px;
 }
-.dish-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+.dish-modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 
 
 /* ── MATRIX VIEW ── */
@@ -1161,31 +1177,35 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 <!-- 料理庫 編輯 Modal -->
 <div id="dishModal" onclick="dishModalOverlayClick(event)">
   <div class="dish-modal-box">
-    <h3 id="dish-modal-title">🍽️ 料理資料</h3>
-    <div class="dish-modal-field">
-      <label>料理名稱</label>
-      <input type="text" id="dm-name" placeholder="例：宮保雞丁">
+    <div class="dish-modal-header">
+      <h3 id="dish-modal-title">🍽️ 料理資料</h3>
     </div>
-    <div class="dish-modal-field">
-      <label>類別</label>
-      <select id="dm-cat"></select>
+    <div class="dish-modal-body">
+      <div class="dish-modal-field">
+        <label>料理名稱</label>
+        <input type="text" id="dm-name" placeholder="例：宮保雞丁">
+      </div>
+      <div class="dish-modal-field">
+        <label>類別</label>
+        <select id="dm-cat"></select>
+      </div>
+      <div class="dish-modal-field">
+        <label>備註</label>
+        <textarea id="dm-note" rows="2" placeholder="製作注意事項…" style="resize:none;"></textarea>
+      </div>
+      <div class="dish-modal-review-toggle">
+        <input type="checkbox" id="dm-review">
+        <label for="dm-review" style="cursor:pointer;">⚠️ 標記為「待確認」（食材份量尚未填寫完整）</label>
+      </div>
+      <hr style="margin:10px 0;border:none;border-top:1.5px solid var(--border2);">
+      <div class="ing-section-label">
+        🥩 食材清單
+        <span style="font-size:18px;font-weight:400;color:var(--muted);">（名稱 / 用量 / 單位）</span>
+      </div>
+      <div class="ing-list" id="dm-ing-list"></div>
+      <button class="add-ing-btn" onclick="addIngRow()">＋ 新增食材</button>
     </div>
-    <div class="dish-modal-field">
-      <label>備註</label>
-      <textarea id="dm-note" rows="2" placeholder="製作注意事項…" style="resize:vertical;"></textarea>
-    </div>
-    <div class="dish-modal-review-toggle">
-      <input type="checkbox" id="dm-review">
-      <label for="dm-review" style="cursor:pointer;font-weight:700;color:#8e44ad;">⚠️ 標記為「待確認」（食材份量尚未填寫完整）</label>
-    </div>
-    <hr style="margin:14px 0;border:none;border-top:1.5px solid var(--border2);">
-    <div class="ing-section-label">
-      🥩 食材清單
-      <span style="font-size:20px;font-weight:400;color:var(--muted);">（名稱 / 用量 / 單位）</span>
-    </div>
-    <div class="ing-list" id="dm-ing-list"></div>
-    <button class="add-ing-btn" onclick="addIngRow()">＋ 新增食材</button>
-    <div class="dish-modal-actions">
+    <div class="dish-modal-footer">
       <button class="btn-cancel" onclick="closeDishModal()">取消</button>
       <button class="btn-confirm" onclick="confirmDishEdit()">💾 儲存</button>
     </div>
