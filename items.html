@@ -2528,10 +2528,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   _dishTip.style.cssText = `
     position:fixed; z-index:99999;
     background:#1a1a2e; color:#e8f5e9;
-    border:1.5px solid #2e7d32; border-radius:10px;
-    padding:10px 14px; font-size:15px; line-height:1.8;
-    pointer-events:none; box-shadow:0 4px 18px rgba(0,0,0,.35);
-    min-width:160px; max-width:280px; display:none;
+    border:2.5px solid #2e7d32; border-radius:14px;
+    padding:16px 22px; font-size:22px; line-height:2;
+    pointer-events:none; box-shadow:0 6px 28px rgba(0,0,0,.4);
+    min-width:240px; max-width:400px; display:none;
     font-family:'Noto Sans TC',sans-serif;
   `;
   document.body.appendChild(_dishTip);
@@ -2540,21 +2540,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const data = DISH_DB[name];
     if (!data) return;
     const ings = data.ingredients || [];
-    let html = `<div style="font-weight:700;font-size:15px;color:#a5d6a7;margin-bottom:6px;border-bottom:1px solid #2e7d32;padding-bottom:4px;">🍽 ${esc(name)}</div>`;
+    let html = `<div style="font-weight:700;font-size:22px;color:#a5d6a7;margin-bottom:8px;border-bottom:1.5px solid #2e7d32;padding-bottom:6px;">🍽 ${esc(name)}</div>`;
     if (ings.length) {
       ings.forEach(ing => {
         const ingName = ing.ingredient || ing.name || '';
         const qty     = ing.grams != null ? ing.grams : (ing.qty || '');
         const unit    = ing.unit || 'g';
-        html += `<div style="display:flex;justify-content:space-between;gap:16px;">
+        html += `<div style="display:flex;justify-content:space-between;gap:24px;">
           <span style="color:#e8f5e9;">${esc(ingName)}</span>
           <span style="color:#81c784;font-weight:600;white-space:nowrap;">${esc(String(qty))}${esc(unit)}</span>
         </div>`;
       });
     } else {
-      html += `<div style="color:#ef9a9a;font-size:14px;">尚無食材資料</div>`;
+      html += `<div style="color:#ef9a9a;font-size:20px;">尚無食材資料</div>`;
     }
-    if (data.review) html += `<div style="color:#ef9a9a;font-size:13px;margin-top:4px;">⚠️ 待確認</div>`;
+    if (data.review) html += `<div style="color:#ef9a9a;font-size:19px;margin-top:6px;">⚠️ 待確認</div>`;
     _dishTip.innerHTML = html;
     _dishTip.style.display = 'block';
     _positionDishTip(e);
