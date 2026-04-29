@@ -1044,6 +1044,8 @@ input.sel-l2-inp:disabled {
 #drawer-export .drawer-header { background: #e7f8ff; border-bottom-color: #4a90a8; }
 #drawer-hist   .drawer-header { background: #fff8e7; border-bottom-color: var(--gold); }
 #drawer-colors .drawer-header { background: #f0fff8; border-bottom-color: #4a9a7a; }
+#drawer-cats { width: 80vw; right: -81vw; }
+#drawer-cats.open { right: 0; }
 #drawer-cats   .drawer-header { background: #e7f0ff; border-bottom-color: var(--blue); }
 
 /* 抽屜正文 */
@@ -1841,7 +1843,7 @@ button {
     <div id="catTabsBar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;"></div>
     <div id="catTabContent"></div>
     <!-- 品項操作浮層 -->
-    <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;min-width:240px;max-width:min(340px, calc(100vw - 20px));box-sizing:border-box;">
+    <div id="catItemPopup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1.5px solid #b0bec5;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:14px 16px;width:300px;max-width:calc(100vw - 20px);box-sizing:border-box;overflow:hidden;">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
         <div style="flex:1;">
           <div style="font-weight:700;font-size:0.88rem;color:#37474f;margin-bottom:6px;" id="catPopupTitle">編輯品項</div>
@@ -1865,39 +1867,39 @@ button {
       </div>
       <!-- 修改類別區塊（預設隱藏，在按鈕下方） -->
       <div id="catPopupMoveSection" style="display:none;margin-top:10px;border-top:1.5px solid #e0e0e0;padding-top:10px;">
-        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;table-layout:fixed;">
           <thead>
             <tr>
-              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:50%;">目前類別：</th>
-              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:50%;">修改類別為：</th>
+              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:40%;">目前類別</th>
+              <th style="text-align:left;color:#90a4ae;font-weight:600;padding-bottom:4px;width:60%;">修改為</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="padding-right:8px;">
-                <div id="catPopupCurrentCatDisplay" style="padding:5px 8px;border:1.5px solid #b0bec5;border-radius:5px;background:#f5f5f5;color:#37474f;font-weight:700;"></div>
+              <td style="padding-right:6px;vertical-align:middle;">
+                <div id="catPopupCurrentCatDisplay" style="padding:4px 6px;border:1.5px solid #b0bec5;border-radius:5px;background:#f5f5f5;color:#37474f;font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
               </td>
-              <td>
-                <select id="catPopupMoveTarget" style="width:100%;padding:5px 8px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;font-size:0.85rem;"></select>
+              <td style="vertical-align:middle;">
+                <select id="catPopupMoveTarget" style="width:100%;padding:4px 6px;border:1.5px solid #b0bec5;border-radius:5px;font-family:inherit;background:#fff;color:#37474f;font-size:0.82rem;box-sizing:border-box;"></select>
               </td>
             </tr>
           </tbody>
         </table>
         <div id="catPopupGroupRow" style="display:none;margin-top:8px;">
-          <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.85rem;table-layout:fixed;">
             <thead>
               <tr>
-                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:50%;">目前分組：</th>
-                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:50%;">修改分組為：</th>
+                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:40%;">目前分組</th>
+                <th style="text-align:left;color:#2e7d32;font-weight:600;padding-bottom:4px;width:60%;">修改為</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style="padding-right:8px;">
-                  <div id="catPopupCurrentGroupDisplay" style="padding:5px 8px;border:1.5px solid #a5d6a7;border-radius:5px;background:#f1f8f1;color:#1b5e20;font-weight:700;"></div>
+                <td style="padding-right:6px;vertical-align:middle;">
+                  <div id="catPopupCurrentGroupDisplay" style="padding:4px 6px;border:1.5px solid #a5d6a7;border-radius:5px;background:#f1f8f1;color:#1b5e20;font-weight:700;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
                 </td>
-                <td>
-                  <select id="catPopupGroupTarget" style="width:100%;padding:5px 8px;border:1.5px solid #a5d6a7;border-radius:5px;font-family:inherit;background:#f1f8f1;color:#1b5e20;font-size:0.85rem;"></select>
+                <td style="vertical-align:middle;">
+                  <select id="catPopupGroupTarget" style="width:100%;padding:4px 6px;border:1.5px solid #a5d6a7;border-radius:5px;font-family:inherit;background:#f1f8f1;color:#1b5e20;font-size:0.82rem;box-sizing:border-box;"></select>
                 </td>
               </tr>
             </tbody>
@@ -5415,19 +5417,22 @@ function renderCatDB() {
     btn.style.background = isActive ? style.titleBg : "#fff";
     btn.style.display = 'inline-flex';
     btn.style.alignItems = 'center';
-    btn.style.gap = '4px';
-    btn.style.paddingRight = '6px';
+    btn.style.gap = '2px';
+    btn.style.padding = '4px 6px';
+    btn.style.overflow = 'hidden';
+    btn.style.maxWidth = '160px';
     btn.dataset.catKey = cat;
 
     const btnLabel = document.createElement('span');
     btnLabel.textContent = cat;
+    btnLabel.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;';
     btn.appendChild(btnLabel);
 
     // ✏️ 改名按鈕
     const editPen = document.createElement('span');
     editPen.textContent = '✏️';
     editPen.title = `改名「${cat}」`;
-    editPen.style.cssText = 'font-size:0.8rem;opacity:0.5;margin-left:2px;padding:1px 3px;border-radius:3px;cursor:pointer;transition:opacity .1s;line-height:1;';
+    editPen.style.cssText = 'font-size:0.75rem;opacity:0.5;padding:1px 2px;border-radius:3px;cursor:pointer;transition:opacity .1s;line-height:1;flex-shrink:0;';
     editPen.addEventListener('mouseenter', () => { editPen.style.opacity = '1'; editPen.style.background = 'rgba(255,255,255,0.3)'; });
     editPen.addEventListener('mouseleave', () => { editPen.style.opacity = '0.5'; editPen.style.background = 'none'; });
     editPen.addEventListener('click', (e) => {
@@ -5455,7 +5460,7 @@ function renderCatDB() {
     const delX = document.createElement('span');
     delX.textContent = '✕';
     delX.title = `刪除「${cat}」類別`;
-    delX.style.cssText = 'font-size:1.05rem;opacity:0.6;margin-left:4px;line-height:1;padding:1px 4px;border-radius:3px;cursor:pointer;transition:opacity .1s;';
+    delX.style.cssText = 'font-size:0.85rem;opacity:0.55;padding:1px 2px;border-radius:3px;cursor:pointer;transition:opacity .1s;flex-shrink:0;line-height:1;';
     delX.addEventListener('mouseenter', () => { delX.style.opacity = '1'; delX.style.background = 'rgba(255,0,0,0.2)'; });
     delX.addEventListener('mouseleave', () => { delX.style.opacity = '0.6'; delX.style.background = 'none'; });
     delX.addEventListener('click', (e) => {
