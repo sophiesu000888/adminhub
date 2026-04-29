@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -454,14 +455,111 @@ input.sel-l2-inp:disabled {
 .warning-modal-btn:active { transform: translate(3px,3px); box-shadow: none; }
 
 
-.history-panel {
-  background: white;
-  border: 2.5px solid var(--ink);
-  border-radius: 10px 3px 10px 3px / 3px 10px 3px 10px;
-  box-shadow: 4px 4px 0 0 var(--shadow);
-  margin-top: 16px;
-  overflow: hidden;
+/* ── 歷史日曆 ── */
+.hist-cal-nav {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: var(--ink);
+  border-bottom: 2px solid var(--ink); flex-wrap: wrap;
 }
+.hist-cal-nav h2 {
+  color: #fff; font-size: 0.95rem; font-weight: 700; margin: 0;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+}
+.hist-cal-month-title {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem; font-weight: 700; color: #fff;
+  min-width: 80px; text-align: center;
+}
+.hist-cal-nav-btn {
+  background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
+  color: #fff; border-radius: 6px; padding: 2px 10px;
+  font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: background 0.1s;
+}
+.hist-cal-nav-btn:hover { background: rgba(255,255,255,0.3); }
+.hist-cal-today-btn {
+  background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.8); border-radius: 6px; padding: 2px 8px;
+  font-size: 0.8rem; cursor: pointer; font-family: inherit;
+}
+.hist-cal-stats { font-size: 0.82rem; color: rgba(255,255,255,0.65); margin-left: 4px; }
+.hist-cal-header {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  background: rgba(45,45,45,0.06); border-bottom: 1px solid rgba(45,45,45,0.12);
+}
+.hist-cal-header div {
+  text-align: center; padding: 6px 0; font-size: 0.82rem; font-weight: 700;
+}
+.hist-cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+}
+.hist-cal-cell {
+  min-height: 56px; padding: 6px 8px; position: relative;
+  border-right: 1px solid rgba(45,45,45,0.1);
+  border-bottom: 1px solid rgba(45,45,45,0.1);
+  cursor: default; transition: background 0.1s;
+  box-sizing: border-box;
+}
+.hist-cal-cell:nth-child(7n) { border-right: none; }
+.hist-cal-cell.has-data {
+  background: #e3f0ff; cursor: pointer;
+}
+.hist-cal-cell.has-data:hover { background: #c5dff8; }
+.hist-cal-cell.is-today { outline: 2.5px solid var(--ink); outline-offset: -2.5px; z-index: 1; }
+.hist-cal-cell.out-month { background: #f7f5f0; }
+.hist-cal-num {
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1rem; font-weight: 700; line-height: 1;
+}
+.hist-cal-num.is-sun { color: #c0392b; }
+.hist-cal-num.is-sat { color: #2980b9; }
+.hist-cal-num.is-today-num {
+  background: var(--ink); color: white; border-radius: 50%;
+  width: 26px; height: 26px; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 0.85rem;
+}
+.hist-cal-dot {
+  margin-top: 4px; font-size: 0.72rem; font-weight: 700;
+  color: #1a6aa8;
+}
+
+/* 日期點擊展開 modal */
+#histDateModal {
+  position: fixed; inset: 0; z-index: 99999;
+  background: rgba(45,45,45,0.5);
+  display: none; align-items: center; justify-content: center;
+}
+#histDateModal.open { display: flex; }
+.hist-date-modal-box {
+  background: white; border: 2.5px solid var(--ink);
+  border-radius: 10px 3px 10px 3px / 3px 10px 3px 10px;
+  box-shadow: 6px 6px 0 var(--ink);
+  width: min(700px, calc(100vw - 24px));
+  max-height: 80vh; display: flex; flex-direction: column;
+  animation: slideUp .18s ease;
+}
+.hist-date-modal-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px; background: var(--ink); color: #fff;
+  border-radius: 8px 1px 0 0; flex-shrink: 0;
+}
+.hist-date-modal-header h3 {
+  font-family: 'Kalam','Noto Sans TC',sans-serif;
+  font-size: 1rem; font-weight: 700; margin: 0; flex: 1;
+}
+.hist-date-modal-body {
+  flex: 1; overflow: auto; padding: 14px 16px;
+}
+.hist-date-modal-footer {
+  padding: 10px 18px; border-top: 1px solid rgba(45,45,45,0.12);
+  display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0;
+}
+.history-entry {
+  border-bottom: 1px solid rgba(45,45,45,0.1);
+  transition: background 0.12s;
+}
+.history-entry:last-child { border-bottom: none; }
+
 
 .history-panel-header {
   display: flex;
@@ -1603,14 +1701,37 @@ button {
     <h2>歷史紀錄 <span id="historyCount" style="font-size:0.85rem;font-weight:400;opacity:0.8;margin-left:4px;">0 筆</span></h2>
     <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
   </div>
-  <div class="drawer-body" style="padding:0;">
-    <div style="padding:10px 14px;background:#f3e5f5;border-bottom:1px solid #e1bee7;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="font-size:0.85rem;color:#6a1b9a;">在每筆菜單標題列點「📌 存入歷史」</span>
+  <div class="drawer-body" style="padding:0;display:flex;flex-direction:column;">
+    <!-- 日曆導覽列 -->
+    <div class="hist-cal-nav">
+      <button class="hist-cal-nav-btn" onclick="histCalNav(-1)">‹</button>
+      <span id="hist-cal-month-title" class="hist-cal-month-title"></span>
+      <button class="hist-cal-nav-btn" onclick="histCalNav(1)">›</button>
+      <button class="hist-cal-today-btn" onclick="histCalGoToday()">今天</button>
+      <span id="hist-cal-stats" class="hist-cal-stats"></span>
       <button class="btn-clear-history" style="margin-left:auto;" onclick="clearAllHistory()">🗑️ 清除全部</button>
     </div>
-    <div id="historyList">
-      <div class="history-empty" id="historyEmpty">尚無歷史紀錄。</div>
+    <!-- 星期標頭 -->
+    <div class="hist-cal-header">
+      <div style="color:#c0392b;">日</div>
+      <div>一</div><div>二</div><div>三</div><div>四</div>
+      <div>五</div>
+      <div style="color:#2980b9;">六</div>
     </div>
+    <!-- 日曆格 -->
+    <div id="hist-cal-grid" class="hist-cal-grid" style="flex:1;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- 歷史日期詳情 Modal -->
+<div id="histDateModal" onclick="if(event.target===this)closeHistDateModal()">
+  <div class="hist-date-modal-box">
+    <div class="hist-date-modal-header">
+      <h3 id="histDateModalTitle">📅 紀錄詳情</h3>
+      <button onclick="closeHistDateModal()" style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:3px 10px;font-size:0.85rem;cursor:pointer;font-family:inherit;">✕ 關閉</button>
+    </div>
+    <div class="hist-date-modal-body" id="histDateModalBody"></div>
+    <div class="hist-date-modal-footer" id="histDateModalFooter"></div>
   </div>
 </div>
 
@@ -2669,62 +2790,137 @@ function saveWeekToHistory(wid) {
   showSaveToast("📌 已存入歷史紀錄");
 }
 
-// ===== 渲染歷史紀錄面板 =====
+// ===== 歷史日曆 =====
+let _histCalYear  = new Date().getFullYear();
+let _histCalMonth = new Date().getMonth();
+
+function histCalNav(dir) {
+  _histCalMonth += dir;
+  if (_histCalMonth > 11) { _histCalMonth = 0; _histCalYear++; }
+  if (_histCalMonth < 0)  { _histCalMonth = 11; _histCalYear--; }
+  renderHistoryPanel();
+}
+function histCalGoToday() {
+  const n = new Date();
+  _histCalYear = n.getFullYear(); _histCalMonth = n.getMonth();
+  renderHistoryPanel();
+}
+
 function renderHistoryPanel() {
-  const listEl = document.getElementById("historyList");
-  const emptyEl = document.getElementById("historyEmpty");
-  const countEl = document.getElementById("historyCount");
+  const gridEl   = document.getElementById('hist-cal-grid');
+  const countEl  = document.getElementById('historyCount');
+  const titleEl  = document.getElementById('hist-cal-month-title');
+  const statsEl  = document.getElementById('hist-cal-stats');
+  if (!gridEl) return;
 
-  countEl.textContent = `${historyList.length} 筆`;
+  if (countEl) countEl.textContent = `${historyList.length} 筆`;
 
-  if (historyList.length === 0) {
-    listEl.innerHTML = '';
-    listEl.appendChild(Object.assign(document.createElement("div"), {
-      className: "history-empty",
-      textContent: "尚無歷史紀錄。在每筆菜單的標題列點選「📌 存入歷史」即可儲存。"
-    }));
-    return;
+  const y = _histCalYear, m = _histCalMonth;
+  if (titleEl) titleEl.textContent = `${y} . ${String(m+1).padStart(2,'0')}`;
+
+  // 建立日期 → index 對照
+  const dateMap = {};
+  historyList.forEach((entry, idx) => { if (entry.date) dateMap[entry.date] = idx; });
+
+  const firstDay    = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const now         = new Date();
+  const todayStr    = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+  let monthCount = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (dateMap[ds] !== undefined) monthCount++;
+  }
+  if (statsEl) statsEl.textContent = `本月 ${monthCount} 天有紀錄`;
+
+  gridEl.innerHTML = '';
+
+  // 前補空格
+  for (let i = 0; i < firstDay; i++) {
+    const b = document.createElement('div');
+    b.className = 'hist-cal-cell out-month';
+    gridEl.appendChild(b);
   }
 
-  listEl.innerHTML = '';
-  const container = document.createElement("div");
-  container.className = "history-list";
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds  = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const idx = dateMap[ds];
+    const hasData = idx !== undefined;
+    const isToday = ds === todayStr;
+    const dow = (firstDay + d - 1) % 7;
+    const isSun = dow === 0, isSat = dow === 6;
 
-  historyList.forEach((entry, idx) => {
-    const entryEl = document.createElement("div");
-    entryEl.className = "history-entry";
+    const cell = document.createElement('div');
+    cell.className = ['hist-cal-cell', hasData ? 'has-data' : '', isToday ? 'is-today' : ''].join(' ');
 
-    // 標頭列
-    const header = document.createElement("div");
-    header.className = "history-entry-header";
-    header.innerHTML = `
-      <span class="hist-date">📅 ${entry.date}</span>
-      <span class="hist-day">${entry.day || ""}</span>
-      <span class="hist-saved-at">儲存於 ${entry.savedAt || ""}${entry.savedBy ? " ✍️ " + entry.savedBy : ""}</span>
-      <div class="history-entry-actions">
-        <button class="btn-hist-restore" onclick="restoreFromHistory(${idx});event.stopPropagation();">↩ 還原到編輯區</button>
-        <button class="btn-hist-export" onclick="exportHistoryEntry(${idx});event.stopPropagation();">📄 匯出</button>
-        <button class="btn-hist-del" onclick="deleteHistoryEntry(${idx});event.stopPropagation();">✕</button>
-      </div>
-      <span class="hist-toggle">▼</span>
-    `;
-    header.addEventListener("click", () => {
-      header.classList.toggle("open");
-      body.classList.toggle("open");
-    });
+    const numSpan = document.createElement('span');
+    numSpan.className = ['hist-cal-num', isSun ? 'is-sun' : isSat ? 'is-sat' : '', isToday ? 'is-today-num' : ''].join(' ');
+    numSpan.textContent = d;
+    cell.appendChild(numSpan);
 
-    // 內容
-    const body = document.createElement("div");
-    body.className = "history-entry-body";
-    body.innerHTML = buildHistoryTableHTML(entry);
+    if (hasData) {
+      const dot = document.createElement('div');
+      dot.className = 'hist-cal-dot';
+      dot.textContent = '✓ 有紀錄';
+      cell.appendChild(dot);
+      cell.addEventListener('click', () => openHistDateModal(idx));
+    }
 
-    entryEl.appendChild(header);
-    entryEl.appendChild(body);
-    container.appendChild(entryEl);
-  });
+    gridEl.appendChild(cell);
+  }
 
-  listEl.appendChild(container);
+  // 後補空格
+  const rem = (firstDay + daysInMonth) % 7;
+  if (rem) for (let i = 0; i < 7 - rem; i++) {
+    const b = document.createElement('div');
+    b.className = 'hist-cal-cell out-month';
+    gridEl.appendChild(b);
+  }
 }
+
+function openHistDateModal(idx) {
+  const entry = historyList[idx];
+  if (!entry) return;
+  const modal     = document.getElementById('histDateModal');
+  const titleEl   = document.getElementById('histDateModalTitle');
+  const bodyEl    = document.getElementById('histDateModalBody');
+  const footerEl  = document.getElementById('histDateModalFooter');
+
+  titleEl.innerHTML = `📅 ${entry.date}${entry.day ? '　' + entry.day : ''}`;
+
+  bodyEl.innerHTML = `
+    <div style="font-size:0.82rem;color:#888;margin-bottom:10px;">
+      儲存於 ${entry.savedAt || '—'}${entry.savedBy ? '　✍️ ' + entry.savedBy : ''}
+    </div>
+    <div style="overflow-x:auto;">${buildHistoryTableHTML(entry)}</div>
+  `;
+
+  footerEl.innerHTML = '';
+  const restoreBtn = document.createElement('button');
+  restoreBtn.className = 'btn-hist-restore';
+  restoreBtn.textContent = '↩ 還原到編輯區';
+  restoreBtn.onclick = () => { restoreFromHistory(idx); closeHistDateModal(); };
+  const exportBtn = document.createElement('button');
+  exportBtn.className = 'btn-hist-export';
+  exportBtn.textContent = '📄 匯出';
+  exportBtn.onclick = () => exportHistoryEntry(idx);
+  const delBtn = document.createElement('button');
+  delBtn.className = 'btn-hist-del';
+  delBtn.textContent = '✕ 刪除此紀錄';
+  delBtn.onclick = () => { deleteHistoryEntry(idx); closeHistDateModal(); renderHistoryPanel(); };
+  footerEl.appendChild(restoreBtn);
+  footerEl.appendChild(exportBtn);
+  footerEl.appendChild(delBtn);
+
+  modal.classList.add('open');
+}
+
+function closeHistDateModal() {
+  document.getElementById('histDateModal').classList.remove('open');
+}
+
+
 
 // ===== 建立歷史紀錄預覽表格 =====
 function buildHistoryTableHTML(entry) {
