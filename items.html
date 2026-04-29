@@ -1489,11 +1489,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       _remoteUpdate = false;
     });
 
-    // ── DISH DB sync（需要 user，放在 requireAuth 內）──
-    autoSaveDish = makeAutoSave('dishdb', () => DISH_DB);
-    startSync('dishdb', user, (content) => {
+    // ── DISH DB sync：從 menudb 讀取 content.DISH_DB，儲存也寫回同一份 ──
+    // menudb 的完整結構由 menu.html 管理，items.html 只讀寫 DISH_DB 子欄位
+    let _menudbCache = null; // 保留 menudb 其他欄位（DB, MENU_GROUPS 等），避免覆蓋
+
+    autoSaveDish = makeAutoSave('menudb', () => {
+      // 把目前 DISH_DB 合併回 menudb cache，保留其他欄位
+      return Object.assign({}, _menudbCache || {}, { DISH_DB });
+    });
+
+    startSync('menudb', user, (content) => {
       if (!content || typeof content !== 'object') return;
-      DISH_DB = content;
+      _menudbCache = content; // 保留完整 menudb
+      const incoming = content.DISH_DB;
+      if (!incoming || typeof incoming !== 'object') return;
+      DISH_DB = incoming;
       if (currentTab === 'dish') renderDishDB();
     });
   });
@@ -2433,9 +2443,11 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const sel = document.getElementById('dm-cat');
     if (!sel) return;
     const cur = sel.value;
+    const dishCats = [...new Set(Object.values(DISH_DB).map(d => d.category).filter(Boolean))];
+    const allCats  = [...new Set([...CATS, ...dishCats])];
     sel.innerHTML = `<option value="">（未分類）</option>` +
-      CATS.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
-    if (CATS.includes(cur)) sel.value = cur;
+      allCats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    if (allCats.includes(cur)) sel.value = cur;
   }
 
   // ── Render dish grid ──
@@ -2475,7 +2487,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
           ${data.review ? '<span class="dish-review-badge">⚠️ 待確認</span>' : ''}
         </div>
         <div class="dish-card-meta">
-          ${data.cat ? `<span style="font-size:22px;background:#f0e6fb;color:#8e44ad;border:1px solid #c39bd3;border-radius:20px;padding:1px 10px;">${esc(data.cat)}</span>` : ''}
+          ${data.category ? `<span style="font-size:22px;background:#f0e6fb;color:#8e44ad;border:1px solid #c39bd3;border-radius:20px;padding:1px 10px;">${esc(data.category)}</span>` : ''}
           ${ingLabel}
           ${data.note ? `<span style="font-size:22px;color:var(--muted);" title="${esc(data.note)}">📝 ${esc(data.note.length > 20 ? data.note.slice(0,20)+'…' : data.note)}</span>` : ''}
         </div>
@@ -2512,7 +2524,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       name ? `✏️ 編輯料理：${esc(name)}` : '＋ 新增料理';
     document.getElementById('dm-name').value  = name || '';
     document.getElementById('dm-name').disabled = !!name; // 編輯時不能改名（用刪+新增）
-    document.getElementById('dm-cat').value   = data.cat  || '';
+    document.getElementById('dm-cat').value   = data.category || '';
     document.getElementById('dm-note').value  = data.note || '';
     document.getElementById('dm-review').checked = !!data.review;
     // render ingredients
@@ -2567,11 +2579,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const name = _editingDishKey || document.getElementById('dm-name').value.trim();
     if (!name) { document.getElementById('dm-name').focus(); alert('請輸入料理名稱'); return; }
     const data = {
-      cat:         document.getElementById('dm-cat').value.trim(),
+      category:    document.getElementById('dm-cat').value.trim(),
       note:        document.getElementById('dm-note').value.trim(),
       review:      document.getElementById('dm-review').checked,
       ingredients: collectIngredients(),
-      updatedAt:   Date.now(),
     };
     DISH_DB[name] = data;
     if (autoSaveDish) autoSaveDish();
