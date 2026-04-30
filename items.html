@@ -2877,13 +2877,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         const left = document.createElement('div');
         left.style.cssText = 'min-width:140px;flex-shrink:0;';
         left.innerHTML = `
-          <div style="font-weight:700;font-size:26px;margin-bottom:4px;">${esc(name)}</div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
             ${data.review
-              ? `<span style="font-size:20px;font-weight:700;background:#f0e6fb;color:#8e44ad;border:1.5px solid #8e44ad;border-radius:20px;padding:2px 10px;">⚠️ 待確認</span>`
-              : `<span style="font-size:20px;font-weight:700;background:#f0fff4;color:var(--act);border:1.5px solid var(--act);border-radius:20px;padding:2px 10px;">✅ 完成</span>`}
-            ${ings.length === 0 ? `<span style="font-size:18px;color:var(--red);">無食材</span>` : ''}
+              ? `<span style="font-size:20px;font-weight:700;background:#f0e6fb;color:#8e44ad;border:1.5px solid #8e44ad;border-radius:20px;padding:2px 10px;white-space:nowrap;">⚠️ 待確認</span>`
+              : `<span style="font-size:20px;font-weight:700;background:#f0fff4;color:var(--act);border:1.5px solid var(--act);border-radius:20px;padding:2px 10px;white-space:nowrap;">✅ 完成</span>`}
+            <div style="font-weight:700;font-size:26px;">${esc(name)}</div>
           </div>
+          ${ings.length === 0 ? `<span style="font-size:18px;color:var(--red);">無食材</span>` : ''}
         `;
 
         // 中間：食材清單
