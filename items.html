@@ -2914,11 +2914,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         row.appendChild(left);
         row.appendChild(mid);
         row.appendChild(right);
-
-        // hover tooltip
-        row.addEventListener('mouseenter', (e) => showDishTip(name, e));
-        row.addEventListener('mousemove',  (e) => _positionDishTip(e));
-        row.addEventListener('mouseleave', hideDishTip);
         tbody.appendChild(row);
       });
     });
