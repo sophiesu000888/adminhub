@@ -5363,17 +5363,19 @@ function renderCatDB() {
   tabsBar.innerHTML = "";
   tabContent.innerHTML = "";
 
-  // 建立食材 → 料理 反向索引（以主食材為主）
+  // 建立食材 → 料理 反向索引（所有食材都建索引，一道料理可出現在多個食材下）
   const _ingToDishes = {};
   Object.entries(DISH_DB).forEach(([dishName, data]) => {
     if (!data.ingredients) return;
-    // 只取重量最重的食材（主食材）做索引
-    const sorted = [...data.ingredients].sort((a,b) => b.grams - a.grams);
-    const mainIng = sorted[0]?.ingredient;
-    if (mainIng) {
-      if (!_ingToDishes[mainIng]) _ingToDishes[mainIng] = [];
-      _ingToDishes[mainIng].push(dishName);
-    }
+    // 去重：同一道料理同一食材只加一次
+    const seen = new Set();
+    data.ingredients.forEach(ing => {
+      const ingName = ing.ingredient || ing.name;
+      if (!ingName || seen.has(ingName)) return;
+      seen.add(ingName);
+      if (!_ingToDishes[ingName]) _ingToDishes[ingName] = [];
+      _ingToDishes[ingName].push(dishName);
+    });
   });
 
   const CAT_ORDER = ["主菜","副主菜","米飯","白葉菜","綠葉菜","蛋白質","菇","瓜果","根莖","海帶","其他","輔料"];
