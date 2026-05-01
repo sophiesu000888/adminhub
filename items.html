@@ -1533,7 +1533,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         if (!newName || !newName.trim() || newName.trim() === val) return;
         const trimmed = newName.trim();
         if (list.includes(trimmed)) { alert(`「${trimmed}」已存在`); return; }
-        // 更新 items 裡的對應欄位
         if (_manageType === 'site') {
           items.forEach(it => { if (it.site === val) it.site = trimmed; });
           autoSave();
@@ -1550,7 +1549,6 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         renderOptList();
         if (autoSaveOptions) autoSaveOptions();
       });
-      const [upBtn, downBtn] = row.querySelectorAll('.opt-sort-btn');
       upBtn.addEventListener('click', () => {
         if (idx === 0) return;
         list.splice(idx - 1, 0, list.splice(idx, 1)[0]);
