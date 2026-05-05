@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -34,6 +35,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { font-size: 18px; }
+
 body {
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   background-color: #f5f3ee;
@@ -60,7 +63,7 @@ h1 {
 
 .toolbar {
   display: flex; gap: 8px; justify-content: center;
-  margin-bottom: 16px; flex-wrap: wrap;
+  margin-bottom: 54px; flex-wrap: wrap;
 }
 .toolbar button {
   padding: 8px 18px;
@@ -99,6 +102,53 @@ h1 {
 .btn-backup:hover  { box-shadow: 1px 1px 0 0 #276749 !important; }
 .btn-restore { background: #fff8f0 !important; color: #c05621 !important; border-color: #c05621 !important; box-shadow: 3px 3px 0 0 #c05621 !important; }
 .btn-restore:hover { box-shadow: 1px 1px 0 0 #c05621 !important; }
+
+/* ── 工具列展開子按鈕群 ── */
+.toolbar-split-group {
+  position: relative;
+  display: inline-flex;
+}
+.toolbar-sub-wrap {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  animation: subBtnIn .15s ease;
+  z-index: 100;
+}
+@keyframes subBtnIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.toolbar-sub-wrap.open { display: flex; }
+.toolbar-sub-wrap .toolbar-sub-btn {
+  padding: 8px 18px;
+  border: 2.5px solid var(--ink);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  font-family: 'Kalam', 'Noto Sans TC', sans-serif;
+  font-size: 1.14rem; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: 3px 3px 0px 0px var(--shadow);
+  background: white;
+}
+.toolbar-sub-wrap .toolbar-sub-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px var(--shadow);
+}
+.toolbar-sub-wrap .toolbar-sub-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0px 0px var(--shadow);
+}
+.toolbar-parent-btn.is-open {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px var(--shadow);
+  opacity: 0.85;
+}
 
 .schedule-area { display: flex; flex-direction: column; gap: 24px; }
 
@@ -216,6 +266,7 @@ th, td { border: 1px solid rgba(45,45,45,0.25); text-align: center; vertical-ali
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
   border-right: 2px solid rgba(45,45,45,0.3);
   position: sticky; left: 0; z-index: 1;
+  text-align: center;
 }
 
 .td-l1 { padding: 3px; min-width: 78px}
@@ -1377,14 +1428,34 @@ button {
 <h1>Menu Schedule</h1>
 
 <div class="toolbar">
-  <button class="btn-add"       onclick="addWeek()">➕ 新增日期</button>
-  <button class="btn-add-hloc"  onclick="addGlobalHLoc()">🟢 新增健康餐地點</button>
-  <button class="btn-add-wloc"  onclick="addGlobalWLoc()">🔵 新增風味餐地點</button>
-  <button class="btn-history-save" onclick="saveAllToHistory()">📌 一鍵存入歷史</button>
-  <button class="btn-backup"  onclick="backupData()">💾 備份資料</button>
-  <button class="btn-restore" onclick="document.getElementById('restoreFileInput').click()">📂 匯入恢復</button>
+  <button class="btn-add" onclick="addWeek()">➕ 新增日期</button>
+
+  <div class="toolbar-split-group">
+    <button class="btn-add-hloc toolbar-parent-btn" id="btnAddLoc"
+      onclick="toggleToolbarSub('subAddLoc', this)">📍 新增地點</button>
+    <div class="toolbar-sub-wrap" id="subAddLoc">
+      <button class="toolbar-sub-btn btn-add-hloc"
+        onclick="addGlobalHLoc(); closeToolbarSub('subAddLoc','btnAddLoc')">🟢 健康餐地點</button>
+      <button class="toolbar-sub-btn btn-add-wloc"
+        onclick="addGlobalWLoc(); closeToolbarSub('subAddLoc','btnAddLoc')">🔵 風味餐地點</button>
+    </div>
+  </div>
+
+  <div class="toolbar-split-group">
+    <button class="btn-backup toolbar-parent-btn" id="btnDataMgr"
+      onclick="toggleToolbarSub('subDataMgr', this)">🗂️ 資料管理</button>
+    <div class="toolbar-sub-wrap" id="subDataMgr">
+      <button class="toolbar-sub-btn btn-history-save"
+        onclick="saveAllToHistory(); closeToolbarSub('subDataMgr','btnDataMgr')">📌 一鍵存入歷史</button>
+      <button class="toolbar-sub-btn btn-backup"
+        onclick="backupData(); closeToolbarSub('subDataMgr','btnDataMgr')">💾 備份資料</button>
+      <button class="toolbar-sub-btn btn-restore"
+        onclick="document.getElementById('restoreFileInput').click(); closeToolbarSub('subDataMgr','btnDataMgr')">📂 匯入恢復</button>
+    </div>
+  </div>
+
   <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreData(this)">
-  <button class="btn-clear"     onclick="clearAll()">🗑️ 清除全部</button>
+  <button class="btn-clear" onclick="clearAll()">🗑️ 清除全部</button>
 </div>
 
 <div class="schedule-area" id="scheduleArea"></div>
@@ -2610,6 +2681,30 @@ function showWarningModal(msg, locs) {
   btn.focus();
 }
 
+// ===== 工具列展開子按鈕 =====
+function toggleToolbarSub(subId, parentBtn) {
+  const sub = document.getElementById(subId);
+  const isOpen = sub.classList.contains('open');
+  // 先關閉所有展開的群組
+  document.querySelectorAll('.toolbar-sub-wrap.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.toolbar-parent-btn.is-open').forEach(el => el.classList.remove('is-open'));
+  if (!isOpen) {
+    sub.classList.add('open');
+    parentBtn.classList.add('is-open');
+  }
+}
+function closeToolbarSub(subId, btnId) {
+  document.getElementById(subId)?.classList.remove('open');
+  document.getElementById(btnId)?.classList.remove('is-open');
+}
+// 點擊 toolbar 以外的地方自動收起
+document.addEventListener('click', e => {
+  if (!e.target.closest('.toolbar-sub-wrap') && !e.target.closest('.toolbar-parent-btn')) {
+    document.querySelectorAll('.toolbar-sub-wrap.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.toolbar-parent-btn.is-open').forEach(el => el.classList.remove('is-open'));
+  }
+});
+
 function scheduleAutoSave() {
   if (_isLoading) return;
   if (_menuAutoSave) _menuAutoSave();
@@ -2995,8 +3090,8 @@ function buildHistoryTableHTML(entry) {
   // row1
   html += `<tr>
     <th class="th-week" rowspan="3" style="min-width:40px;">品項</th>
-    <th class="th-health" colspan="${hSpan}">【健康餐】</th>
-    <th class="th-wind" colspan="${wSpan}">【風味餐】</th>
+    <th class="th-health" colspan="${hSpan}">健康餐🥗</th>
+    <th class="th-wind" colspan="${wSpan}">風味餐🍱</th>
   </tr>`;
 
   // row2 地點
@@ -3312,7 +3407,7 @@ function exportCurrentAsHTML() {
 
     const hSpan = hLocNames.length * 2;
     const wSpan = wLocNames.length * 2;
-    let hr1 = `<tr><th class="th-week" rowspan="3">品項</th><th class="th-health" colspan="${hSpan}">【健康餐】</th><th class="th-wind" colspan="${wSpan}">【風味餐】</th></tr>`;
+    let hr1 = `<tr><th class="th-week" rowspan="3">品項</th><th class="th-health" colspan="${hSpan}">健康餐🥗</th><th class="th-wind" colspan="${wSpan}">風味餐🍱</th></tr>`;
     // 讀子地點
     const hSubL = _readSubLocs(block, 0, hLocNames.length);
     const wSubL = _readSubLocs(block, hLocNames.length, wLocNames.length);
@@ -3615,7 +3710,7 @@ async function exportAsImage(itemOnlyMode) {
 
     const hSpan = itemOnlyMode ? hLocNames.length : hLocNames.length * 2;
     const wSpan = itemOnlyMode ? wLocNames.length : wLocNames.length * 2;
-    let hr1 = `<tr><th class="th-week" rowspan="3">品項</th><th class="th-health" colspan="${hSpan}">【健康餐】</th><th class="th-wind" colspan="${wSpan}">【風味餐】</th></tr>`;
+    let hr1 = `<tr><th class="th-week" rowspan="3">品項</th><th class="th-health" colspan="${hSpan}">健康餐🥗</th><th class="th-wind" colspan="${wSpan}">風味餐🍱</th></tr>`;
     let hr2 = "<tr>";
 
     // read qty values from DOM
@@ -4794,11 +4889,11 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
 
     const thH = document.createElement("th");
     thH.className="th-health"; thH.colSpan=hLocs.length*2;
-    thH.textContent="【健康餐】"; hr1.appendChild(thH);
+    thH.textContent="健康餐🥗"; hr1.appendChild(thH);
 
     const thW = document.createElement("th");
     thW.className="th-wind"; thW.colSpan=wLocs.length*2;
-    thW.textContent="【風味餐】"; hr1.appendChild(thW);
+    thW.textContent="風味餐🍱"; hr1.appendChild(thW);
 
     const hr2 = tbl.insertRow();
     hLocs.forEach((loc, i) => {
@@ -5034,8 +5129,8 @@ function exportHTML(itemOnlyMode) {
     const wSpan = itemOnlyMode ? wLocNames.length : wLocNames.length * 2;
     let hr1 = `<tr>
       <th class="th-week" rowspan="3">品項</th>
-      <th class="th-health" colspan="${hSpan}">【健康餐】</th>
-      <th class="th-wind" colspan="${wSpan}">【風味餐】</th>
+      <th class="th-health" colspan="${hSpan}">健康餐🥗</th>
+      <th class="th-wind" colspan="${wSpan}">風味餐🍱</th>
     </tr>`;
 
     let hr2 = "<tr>";
