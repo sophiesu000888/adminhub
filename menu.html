@@ -3642,6 +3642,7 @@ ${tablesHTML}
 
 // ===== 累積品項使用頻率到 Firebase（永久保存，不隨歷史刪除而消失） =====
 async function syncUsageToFirebase(dataList) {
+  const { db } = initFirebase();
   if (!db) return;
   // dataList: extractWeekData 的陣列，每筆有 cells = [{row, col, v1, v2}]
   // rowKey 邏輯：row 是列名稱（"主菜"/"副主菜"/"米飯"），col 是欄位index → rowKey = row or String(col+1)
@@ -3679,6 +3680,7 @@ async function syncUsageToFirebase(dataList) {
 
 // 從 Firebase 載入使用頻率，初始化 USAGE_DEFAULT
 async function loadUsageFromFirebase() {
+  const { db } = initFirebase();
   if (!db) return;
   try {
     const snap = await db.collection('modules').doc('item_usage').get();
