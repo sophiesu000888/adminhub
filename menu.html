@@ -436,6 +436,13 @@ input.sel-l2-inp:disabled {
   background: rgba(45,93,161,0.1);
   color: var(--ink);
 }
+.fuzzy-top-item {
+  background: #fffbe6;
+  font-weight: 500;
+}
+.fuzzy-top-item:hover {
+  background: #fff3b0;
+}
 .fuzzy-dropdown-group {
   padding: 5px 10px 2px;
   font-size: 0.75rem;
@@ -1247,7 +1254,6 @@ input.sel-l2-inp:disabled {
   background: rgba(0,0,0,0.07);
   border-radius: 20px;
   padding: 2px 7px 2px 5px;
-  margin-left: 2px;
   border: 1px solid rgba(0,0,0,0.18);
   white-space: nowrap;
   flex-shrink: 0;
@@ -2640,6 +2646,53 @@ let _itemClipboard = null;
 
 const STORAGE_KEY = "yupin_menu_v2";
 const HISTORY_KEY = "yupin_menu_history_v1";
+// ===== 常用品項系統（預設資料 + 使用者累積） =====
+const USAGE_KEY = "yupin_item_usage_v2";
+const USAGE_TOP_N = 5;
+
+// 預設頻率（從歷史菜單統計，rowKey → {品項: 次數}）
+const USAGE_DEFAULT = {
+  "主菜": {"義式雞胸*":6,"西芹洋蔥肉絲*":4,"桔醬舒肥雞胸*":4,"洋芋雞胸丁*":4,"蔥燒豬五花*":4,"醬烤肉片*":4,"日式叉燒*":4,"泰式醬雞胸丁*":4,"雙拼舒肥雞胸*":3,"紫蘇梅雞丁":3,"黑胡椒雞胸丁*":3,"醬烤梅花豬*":3,"菌菇肉片*":3,"照燒腿排*":3,"壽喜燒豚肉":3,"蔥燒雞丁*":3,"菌菇蒜味雞丁*":3},
+  "副主菜": {"淡水魚丸":2,"花枝丸":2,"肉羹":1,"獅子頭":1,"港點":1,"鹹豬肉":1,"炸機塊":1,"士林香腸":1,"鹽酥雞":1,"雞捲":1,"炸雞塊":1,"滷貢丸":1},
+  "1": {"水煮蛋":63,"滷蛋":8,"小黃瓜":7,"花生":3,"秋葵":1,"玉米筍切段":1},
+  "2": {"杏鮑菇":19,"板豆腐":10,"玉米":9,"玉米筍一條":6,"火腿玉米":6,"小黃瓜":6,"冬粉":5,"麻婆豆腐":4,"四分干(豆干)":4,"青龍豆干片":4,"芹菜豆干片":3,"韭黃豆干":3,"紅燒百頁豆腐":3,"玉米粒":3},
+  "3": {"高麗菜":28,"蚵白菜":24,"青江菜":21,"大白菜":16,"油菜":15},
+  "4": {"青花椰":12,"大黃瓜":10,"敏豆":9,"小番茄":8,"紅椒":8,"小黃瓜":6,"紅蘿蔔":6,"玉米塊":6,"白花椰":4,"南瓜":4},
+  "5": {"港點":17,"紅蘿蔔球":13,"南瓜":6,"紅蘿蔔":6,"黃地瓜":5,"冬瓜":4,"紅椒":4,"毛豆仁":4,"紅地瓜":4,"花生":4},
+  "6": {"蓮藕":6,"紅椒":5,"雲耳":5,"黃椒":4,"秋葵":4,"紫地瓜":4,"紅蘿蔔球":2,"木耳":1,"小黃瓜":1}
+};
+
+function loadUsageMap() {
+  try { return JSON.parse(localStorage.getItem(USAGE_KEY) || "{}"); } catch(e) { return {}; }
+}
+function saveUsageMap(map) {
+  try { localStorage.setItem(USAGE_KEY, JSON.stringify(map)); } catch(e) {}
+}
+function recordItemUsage(rowKey, val) {
+  const map = loadUsageMap();
+  if (!map[rowKey]) map[rowKey] = {};
+  map[rowKey][val] = (map[rowKey][val] || 0) + 1;
+  saveUsageMap(map);
+}
+function getTopItems(rowKey, allItems, n) {
+  const userMap = loadUsageMap();
+  const userCounts = userMap[rowKey] || {};
+  const defaultCounts = USAGE_DEFAULT[rowKey] || {};
+  // 合併：使用者紀錄 * 2 倍權重 + 預設值
+  const allSet = new Set(allItems);
+  const scores = {};
+  allItems.forEach(item => {
+    const u = (userCounts[item] || 0) * 2;
+    const d = defaultCounts[item] || 0;
+    if (u + d > 0) scores[item] = u + d;
+  });
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([item]) => item)
+    .filter(item => allSet.has(item));
+}
+
 
 let currentUser = null;   // 由 requireAuth 設定
 let _menuAutoSave = null; // 由 initApp 設定（makeAutoSave 回傳）
@@ -3020,6 +3073,7 @@ function saveWeekToHistory(wid) {
   }
 
   saveHistory();
+  syncUsageToFirebase([data]);   // 非同步累積使用頻率到 Firebase
   renderHistoryPanel();
   showSaveToast("📌 已存入歷史紀錄");
 }
@@ -3585,6 +3639,65 @@ ${tablesHTML}
 }
 
 // ===== 全部存成歷史 =====
+
+// ===== 累積品項使用頻率到 Firebase（永久保存，不隨歷史刪除而消失） =====
+async function syncUsageToFirebase(dataList) {
+  if (!db) return;
+  // dataList: extractWeekData 的陣列，每筆有 cells = [{row, col, v1, v2}]
+  // rowKey 邏輯：row 是列名稱（"主菜"/"副主菜"/"米飯"），col 是欄位index → rowKey = row or String(col+1)
+  const ROW_NAME_TO_KEY = { "主菜": "主菜", "副主菜": "副主菜", "米飯": "米飯" };
+
+  // 先彙整本次要增加的計數（避免每個 cell 都單獨寫一次 Firestore）
+  const batch = {};  // key: `{rowKey}_{item}` → count
+  for (const data of dataList) {
+    for (const cell of (data.cells || [])) {
+      const val = (cell.v2 || "").trim();
+      if (!val || val === "-") continue;
+      // 決定 rowKey
+      const rowKey = ROW_NAME_TO_KEY[cell.row] != null
+        ? ROW_NAME_TO_KEY[cell.row]
+        : String(cell.col + 1);
+      const k = `${rowKey}|||${val}`;
+      batch[k] = (batch[k] || 0) + 1;
+    }
+  }
+  if (!Object.keys(batch).length) return;
+
+  // 讀取目前的 usage 文件（一次讀，一次寫）
+  try {
+    const ref = db.collection('modules').doc('item_usage');
+    const snap = await ref.get();
+    const current = (snap.exists && snap.data().counts) ? snap.data().counts : {};
+    for (const [k, n] of Object.entries(batch)) {
+      current[k] = (current[k] || 0) + n;
+    }
+    await ref.set({ counts: current, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  } catch(e) {
+    console.warn("syncUsageToFirebase 失敗:", e);
+  }
+}
+
+// 從 Firebase 載入使用頻率，初始化 USAGE_DEFAULT
+async function loadUsageFromFirebase() {
+  if (!db) return;
+  try {
+    const snap = await db.collection('modules').doc('item_usage').get();
+    if (!snap.exists) return;
+    const counts = snap.data().counts || {};
+    // 解析 "rowKey|||item" → USAGE_DEFAULT 格式
+    Object.entries(counts).forEach(([k, n]) => {
+      const sep = k.indexOf("|||");
+      if (sep < 0) return;
+      const rowKey = k.slice(0, sep);
+      const item   = k.slice(sep + 3);
+      if (!USAGE_DEFAULT[rowKey]) USAGE_DEFAULT[rowKey] = {};
+      USAGE_DEFAULT[rowKey][item] = n;
+    });
+  } catch(e) {
+    console.warn("loadUsageFromFirebase 失敗:", e);
+  }
+}
+
 async function saveAllToHistory() {
   const blocks = document.querySelectorAll(".week-block");
   if (blocks.length === 0) { alert("目前沒有任何日期菜單。"); return; }
@@ -3627,6 +3740,7 @@ async function saveAllToHistory() {
 
   if (savedCount > 0) {
     await saveHistory();
+    syncUsageToFirebase(toSave);   // 非同步累積使用頻率到 Firebase
     renderHistoryPanel();
     showSaveToast(`📌 已儲存 ${savedCount} 筆到歷史紀錄${skippedCount > 0 ? "，略過 " + skippedCount + " 筆" : ""}`);
   } else {
@@ -4214,6 +4328,9 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     const kw = showAll ? "" : keyword.toLowerCase();
     _activeIdx = -1;
 
+    // 常用品項（只在展開全部時顯示，打字搜尋時不干擾）
+    const topItems = showAll ? getTopItems(rowKey, _allItems, USAGE_TOP_N) : [];
+
     const matchedDishes = matched.filter(i => DISH_NAMES.has(i));
     const matchedIngredients = matched.filter(i => !DISH_NAMES.has(i));
 
@@ -4222,6 +4339,12 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
     if (showAll && groups && groups.length) {
       const matchedSet = new Set(matched);
       let html = "";
+      if (topItems.length) {
+        html += `<div class="fuzzy-dropdown-group">⏱ 常用</div>`;
+        topItems.forEach(item => {
+          html += `<div class="fuzzy-dropdown-item fuzzy-top-item" data-val="${item}">${item}</div>`;
+        });
+      }
       groups.forEach(g => {
         const groupItems = g.items.filter(item => matchedSet.has(item));
         if (!groupItems.length) return;
@@ -4243,7 +4366,14 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
       }
       dropdown.innerHTML = html;
     } else {
-      let html = matchedIngredients.map(item => {
+      let html = "";
+      if (topItems.length) {
+        html += `<div class="fuzzy-dropdown-group">⏱ 常用</div>`;
+        topItems.forEach(item => {
+          html += `<div class="fuzzy-dropdown-item fuzzy-top-item" data-val="${item}">${item}</div>`;
+        });
+      }
+      html += matchedIngredients.map(item => {
         if (!kw) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
         const idx = item.toLowerCase().indexOf(kw);
         if (idx < 0) return `<div class="fuzzy-dropdown-item" data-val="${item}">${item}</div>`;
@@ -4296,6 +4426,7 @@ function makeColPair(rowKey, defaultStyle, defaultStyleL2, side) {
         }
       }
     }
+    recordItemUsage(rowKey, val);  // 累計使用頻率
     applyItemColor(val);
     scheduleAutoSave();
     inp2.blur();
@@ -4742,8 +4873,15 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
     if (onClear) onClear();
   });
 
-  wrap.appendChild(sel); wrap.appendChild(inp); wrap.appendChild(qtyWrap); wrap.appendChild(delBtn);
+  // 第一行：地點名稱 + 刪除鈕
+  wrap.appendChild(sel); wrap.appendChild(inp); wrap.appendChild(delBtn);
   outerWrap.appendChild(wrap);
+
+  // 第二行：份數（置中）
+  const qtyRow = document.createElement("div");
+  qtyRow.style.cssText = "display:flex;align-items:center;justify-content:center;width:100%;margin-top:2px;";
+  qtyRow.appendChild(qtyWrap);
+  outerWrap.appendChild(qtyRow);
 
   // ── 子地點清單（同欄附加地點） ──
   const subList = document.createElement("div");
@@ -5894,6 +6032,7 @@ async function initApp() {
     initPresence(user);
     await loadHistory();
 
+    await loadUsageFromFirebase();   // 從 Firebase 載入歷史使用頻率
     _menuAutoSave = makeAutoSave('menu', () => {
       const d = collectMenuData();
       _lastSavedMenuJSON = JSON.stringify(d.data);
