@@ -4035,6 +4035,27 @@ async function exportAsImage(itemOnlyMode) {
     // 移除 fuzzy-dropdown（已附在 body 上，clone 不含，但保險起見）
     clone.querySelectorAll(".fuzzy-dropdown").forEach(el => el.remove());
 
+    // ── 重建地點欄 th，改用乾淨的靜態 HTML（移除所有輸入框/按鈕）──
+    clone.querySelectorAll("th.th-hloc, th.th-hloc-light, th.th-wloc, th.th-wloc-light").forEach(th => {
+      // 讀取主地點名稱
+      const mainInp = th.querySelector(".loc-inp, .loc-sub-name");
+      const mainName = mainInp ? (mainInp.value || mainInp.textContent || "").trim() : "";
+      // 讀取主地點份數
+      const mainQtyInp = th.querySelector(".loc-qty-inp");
+      const mainQty = mainQtyInp ? (mainQtyInp.value || mainQtyInp.textContent || "").trim() : "";
+      // 讀取子地點
+      const subs = [];
+      th.querySelectorAll(".loc-sub-item").forEach(item => {
+        const nameEl = item.querySelector(".loc-sub-name");
+        const qtyEl  = item.querySelector(".loc-sub-qty");
+        const name = nameEl ? (nameEl.value || nameEl.textContent || "").trim() : "";
+        const qty  = qtyEl  ? (qtyEl.value  || qtyEl.textContent  || "").trim() : "";
+        if (name) subs.push({ name, qty });
+      });
+      if (!mainName) return;
+      th.innerHTML = renderLocThHtml(mainName, mainQty, subs, '', true);
+    });
+
     wrapper.appendChild(clone);
   });
 
