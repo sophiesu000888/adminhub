@@ -3973,19 +3973,47 @@ async function exportAsImage(itemOnlyMode) {
   blocks.forEach(block => {
     const clone = block.cloneNode(true);
 
-    // 隱藏操作按鈕、輸入控件 UI（保留顯示值）
+    // ── 1. 先重建地點欄 th（趁 input.value 還在）──
+    clone.querySelectorAll("th.th-hloc, th.th-hloc-light, th.th-wloc, th.th-wloc-light").forEach(th => {
+      // 主地點：第一個 loc-sub-item
+      const mainItem = th.querySelector(".loc-sub-item");
+      const mainNameEl = mainItem ? mainItem.querySelector(".loc-inp, .loc-sub-name") : null;
+      const mainName = mainNameEl ? (mainNameEl.value || mainNameEl.textContent || "").trim() : "";
+      const mainQtyEl = th.querySelector(".loc-qty-inp");
+      const mainQty = mainQtyEl ? (mainQtyEl.value || mainQtyEl.textContent || "").trim() : "";
+      // 子地點：第二個以後的 loc-sub-item
+      const subs = [];
+      const allItems = [...th.querySelectorAll(".loc-sub-item")];
+      allItems.slice(1).forEach(item => {
+        const nameEl = item.querySelector(".loc-sub-name");
+        const qtyEl  = item.querySelector(".loc-sub-qty");
+        const name = nameEl ? (nameEl.value || nameEl.textContent || "").trim() : "";
+        const qty  = qtyEl  ? (qtyEl.value  || qtyEl.textContent  || "").trim() : "";
+        if (name) subs.push({ name, qty });
+      });
+      if (!mainName) return;
+      th.colSpan = itemOnlyMode ? 1 : 2;
+      th.innerHTML = renderLocThHtml(mainName, mainQty, subs, '', true);
+    });
+
+    // ── 2. itemOnlyMode：隱藏類別相關欄位、調整 colspan ──
+    if (itemOnlyMode) {
+      clone.querySelectorAll("th.th-sub").forEach(th => {
+        if (th.textContent.trim() === "類別") th.style.display = "none";
+      });
+      clone.querySelectorAll("th.th-health, th.th-wind").forEach(th => {
+        th.colSpan = Math.max(1, Math.round(th.colSpan / 2));
+      });
+    }
+
+    // ── 3. 隱藏操作按鈕 ──
     clone.querySelectorAll([
-      ".btn-save-to-history",
-      ".btn-del-week",
-      ".loc-cp-btn",
-      ".loc-clear-btn",
-      ".week-actions",
-      ".fuzzy-dropdown",
-      ".dish-tooltip",
-      ".warning-modal"
+      ".btn-save-to-history", ".btn-del-week", ".loc-cp-btn",
+      ".loc-clear-btn", ".week-actions", ".fuzzy-dropdown",
+      ".dish-tooltip", ".warning-modal"
     ].join(",")).forEach(el => el.style.display = "none");
 
-    // 把 date input 換成純文字顯示（html2canvas 不渲染 input value）
+    // ── 4. date input → 純文字 ──
     clone.querySelectorAll("input[type='date']").forEach(inp => {
       const span = document.createElement("span");
       span.textContent = inp.value;
@@ -3994,10 +4022,9 @@ async function exportAsImage(itemOnlyMode) {
       inp.replaceWith(span);
     });
 
-    // 把所有 select 換成純文字
+    // ── 5. select → 純文字（itemOnlyMode 時隱藏 td-l1） ──
     clone.querySelectorAll("select").forEach(sel => {
       if (itemOnlyMode) {
-        // 僅品項模式：把 td-l1 整格隱藏
         const td = sel.closest("td.td-l1");
         if (td) { td.style.display = "none"; return; }
       }
@@ -4007,35 +4034,19 @@ async function exportAsImage(itemOnlyMode) {
       sel.replaceWith(span);
     });
 
-    if (itemOnlyMode) {
-      // 隱藏 th-sub「類別」那格（每個地點欄有「類別」「品項」兩格，只留「品項」）
-      clone.querySelectorAll("th.th-sub").forEach(th => {
-        if (th.textContent.trim() === "類別") th.style.display = "none";
-      });
-      // 地點欄 th 的 colspan 從 2 改為 1（只剩品項欄）
-      clone.querySelectorAll("th.th-hloc, th.th-hloc-light, th.th-wloc, th.th-wloc-light").forEach(th => {
-        th.colSpan = 1;
-      });
-      // th-health / th-wind 的 colspan 也要減半
-      clone.querySelectorAll("th.th-health, th.th-wind").forEach(th => {
-        th.colSpan = Math.max(1, Math.round(th.colSpan / 2));
-      });
-    }
-
-    // 把所有品項 input 換成純文字
+    // ── 6. 品項 input → 純文字 ──
     clone.querySelectorAll("input.sel-l2-inp").forEach(inp => {
       const val = inp.value;
       const span = document.createElement("span");
       span.textContent = (val && val !== "-" && val !== "-- 品項 --") ? val : "";
       span.style.cssText = inp.style.cssText;
       span.className = inp.className;
-      // 保留 background-color（食材顏色）
       if (inp.style.background) span.style.background = inp.style.background;
       if (inp.style.color) span.style.color = inp.style.color;
       inp.replaceWith(span);
     });
 
-    // 其他 input 隱藏
+    // ── 7. 其他 input → 純文字 ──
     clone.querySelectorAll("input:not(.sel-l2-inp)").forEach(inp => {
       const span = document.createElement("span");
       span.textContent = inp.value || "";
@@ -4044,32 +4055,9 @@ async function exportAsImage(itemOnlyMode) {
       inp.replaceWith(span);
     });
 
-    // 已折疊的列隱藏
+    // ── 8. 折疊列隱藏 ──
     clone.querySelectorAll("tr.row-collapsed").forEach(tr => tr.style.display = "none");
-
-    // 移除 fuzzy-dropdown（已附在 body 上，clone 不含，但保險起見）
     clone.querySelectorAll(".fuzzy-dropdown").forEach(el => el.remove());
-
-    // ── 重建地點欄 th，改用乾淨的靜態 HTML（移除所有輸入框/按鈕）──
-    clone.querySelectorAll("th.th-hloc, th.th-hloc-light, th.th-wloc, th.th-wloc-light").forEach(th => {
-      // 讀取主地點名稱
-      const mainInp = th.querySelector(".loc-inp, .loc-sub-name");
-      const mainName = mainInp ? (mainInp.value || mainInp.textContent || "").trim() : "";
-      // 讀取主地點份數
-      const mainQtyInp = th.querySelector(".loc-qty-inp");
-      const mainQty = mainQtyInp ? (mainQtyInp.value || mainQtyInp.textContent || "").trim() : "";
-      // 讀取子地點
-      const subs = [];
-      th.querySelectorAll(".loc-sub-item").forEach(item => {
-        const nameEl = item.querySelector(".loc-sub-name");
-        const qtyEl  = item.querySelector(".loc-sub-qty");
-        const name = nameEl ? (nameEl.value || nameEl.textContent || "").trim() : "";
-        const qty  = qtyEl  ? (qtyEl.value  || qtyEl.textContent  || "").trim() : "";
-        if (name) subs.push({ name, qty });
-      });
-      if (!mainName) return;
-      th.innerHTML = renderLocThHtml(mainName, mainQty, subs, '', true);
-    });
 
     wrapper.appendChild(clone);
   });
