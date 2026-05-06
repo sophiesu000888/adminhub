@@ -3971,6 +3971,16 @@ async function exportAsImage(itemOnlyMode) {
   ].join(";");
 
   blocks.forEach(block => {
+    // cloneNode 不保留 input.value（JS property），先同步到 attribute
+    block.querySelectorAll("input").forEach(inp => {
+      inp.setAttribute("value", inp.value);
+    });
+    block.querySelectorAll("select").forEach(sel => {
+      sel.querySelectorAll("option").forEach(opt => {
+        opt.selected = (opt.value === sel.value);
+      });
+    });
+
     const clone = block.cloneNode(true);
 
     // ── 1. 先重建地點欄 th（趁 input.value 還在）──
