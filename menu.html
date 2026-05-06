@@ -2120,6 +2120,21 @@ function getRowStyles(row) {
   return ["h-item", "h-item-l2", "w-item", "w-item-l2"];
 }
 
+// 地點欄 th HTML（匯出/列印用，與主畫面同樣排版）
+function renderLocThHtml(mainLoc, mainQty, subs, cls, innerOnly) {
+  const nameBadge = (name) =>
+    `<span style="position:relative;display:inline-block;background:rgba(0,0,0,0.06);border-radius:8px;padding:3px 18px 3px 9px;font-size:0.85rem;font-weight:700;white-space:nowrap;">${name}<span style="position:absolute;right:5px;top:50%;transform:translateY(-60%);font-size:0.6rem;opacity:0.4;">*</span></span>`;
+  const qtyText = (q) =>
+    q ? `<span style="font-size:1rem;font-weight:700;">${q}份</span>` : `<span style="font-size:1rem;font-weight:400;opacity:0.35;">數量份</span>`;
+  const makeItem = (name, qty) =>
+    `<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;">${nameBadge(name)}${qtyText(qty)}</span>`;
+
+  const allItems = [makeItem(mainLoc, mainQty), ...subs.map(s => makeItem(s.name, s.qty))];
+  const inner = `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:6px;padding:4px 6px;">${allItems.join('')}</div>`;
+  if (innerOnly) return inner;
+  return `<th class="${cls}" colspan="2">${inner}</th>`;
+}
+
 // ===== 食材顏色對照 =====
 const FOOD_COLOR = {};
 const COLOR_GROUPS = {
@@ -3301,17 +3316,13 @@ function buildHistoryTableHTML(entry) {
   html += "<tr>";
   hLocs.forEach((loc, i) => {
     const qty = (entry.hQtys||[])[i];
-    const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
     const subs = ((entry.hSubLocs||[])[i]||[]);
-    const subBadges = subs.length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${subs.map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "";
-    html += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
+    html += renderLocThHtml(loc, qty, subs, i%2===0?"th-hloc":"th-hloc-light");
   });
   wLocs.forEach((loc, i) => {
     const qty = (entry.wQtys||[])[i];
-    const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
     const subs = ((entry.wSubLocs||[])[i]||[]);
-    const subBadges = subs.length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${subs.map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "";
-    html += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
+    html += renderLocThHtml(loc, qty, subs, i%2===0?"th-wloc":"th-wloc-light");
   });
   html += "</tr>";
 
@@ -3617,17 +3628,15 @@ function exportCurrentAsHTML() {
     let hr2 = "<tr>";
     hLocNames.forEach((loc, i) => {
       const qty = hQtyVals[i];
-      const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
-      const subBadges = ((hSubL[i]||[]).length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
-      const hTotal2 = (() => { const subs = hSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:6px;align-self:center;">共 <span style="color:#ff4d4d;">${t}</span> 份</div>` : ""; })();
-      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${hTotal2}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
+      const subs = hSubL[i]||[];
+      const hTotal2 = (() => { if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;margin-bottom:4px;align-self:center;">共 <span style="color:#ff4d4d;">${t}</span> 份</div>` : ""; })();
+      hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2">${hTotal2}${renderLocThHtml(loc, qty, subs, '', true)}</th>`;
     });
     wLocNames.forEach((loc, i) => {
       const qty = wQtyVals[i];
-      const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
-      const subBadges = ((wSubL[i]||[]).length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
-      const wTotal2 = (() => { const subs = wSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:6px;align-self:center;">共 <span style="color:#ff4d4d;">${t}</span> 份</div>` : ""; })();
-      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${wTotal2}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
+      const subs = wSubL[i]||[];
+      const wTotal2 = (() => { if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;margin-bottom:4px;align-self:center;">共 <span style="color:#ff4d4d;">${t}</span> 份</div>` : ""; })();
+      hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2">${wTotal2}${renderLocThHtml(loc, qty, subs, '', true)}</th>`;
     });
     hr2 += "</tr>";
     let hr3 = "<tr>";
