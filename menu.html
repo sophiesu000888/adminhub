@@ -5,6 +5,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -229,13 +230,13 @@ tr.row-collapsed .td-cat::after { content: '▶'; font-size:0.65rem; opacity:0.6
 
 :root {
   --col-cat-w: 90px;
-  --col-l1-w: 80px;
+  --col-l1-w: 98px;
   --col-l2-w: 180px;
 }
 
 table {
   border-collapse: collapse; width: auto;
-  border: none;
+  border: none; font-size: 14px;
 }
 th, td { border: 1px solid rgba(45,45,45,0.25); text-align: center; vertical-align: middle; }
 
@@ -268,7 +269,7 @@ th, td { border: 1px solid rgba(45,45,45,0.25); text-align: center; vertical-ali
   padding: 7px 8px; font-size: 1.05rem; letter-spacing: 2px;
   min-width: var(--col-l2-w); text-align: center;
 }
-.th-sub    { font-size: 0.88rem; font-weight: 700; padding: 7px 8px; text-align: center; }
+.th-sub    { font-size: 14px; font-weight: 700; padding: 7px 8px; text-align: center; }
 .th-sub-h  { background: #a3cda4; color: #1b5e20; }
 .th-sub-h-light { background: #b2d8b3; color: #1b5e20; }
 .th-sub-w  { background: #9fc4e8; color: #0d47a1; }
@@ -276,7 +277,7 @@ th, td { border: 1px solid rgba(45,45,45,0.25); text-align: center; vertical-ali
 
 .td-cat {
   background: var(--paper); color: var(--ink); font-weight: 700;
-  font-size: 1rem; padding: 5px 6px; white-space: nowrap;
+  font-size: 14px; padding: 5px 6px; white-space: nowrap;
   width: var(--col-cat-w); min-width: var(--col-cat-w); max-width: var(--col-cat-w);
   box-sizing: border-box;
   font-family: 'Kalam', 'Noto Sans TC', sans-serif;
@@ -1246,22 +1247,20 @@ input.sel-l2-inp:disabled {
 .drawer-section { display: none; }
 .drawer-section.active { display: block; }
 
-/* ── 出貨數量 badge ── */
+/* ── 出貨數量 badge → 純文字大字 ── */
 .loc-qty-wrap {
   display: flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(0,0,0,0.07);
-  border-radius: 20px;
-  padding: 2px 7px 2px 5px;
-  border: 1px solid rgba(0,0,0,0.18);
+  align-items: baseline;
+  gap: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
   white-space: nowrap;
   flex-shrink: 0;
 }
 .loc-qty-star {
-  color: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
+  display: none;
 }
 .loc-qty-inp {
   width: 4ch;
@@ -1270,11 +1269,12 @@ input.sel-l2-inp:disabled {
   background: transparent;
   border: none;
   color: inherit;
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  text-align: center;
+  text-align: right;
   outline: none;
   font-family: inherit;
+  letter-spacing: 0;
   -moz-appearance: textfield;
 }
 .loc-qty-inp::-webkit-outer-spin-button,
@@ -1282,8 +1282,9 @@ input.sel-l2-inp:disabled {
 .loc-qty-inp::placeholder { color: inherit; opacity: 0.45; font-weight: 400; }
 .loc-qty-unit {
   color: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* ── 複製/清除 button reset ── */
@@ -1344,51 +1345,79 @@ button {
 /* ── 欄內附加子地點 ── */
 .loc-sub-list {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
   width: 100%;
   margin-top: 3px;
 }
 .loc-sub-item {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
   background: transparent; border: none;
   border-radius: 0; padding: 0; justify-content: center;
 }
+/* 地點名稱 → 乾淨 badge，右側帶 * */
 .loc-sub-name {
-  background: transparent; border: none; outline: none; color: inherit;
-  font-size: 1.05rem; font-weight: 700; width: 80px; text-align: center;
-  font-family: inherit; letter-spacing: 1px;
+  position: relative;
+  background: rgba(0,0,0,0.06);
+  border: none;
+  border-radius: 8px;
+  padding: 3px 18px 3px 9px;
+  outline: none; color: inherit;
+  font-size: 0.92rem; font-weight: 700;
+  width: auto; min-width: 3ch; max-width: 80px;
+  text-align: center;
+  font-family: inherit; letter-spacing: 0.5px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
 }
+.loc-sub-name::after {
+  content: "*";
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-60%);
+  font-size: 0.65rem;
+  opacity: 0.4;
+  pointer-events: none;
+  line-height: 1;
+}
+/* 份數 → 純文字樣式 */
 .loc-sub-qty-wrap {
-  display: inline-flex; align-items: center; gap: 2px;
-  background: rgba(0,0,0,0.07); border-radius: 20px;
-  padding: 2px 7px 2px 5px; border: 1px solid rgba(0,0,0,0.18);
-  margin-left: 2px;
+  display: inline-flex; align-items: baseline; gap: 0;
+  background: transparent; border-radius: 0;
+  padding: 0; border: none;
+  margin-left: 0;
 }
 .loc-sub-qty {
   background: transparent; border: none; outline: none; color: inherit;
-  font-size: 0.85rem; font-weight: 700; width: 4ch; min-width: 4ch; max-width: 4ch; text-align: center;
-  font-family: inherit; -moz-appearance: textfield;
+  font-size: 1.05rem; font-weight: 700; width: 4ch; min-width: 4ch; max-width: 4ch; text-align: right;
+  font-family: inherit; -moz-appearance: textfield; letter-spacing: 0;
 }
 .loc-sub-qty::-webkit-outer-spin-button,
 .loc-sub-qty::-webkit-inner-spin-button { -webkit-appearance: none; }
 .loc-sub-qty::placeholder { color: inherit; opacity: 0.45; font-weight: 400; }
-.loc-sub-sep { color: inherit; font-size: 0.85rem; font-weight: 700; }
-.loc-sub-unit { color: inherit; font-size: 0.85rem; font-weight: 600; }
+.loc-sub-sep { display: none; }
+.loc-sub-unit { color: inherit; font-size: 14px; font-weight: 700; line-height: 1; }
 .loc-sub-del {
   background: transparent; border: none; color: inherit; opacity: 0.4;
-  font-size: 0.85rem; padding: 0 2px; cursor: pointer; line-height: 1; transition: opacity 0.15s;
+  font-size: 0.75rem; padding: 0 1px; cursor: pointer; line-height: 1; transition: opacity 0.15s;
 }
 .loc-sub-del:hover { opacity: 0.9; }
 .loc-add-sub-btn {
   display: inline-flex; align-items: center; gap: 2px;
-  background: transparent; border: none;
-  color: inherit; border-radius: 0; padding: 1px 2px;
-  font-size: 0.85rem; font-weight: 700; cursor: pointer; opacity: 0.5;
-  transition: opacity 0.15s; font-family: inherit; white-space: nowrap;
+  background: rgba(0,0,0,0.07);
+  border: 1px solid rgba(0,0,0,0.18);
+  color: inherit; border-radius: 20px; padding: 2px 8px;
+  font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  line-height: 1.4; transition: background 0.1s;
+  font-family: inherit; white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; flex-shrink: 0;
 }
-.loc-add-sub-btn:hover { opacity: 1; }
+.loc-add-sub-btn:hover { background: rgba(0,0,0,0.14); }
 
 @media (max-width: 600px) {
   body { padding: 8px 6px; }
@@ -1413,11 +1442,12 @@ button {
     letter-spacing: 0.5px;
   }
 
-  table { font-size: 1rem; min-width: 620px; }
+  table { font-size: 14px; min-width: 620px; }
+  .th-sub { font-size: 14px; }
   .td-l1 { min-width: 80px; }
   .td-l2 { min-width: 80px; }
   select { font-size: 1rem; padding: 2px 12px 2px 3px; }
-  .td-cat { font-size: 1rem; padding: 4px 4px; min-width: 38px; max-width: 52px; }
+  .td-cat { font-size: 14px; padding: 4px 4px; min-width: 38px; max-width: 52px; }
 
   .side-drawer { width: 94vw !important; }
 
@@ -1769,9 +1799,9 @@ button {
 
         <div style="display:flex;align-items:center;gap:8px;">
           <label style="font-size:0.85rem;font-weight:700;color:#546e7a;white-space:nowrap;min-width:64px;">類別選單</label>
-          <input type="range" id="col-l1-slider" min="40" max="200" step="2" value="80"
+          <input type="range" id="col-l1-slider" min="40" max="200" step="2" value="98"
             style="flex:1;" oninput="applyColWidth('l1',this.value)">
-          <span id="col-l1-val" style="font-size:0.85rem;font-weight:700;color:var(--ink);min-width:36px;text-align:right;">80px</span>
+          <span id="col-l1-val" style="font-size:0.85rem;font-weight:700;color:var(--ink);min-width:36px;text-align:right;">98px</span>
         </div>
 
         <div style="display:flex;align-items:center;gap:8px;">
@@ -2041,6 +2071,48 @@ button {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="shared.js"></script>
+<script>
+// ── 本地離線模式 fallback（firebase-config.js / shared.js 載入失敗時補上）──
+if (typeof requireAuth === 'undefined') {
+  window.requireAuth    = (cb) => {
+    cb({ uid: 'local', email: 'local' });
+    // Firebase sync 不存在，改從 localStorage 直接載入
+    setTimeout(async () => {
+      try {
+        const raw = localStorage.getItem('yupin_menu_v2');
+        const content = raw ? JSON.parse(raw) : null;
+        if (typeof applyDbData === 'function') {
+          const dbRaw = localStorage.getItem('yupin_menudb_v2');
+          if (dbRaw) applyDbData(JSON.parse(dbRaw));
+        }
+        if (typeof applyMenuData === 'function') {
+          const loaded = content ? await applyMenuData(content) : false;
+          if (!loaded && typeof addWeek === 'function') { addWeek(); addWeek(); }
+        } else if (typeof addWeek === 'function') { addWeek(); addWeek(); }
+        if (typeof renderHistoryPanel === 'function') renderHistoryPanel();
+        if (typeof initMgmtItems === 'function') initMgmtItems();
+        if (typeof rerenderDBPanels === 'function') rerenderDBPanels();
+      } catch(e) {
+        console.warn('本地載入失敗:', e);
+        if (typeof addWeek === 'function') { addWeek(); addWeek(); }
+      }
+    }, 100);
+  };
+  window.initFirebase   = () => ({ db: null, auth: null });
+  window.makeAutoSave   = (key, collectFn) => {
+    // 本地模式：直接存 localStorage
+    return () => {
+      try {
+        const data = collectFn();
+        localStorage.setItem('yupin_' + key + '_v2', JSON.stringify(data));
+      } catch(e) {}
+    };
+  };
+  window.startSync      = () => {};
+  window.injectStatusBar= () => {};
+  window.initPresence   = () => {};
+}
+</script>
 
 <script>
 // ===== 共用 Helper =====
@@ -2778,7 +2850,7 @@ function showWarningModal(msg, locs) {
 }
 
 // ===== 欄寬設定 =====
-const COL_DEFAULTS = { cat: 90, l1: 80, l2: 180 };
+const COL_DEFAULTS = { cat: 90, l1: 98, l2: 180 };
 let _colWidths = { ...COL_DEFAULTS };
 let _colAutoSave = null; // 由 initApp 設定
 
@@ -3231,14 +3303,14 @@ function buildHistoryTableHTML(entry) {
     const qty = (entry.hQtys||[])[i];
     const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
     const subs = ((entry.hSubLocs||[])[i]||[]);
-    const subBadges = subs.length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${subs.map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "";
+    const subBadges = subs.length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${subs.map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "";
     html += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
   });
   wLocs.forEach((loc, i) => {
     const qty = (entry.wQtys||[])[i];
     const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
     const subs = ((entry.wSubLocs||[])[i]||[]);
-    const subBadges = subs.length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${subs.map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "";
+    const subBadges = subs.length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${subs.map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "";
     html += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
   });
   html += "</tr>";
@@ -3281,8 +3353,8 @@ function buildHistoryTableHTML(entry) {
         if (colors) itemBgStyle = `background:${colors.bg};color:${colors.fg};`;
       }
 
-      html += `<td class="td-l1 ${baseS}" style="padding:3px 5px;font-size:0.85rem;">${v1}</td>`;
-      html += `<td class="td-l2 ${baseS2}" style="padding:3px 5px;font-size:0.85rem;font-weight:600;${itemBgStyle}">${fmtItemName(v2)}</td>`;
+      html += `<td class="td-l1 ${baseS}" style="padding:3px 5px;font-size:14px;">${v1}</td>`;
+      html += `<td class="td-l2 ${baseS2}" style="padding:3px 5px;font-size:14px;font-weight:600;${itemBgStyle}">${fmtItemName(v2)}</td>`;
     }
     html += "</tr>";
   });
@@ -3546,14 +3618,14 @@ function exportCurrentAsHTML() {
     hLocNames.forEach((loc, i) => {
       const qty = hQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
-      const subBadges = ((hSubL[i]||[]).length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
+      const subBadges = ((hSubL[i]||[]).length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${(hSubL[i]||[]).map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
       const hTotal2 = (() => { const subs = hSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(hQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:6px;align-self:center;">共 <span style="color:#ff4d4d;">${t}</span> 份</div>` : ""; })();
       hr2 += `<th class="${i%2===0?"th-hloc":"th-hloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${hTotal2}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
     });
     wLocNames.forEach((loc, i) => {
       const qty = wQtyVals[i];
       const qtyBadge = qty ? `<span style="display:inline-block;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;margin-left:4px;display:inline-flex;align-items:center;gap:1px;">✦${qty}份</span>` : "";
-      const subBadges = ((wSubL[i]||[]).length ? `<span style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin-top:3px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;align-items:center;gap:3px;">${s.name}${s.qty?`<span style="display:inline-flex;align-items:center;gap:1px;background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 7px 2px 5px;font-size:0.85rem;font-weight:700;">✦${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
+      const subBadges = ((wSubL[i]||[]).length ? `<div style="display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:4px;width:100%;margin-top:3px;">${(wSubL[i]||[]).map(s=>`<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;"><span style="background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;font-size:0.85rem;font-weight:700;">${s.name}</span>${s.qty?`<span style="font-size:1.05rem;font-weight:700;">${s.qty}份</span>`:""}</span>`).join("")}</div>` : "");
       const wTotal2 = (() => { const subs = wSubL[i]||[]; if (!subs.length) return ""; let t = parseInt(wQtyVals[i])||0; subs.forEach(s=>{ t += parseInt(s.qty)||0; }); return t > 0 ? `<div style="font-size:0.78rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;margin-bottom:6px;align-self:center;">共 <span style="color:#ff4d4d;">${t}</span> 份</div>` : ""; })();
       hr2 += `<th class="${i%2===0?"th-wloc":"th-wloc-light"}" colspan="2" style=""><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 6px;">${wTotal2}<div style="display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;">${loc}${qtyBadge}</div>${subBadges}</div></th>`;
     });
@@ -4725,7 +4797,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   outerWrap.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:2px 4px;width:100%;";
   wrap.style.cssText = "display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:nowrap;width:100%;";
 
-  const SHARED_LOC_STYLE = "background:transparent;border:none;outline:none;color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-align:center;max-width:100px;cursor:pointer;font-family:inherit;";
+  const SHARED_LOC_STYLE = "background:rgba(0,0,0,0.07);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:2px 8px;outline:none;color:inherit;font-size:0.85rem;font-weight:700;letter-spacing:0.5px;text-align:center;max-width:100px;cursor:pointer;font-family:inherit;";
 
   const sel = document.createElement("select");
   sel.className = "loc-sel";
@@ -4738,7 +4810,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   inp.className = "loc-inp";
   inp.value = loc;
   inp.placeholder = "輸入名稱";
-  inp.style.cssText = `display:flex;width:80px;background:transparent;border:none;color:inherit;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-align:center;font-family:inherit;outline:none;`;
+  inp.style.cssText = `display:flex;width:auto;min-width:3ch;max-width:80px;background:rgba(0,0,0,0.06);border:none;border-radius:8px;padding:3px 18px 3px 9px;color:inherit;font-size:0.92rem;font-weight:700;letter-spacing:0.5px;text-align:center;font-family:inherit;outline:none;box-shadow:inset 0 1px 2px rgba(0,0,0,0.08);`;
 
   inp.addEventListener("dblclick", () => {
     inp.style.display = "none";
@@ -4845,19 +4917,33 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
     if (onClear) onClear();
   });
 
-  // 第一行：地點名稱 + 刪除鈕
-  wrap.appendChild(sel); wrap.appendChild(inp); wrap.appendChild(delBtn);
-  outerWrap.appendChild(wrap);
+  // ── 主地點：跟子地點同樣的 column 佈局 ──
+  const mainItem = document.createElement("div");
+  mainItem.className = "loc-sub-item";
 
-  // 第二行：份數（置中）
-  const qtyRow = document.createElement("div");
-  qtyRow.style.cssText = "display:flex;align-items:center;justify-content:center;width:100%;margin-top:2px;";
-  qtyRow.appendChild(qtyWrap);
-  outerWrap.appendChild(qtyRow);
+  // 名稱那行：badge wrapper（含 * 標記）
+  const inpWrap = document.createElement("div");
+  inpWrap.style.cssText = "position:relative;display:inline-flex;align-items:center;";
+  inpWrap.appendChild(inp);
+  const inpStar = document.createElement("span");
+  inpStar.textContent = "*";
+  inpStar.style.cssText = "position:absolute;right:5px;top:50%;transform:translateY(-60%);font-size:0.65rem;opacity:0.4;pointer-events:none;line-height:1;";
+  inpWrap.appendChild(inpStar);
+
+  mainItem.appendChild(sel);
+  mainItem.appendChild(inpWrap);
+
+  // 份數那行 + 刪除鈕
+  const mainQtyRow = document.createElement("div");
+  mainQtyRow.style.cssText = "display:inline-flex;align-items:center;justify-content:center;gap:2px;";
+  mainQtyRow.appendChild(qtyWrap);
+  mainQtyRow.appendChild(delBtn);
+  mainItem.appendChild(mainQtyRow);
 
   // ── 子地點清單（同欄附加地點） ──
   const subList = document.createElement("div");
   subList.className = "loc-sub-list";
+  subList.appendChild(mainItem);  // 主地點作為第一個
 
   // 輔助：建立一個子地點 tag
   function makeSubItem(initName, initQty) {
@@ -4919,9 +5005,23 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
     qtyWrap.appendChild(qtyI);
     qtyWrap.appendChild(unit);
 
-    item.appendChild(nameInp);
-    item.appendChild(qtyWrap);
-    item.appendChild(delS);
+    // 第一行：地點名稱（badge）+ * 標記
+    const nameWrap = document.createElement("div");
+    nameWrap.style.cssText = "position:relative;display:inline-flex;align-items:center;";
+    nameWrap.appendChild(nameInp);
+    const nameStar = document.createElement("span");
+    nameStar.textContent = "*";
+    nameStar.style.cssText = "position:absolute;right:5px;top:50%;transform:translateY(-60%);font-size:0.65rem;opacity:0.4;pointer-events:none;line-height:1;";
+    nameWrap.appendChild(nameStar);
+    item.appendChild(nameWrap);
+
+    // 第二行：份數 + 刪除鈕
+    const qtyRow = document.createElement("div");
+    qtyRow.style.cssText = "display:inline-flex;align-items:center;justify-content:center;gap:2px;";
+    qtyRow.appendChild(qtyWrap);
+    qtyRow.appendChild(delS);
+
+    item.appendChild(qtyRow);
     item._nameInp = nameInp;
     item._qtyInp = qtyI;
     return item;
@@ -4935,7 +5035,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   addSubBtn.style.gridColumn = "1 / -1";
   addSubBtn.addEventListener("click", () => {
     const item = makeSubItem("", "");
-    subList.insertBefore(item, addSubBtn);
+    subList.appendChild(item);
     item._nameInp.focus();
     updateTotalBadge();
     scheduleAutoSave();
@@ -4947,18 +5047,18 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
   th._subList = subList;
   th._makeSubItem = makeSubItem;
 
-  // ── 第二行：複製／貼上／清除 ──
+  // ── 按鈕列：＋地點 ／ 複製／貼上／清除 ──
   const btnRow = document.createElement("div");
   btnRow.style.cssText = "display:flex;align-items:center;justify-content:center;gap:4px;width:100%;margin-top:1px;";
-  btnRow.appendChild(copyBtn); btnRow.appendChild(pasteBtn); btnRow.appendChild(clearBtn);
+  btnRow.appendChild(addSubBtn); btnRow.appendChild(copyBtn); btnRow.appendChild(pasteBtn); btnRow.appendChild(clearBtn);
   outerWrap.appendChild(btnRow);
 
   // ── 份數加總 badge ──
   const totalBadge = document.createElement("div");
-  totalBadge.style.cssText = "background:rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.18);border-radius:20px;padding:1px 8px;font-size:0.78rem;font-weight:700;color:inherit;white-space:nowrap;align-self:center;margin-bottom:6px;pointer-events:none;";
+  totalBadge.style.cssText = "font-size:0.78rem;font-weight:700;color:inherit;white-space:nowrap;align-self:center;margin-bottom:6px;pointer-events:none;";
   function updateTotalBadge() {
-    const subCount = subList.querySelectorAll(".loc-sub-item").length;
-    if (subCount === 0) { totalBadge.style.display = "none"; return; }
+    const subCount = subList.querySelectorAll(".loc-sub-item").length - 1; // 扣掉主地點
+    if (subCount <= 0) { totalBadge.style.display = "none"; return; }
     let total = 0;
     const mainQty = parseInt(qtyInp.value) || 0;
     total += mainQty;
