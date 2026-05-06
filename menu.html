@@ -3976,12 +3976,20 @@ async function exportAsImage(itemOnlyMode) {
       inp.setAttribute("value", inp.value);
     });
     block.querySelectorAll("select").forEach(sel => {
+      // 把目前選中值存在 data attribute，clone 後讀取
+      sel.setAttribute("data-selected", sel.value);
       sel.querySelectorAll("option").forEach(opt => {
-        opt.selected = (opt.value === sel.value);
+        if (opt.value === sel.value) opt.setAttribute("selected", "");
+        else opt.removeAttribute("selected");
       });
     });
 
     const clone = block.cloneNode(true);
+
+    // 還原 select 值（cloneNode 後 option[selected] attribute 有時仍不可靠）
+    clone.querySelectorAll("select[data-selected]").forEach(sel => {
+      sel.value = sel.getAttribute("data-selected") || "";
+    });
 
     // ── 1. 先重建地點欄 th（趁 input.value 還在）──
     clone.querySelectorAll("th.th-hloc, th.th-hloc-light, th.th-wloc, th.th-wloc-light").forEach(th => {
@@ -4039,7 +4047,8 @@ async function exportAsImage(itemOnlyMode) {
         if (td) { td.style.display = "none"; return; }
       }
       const span = document.createElement("span");
-      span.textContent = sel.value === "-" ? "" : sel.value;
+      const val = sel.getAttribute("data-selected") || sel.value;
+      span.textContent = (val === "-" || !val) ? "" : val;
       span.className = sel.className;
       sel.replaceWith(span);
     });
