@@ -4007,6 +4007,21 @@ async function exportAsImage(itemOnlyMode) {
       sel.replaceWith(span);
     });
 
+    if (itemOnlyMode) {
+      // 隱藏 th-sub「類別」那格（每個地點欄有「類別」「品項」兩格，只留「品項」）
+      clone.querySelectorAll("th.th-sub").forEach(th => {
+        if (th.textContent.trim() === "類別") th.style.display = "none";
+      });
+      // 地點欄 th 的 colspan 從 2 改為 1（只剩品項欄）
+      clone.querySelectorAll("th.th-hloc, th.th-hloc-light, th.th-wloc, th.th-wloc-light").forEach(th => {
+        th.colSpan = 1;
+      });
+      // th-health / th-wind 的 colspan 也要減半
+      clone.querySelectorAll("th.th-health, th.th-wind").forEach(th => {
+        th.colSpan = Math.max(1, Math.round(th.colSpan / 2));
+      });
+    }
+
     // 把所有品項 input 換成純文字
     clone.querySelectorAll("input.sel-l2-inp").forEach(inp => {
       const val = inp.value;
