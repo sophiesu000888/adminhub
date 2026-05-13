@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -1097,6 +1098,69 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   #matrix-wrap tr.mx-group-row td { background: #2d2d2d !important; color: #ff9999 !important; font-weight: 700 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   tr { page-break-inside: avoid; }
 }
+
+/* ===== 一覽表主分類列 ===== */
+#matrix-table thead tr.mx-super-row th {
+  text-align: center; font-size: 24px; font-weight: 700;
+  padding: 6px 8px; letter-spacing: 2px; border-bottom: 2px solid var(--ink);
+}
+#matrix-table thead tr.mx-super-row th.super-blank { background: var(--ink); }
+#matrix-table thead tr.mx-super-row th.super-health {
+  background: #2e7d32; color: #fff;
+}
+#matrix-table thead tr.mx-super-row th.super-wind {
+  background: #1565c0; color: #fff;
+}
+#matrix-table thead tr.mx-super-row th.super-other {
+  background: #555; color: #fff;
+}
+
+
+/* ===== 餐盒價位備註抽屜 ===== */
+#drawer-price .drawer-header { background: #fff8e1; border-bottom-color: #e65100; }
+.pn-add-row {
+  display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap;
+}
+.pn-add-row select, .pn-add-row input {
+  padding: 8px 10px; border: 2px solid #ddd; border-radius: 8px;
+  font-size: 1rem; font-family: inherit; background: #fff;
+}
+.pn-add-row select:focus, .pn-add-row input:focus { outline: none; border-color: #e65100; }
+.pn-add-row select { flex: 0 0 auto; }
+.pn-add-row input  { flex: 1; min-width: 100px; }
+.pn-add-btn {
+  background: #e65100; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 1rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; white-space: nowrap; box-shadow: 2px 2px 0 #bf360c;
+  transition: all .1s;
+}
+.pn-add-btn:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 #bf360c; }
+
+.pn-group { margin-bottom: 16px; }
+.pn-group-title {
+  font-size: 1rem; font-weight: 700; color: #fff;
+  background: #e65100; border-radius: 6px 6px 0 0;
+  padding: 6px 12px; letter-spacing: 1px;
+}
+.pn-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: #fff;
+  border: 1.5px solid #ffe082; border-top: none;
+  font-size: 0.95rem;
+}
+.pn-item:last-child { border-radius: 0 0 6px 6px; }
+.pn-item-name { flex: 1; font-weight: 500; }
+.pn-item-edit {
+  background: #fff3e0; border: 1.5px solid #e65100; color: #e65100;
+  border-radius: 5px; padding: 2px 8px; font-size: 0.85rem; cursor: pointer;
+  font-family: inherit; font-weight: 700;
+}
+.pn-item-del {
+  background: none; border: none; color: #bbb; font-size: 1.1rem; cursor: pointer;
+  padding: 2px 4px; border-radius: 4px; transition: color .1s;
+}
+.pn-item-del:hover { color: #c62828; }
+.pn-empty { color: #bbb; font-size: 0.9rem; text-align: center; padding: 20px 0; }
 </style>
 </head>
 <body>
@@ -1205,6 +1269,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   <!-- 一覽表 view -->
   <div id="matrix-view" style="display:block;">
+
     <!-- 一覽表篩選工具列 -->
     <div class="toolbar" style="margin-bottom:12px;">
       <div class="toolbar-row">
@@ -1320,6 +1385,35 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   <div class="side-tab" id="tab-export" onclick="toggleDrawer('export')">
     <span class="st-icon">📤</span>
     <span class="st-label">匯出</span>
+  </div>
+  <div class="side-tab" id="tab-price" onclick="toggleDrawer('price')">
+    <span class="st-icon">💰</span>
+    <span class="st-label">價位</span>
+  </div>
+</div>
+
+<!-- 餐盒價位備註抽屜 -->
+<div class="side-drawer" id="drawer-price">
+  <div class="drawer-header">
+    <h2>💰 餐盒價位備註</h2>
+    <button class="drawer-close-btn" onclick="closeAllDrawers()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <!-- 新增區 -->
+    <div class="pn-add-row">
+      <select id="pn-new-price">
+        <option value="80">80元</option>
+        <option value="90">90元</option>
+        <option value="100">100元</option>
+        <option value="110">110元</option>
+        <option value="120">120元</option>
+        <option value="130">130元</option>
+      </select>
+      <input id="pn-new-site" placeholder="廠區名稱" onkeydown="if(event.key==='Enter')pnAddEntry()">
+      <button class="pn-add-btn" onclick="pnAddEntry()">＋ 新增</button>
+    </div>
+    <!-- 清單 -->
+    <div id="pn-list"></div>
   </div>
 </div>
 
@@ -1634,6 +1728,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       buildFilterBtns();
     });
     autoSave = makeAutoSave('items', () => items);
+
     startSync('items', user, (content) => {
       if (!content) return;
       _remoteUpdate = true;
@@ -2454,6 +2549,37 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
     // thead
     const thead = document.createElement('thead');
+
+    // ── 主分類列（健康餐 / 風味餐 / 其他）──
+    const superRow = document.createElement('tr');
+    superRow.className = 'mx-super-row';
+    // 空白佔位（品項 + 健康餐勾選欄）
+    const superBlank = document.createElement('th');
+    superBlank.className = 'super-blank';
+    superBlank.colSpan = 2;
+    superRow.appendChild(superBlank);
+    // 計算健康/風味/其他各有幾欄
+    const kenSites  = visibleSites.filter(s => s.includes('健'));
+    const fengSites = visibleSites.filter(s => s.includes('風'));
+    const otherSites = visibleSites.filter(s => !s.includes('健') && !s.includes('風'));
+    if (kenSites.length) {
+      const th = document.createElement('th');
+      th.className = 'super-health'; th.colSpan = kenSites.length;
+      th.textContent = '🥗 健康餐'; superRow.appendChild(th);
+    }
+    if (fengSites.length) {
+      const th = document.createElement('th');
+      th.className = 'super-wind'; th.colSpan = fengSites.length;
+      th.textContent = '🍱 風味餐'; superRow.appendChild(th);
+    }
+    if (otherSites.length) {
+      const th = document.createElement('th');
+      th.className = 'super-wind'; th.colSpan = otherSites.length;
+      th.textContent = '🍱 風味餐'; superRow.appendChild(th);
+    }
+    thead.appendChild(superRow);
+
+    // ── 一般欄標題列 ──
     const hr = document.createElement('tr');
     const th0 = document.createElement('th');
     th0.className = 'th-name'; th0.textContent = '品項';
@@ -2466,18 +2592,28 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     // 折疊狀態：記錄哪些廠區被折疊
     if (!window._mxCollapsedSites) window._mxCollapsedSites = new Set();
 
+    // 健康餐廠區改顯示為 價位（80/90/110）
+    const _KEN_PRICE_LABELS = {
+      '台耀/旭興(健)': '80元',
+      '3C/P8(健)':    '90元',
+      '揚明光學(健)':  '110元',
+    };
+
     visibleSites.forEach((site, siteIdx) => {
       const th = document.createElement('th');
       const isCollapsed = window._mxCollapsedSites.has(site);
+      const isKen = site.includes('健');
+      const displayLabel = isKen && _KEN_PRICE_LABELS[site] ? _KEN_PRICE_LABELS[site] : site;
       const label = document.createElement('span');
       label.className = 'mx-site-label';
-      label.textContent = site;
+      label.textContent = displayLabel;
+      // 顯示原廠區名為 tooltip
+      th.title = isCollapsed ? `展開「${site}」` : `${site}　點擊折疊`;
       th.appendChild(label);
-      if (site.includes('健')) th.classList.add('col-ken');
+      if (isKen) th.classList.add('col-ken');
       else if (site.includes('風')) th.classList.add('col-feng');
       if (isCollapsed) th.classList.add('mx-site-col-collapsed');
       th.style.cursor = 'pointer';
-      th.title = isCollapsed ? `展開「${site}」` : `點擊折疊「${site}」`;
       th.addEventListener('click', () => {
         if (window._mxCollapsedSites.has(site)) window._mxCollapsedSites.delete(site);
         else window._mxCollapsedSites.add(site);
@@ -2577,12 +2713,101 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
 
   // ── DRAWERS ──
+
+  // ===== 餐盒價位備註 =====
+  let _pnEntries = [];  // [{price, site}]
+
+  function _pnLoad() {
+    try { _pnEntries = JSON.parse(localStorage.getItem('bento_price_notes_v2') || '[]'); } catch(e) { _pnEntries = []; }
+  }
+  function _pnSave() {
+    try { localStorage.setItem('bento_price_notes_v2', JSON.stringify(_pnEntries)); } catch(e) {}
+  }
+
+  function pnAddEntry() {
+    const priceEl = document.getElementById('pn-new-price');
+    const siteEl  = document.getElementById('pn-new-site');
+    const price = priceEl.value.trim();
+    const site  = siteEl.value.trim();
+    if (!site) { siteEl.focus(); return; }
+    _pnLoad();
+    // 避免重複
+    if (_pnEntries.some(e => e.price === price && e.site === site)) {
+      alert('此組合已存在。'); return;
+    }
+    _pnEntries.push({ price, site });
+    _pnSave();
+    siteEl.value = '';
+    pnRender();
+  }
+
+  function pnDeleteEntry(idx) {
+    _pnLoad();
+    _pnEntries.splice(idx, 1);
+    _pnSave();
+    pnRender();
+  }
+
+  function pnEditEntry(idx) {
+    _pnLoad();
+    const entry = _pnEntries[idx];
+    const newSite = prompt(`修改廠區名稱（價位：${entry.price}元）：`, entry.site);
+    if (newSite === null) return;
+    const newPrice = prompt(`修改價位（廠區：${newSite.trim() || entry.site}）：`, entry.price);
+    if (newPrice === null) return;
+    const s = newSite.trim();
+    const p = newPrice.trim();
+    if (!s || !p) return;
+    _pnEntries[idx] = { price: p, site: s };
+    _pnSave();
+    pnRender();
+  }
+
+  function pnRender() {
+    _pnLoad();
+    const listEl = document.getElementById('pn-list');
+    if (!listEl) return;
+    if (_pnEntries.length === 0) {
+      listEl.innerHTML = '<div class="pn-empty">尚無備註，請在上方新增</div>';
+      return;
+    }
+    // 依價位分組
+    const groups = {};
+    _pnEntries.forEach((e, i) => {
+      if (!groups[e.price]) groups[e.price] = [];
+      groups[e.price].push({ ...e, idx: i });
+    });
+    const sorted = Object.keys(groups).sort((a, b) => Number(a) - Number(b));
+    listEl.innerHTML = '';
+    sorted.forEach(price => {
+      const div = document.createElement('div');
+      div.className = 'pn-group';
+      const title = document.createElement('div');
+      title.className = 'pn-group-title';
+      title.textContent = price + ' 元';
+      div.appendChild(title);
+      groups[price].forEach(({ site, idx }) => {
+        const row = document.createElement('div');
+        row.className = 'pn-item';
+        row.innerHTML = `
+          <span class="pn-item-name">${site}</span>
+          <button class="pn-item-edit" onclick="pnEditEntry(${idx})">✏️ 編輯</button>
+          <button class="pn-item-del" onclick="pnDeleteEntry(${idx})">🗑</button>`;
+        div.appendChild(row);
+      });
+      listEl.appendChild(div);
+    });
+  }
+
+  _pnLoad();
+
+  const _ALL_DRAWERS = ['add','export','price'];
   function toggleDrawer(name) {
     const drawer  = document.getElementById('drawer-' + name);
     const tab     = document.getElementById('tab-' + name);
     const overlay = document.getElementById('drawer-overlay');
     const isOpen  = drawer.classList.contains('open');
-    ['add','export'].forEach(n => {
+    _ALL_DRAWERS.forEach(n => {
       document.getElementById('drawer-' + n).classList.remove('open');
       document.getElementById('tab-' + n).classList.remove('open');
     });
@@ -2594,10 +2819,11 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       if (name === 'add') {
         setTimeout(() => { const el = document.getElementById('f-name'); if (el) el.focus(); }, 320);
       }
+      if (name === 'price') pnRender();
     }
   }
   function closeAllDrawers() {
-    ['add','export'].forEach(n => {
+    _ALL_DRAWERS.forEach(n => {
       document.getElementById('drawer-' + n).classList.remove('open');
       document.getElementById('tab-' + n).classList.remove('open');
     });
@@ -2605,6 +2831,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
   function openDrawer()  { toggleDrawer('export'); }
   function closeDrawer() { closeAllDrawers(); }
+
+  // 掛到 window，讓 HTML inline onclick 可以呼叫
+  window.toggleDrawer   = toggleDrawer;
+  window.closeAllDrawers = closeAllDrawers;
+  window.pnAddEntry     = pnAddEntry;
+  window.pnDeleteEntry  = pnDeleteEntry;
+  window.pnEditEntry    = pnEditEntry;
+  window.pnRender       = pnRender;
 
   function deduplicateItems() {
     const seen = new Set();
