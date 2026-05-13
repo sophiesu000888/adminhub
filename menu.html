@@ -6,6 +6,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -1867,6 +1868,19 @@ button {
         </button>
         <button onclick="exportAllHistoryExcel();closeAllDrawers();" style="flex:1;background:#388e3c;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#388e3c'">
           📊 Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- 文字檔匯出區（休斯微 + 揚明光學） -->
+    <div style="background:#e8f5e9;border-radius:10px;padding:14px 14px 10px;margin-bottom:14px;border:1.5px solid #a5d6a7;">
+      <div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:10px;">📝 文字檔匯出</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="exportHuisMeiText();closeAllDrawers();" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
+          📝 休斯微
+        </button>
+        <button onclick="exportYangMingText();closeAllDrawers();" style="flex:1;background:#1565c0;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#0d47a1'" onmouseout="this.style.background='#1565c0'">
+          📝 揚明光學
         </button>
       </div>
     </div>
@@ -4189,6 +4203,274 @@ function exportAllHistoryExcel() {
   const dateStr = new Date().toLocaleDateString("zh-TW").replace(/\//g,"-");
   XLSX.writeFile(wb, `menu_allhistory_${dateStr}.xlsx`);
   showSaveToast("📊 歷史 Excel 已匯出");
+}
+
+// ===== 匯出休斯微文字檔 =====
+function exportHuisMeiText() {
+  const from = document.getElementById('export-date-from')?.value || '';
+  const to   = document.getElementById('export-date-to')?.value   || '';
+
+  const TARGET = '休斯微';
+
+  // 收集符合日期篩選的 week-block
+  const allBlocks = [...document.querySelectorAll('.week-block')];
+  const blocks = allBlocks.filter(b => {
+    const d = b.querySelector('.week-date')?.value || '';
+    if (!d) return (!from && !to);
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  });
+
+  if (blocks.length === 0) {
+    alert('沒有符合條件的資料可匯出。');
+    return;
+  }
+
+  // 收集包含休斯微的日期資料
+  const dayEntries = [];
+
+  blocks.forEach(block => {
+    const date = block.querySelector('.week-date')?.value || '';
+    if (!date) return;
+
+    const wid  = block.id.replace('block_', '');
+    const info = weekDataMap[wid] || {};
+    const hLocs = info.hLocs || [];
+    const wLocs = info.wLocs || [];
+
+    // 解析所有地點名稱
+    const locSels   = [...block.querySelectorAll('.loc-sel')];
+    const locInps   = [...block.querySelectorAll('.loc-inp')];
+    let locIdx = 0;
+    const resolvedAll = [...hLocs, ...wLocs].map(() => {
+      const s   = locSels[locIdx];
+      const inp = locInps[locIdx];
+      locIdx++;
+      if (!s || s.style.display === 'none') return inp?.value || '';
+      return s.value === '__custom__' ? (inp?.value || '') : s.value;
+    });
+
+    // 找出休斯微是第幾欄（col index）
+    const colIndices = resolvedAll.reduce((acc, name, i) => {
+      if (name === TARGET) acc.push(i);
+      return acc;
+    }, []);
+
+    if (colIndices.length === 0) return;  // 本週沒有休斯微，略過
+
+    // 取第一個找到的欄（通常只有一欄）
+    const colIdx2 = colIndices[0];
+
+    // 讀取該欄的每列品項
+    const rowData = {};  // rowName -> v2
+    block.querySelectorAll('table tr').forEach(tr => {
+      const catTd = tr.querySelector('.td-cat');
+      if (!catTd) return;
+      if (tr.classList.contains('row-collapsed')) return;
+      const rowName = catTd.textContent.trim();
+      const inps2   = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
+      const inp     = inps2[colIdx2];
+      if (!inp) return;
+      const v2 = inp.value.trim();
+      if (v2 && v2 !== '-' && v2 !== '-- 品項 --') {
+        rowData[rowName] = v2;
+      }
+    });
+
+    // 解析日期為 M/D 格式
+    const [yyyy, mm, dd] = date.split('-');
+    const shortDate = `${parseInt(mm)}/${parseInt(dd)}`;
+
+    dayEntries.push({ date, shortDate, rowData });
+  });
+
+  // 依日期排序
+  dayEntries.sort((a, b) => a.date.localeCompare(b.date));
+
+  if (dayEntries.length === 0) {
+    alert(`篩選範圍內沒有包含「${TARGET}」地點的菜單。`);
+    return;
+  }
+
+  // 建立標題行：休斯微 startDate-endDate
+  const startShort = dayEntries[0].shortDate;
+  const endShort   = dayEntries[dayEntries.length - 1].shortDate;
+  const title = `${TARGET}${startShort}-${endShort}`;
+
+  // 決定要輸出的列順序（主菜、副主菜，其餘數字列）
+  const ALL_ROWS = ROWS || [];
+  const mainRows  = ALL_ROWS.filter(r => ['主菜','副主菜'].includes(r));
+  const sideRows  = ALL_ROWS.filter(r => !['主菜','副主菜','米飯'].includes(r));
+
+  // 組合文字
+  const lines = [title, ''];
+  dayEntries.forEach(entry => {
+    lines.push(entry.shortDate);
+    // 主菜 / 副主菜
+    mainRows.forEach(row => {
+      if (entry.rowData[row]) {
+        lines.push(`${row}：${entry.rowData[row]}`);
+      }
+    });
+    // 側菜（1. 2. 3. ...）
+    let sideIdx = 1;
+    sideRows.forEach(row => {
+      if (entry.rowData[row]) {
+        lines.push(`${sideIdx}.${entry.rowData[row]}`);
+        sideIdx++;
+      }
+    });
+    lines.push('');  // 空行分隔
+  });
+
+  // 移除最後多餘的空行
+  while (lines.length && lines[lines.length - 1] === '') lines.pop();
+
+  const text = lines.join('\n');
+
+  // 下載 .txt 檔
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a    = document.createElement('a');
+  const dateStr = new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `休斯微_${dateStr}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showSaveToast('📝 休斯微文字檔已匯出');
+}
+
+// ===== 匯出揚明光學文字檔 =====
+function exportYangMingText() {
+  const from = document.getElementById('export-date-from')?.value || '';
+  const to   = document.getElementById('export-date-to')?.value   || '';
+
+  const TARGET = '揚明';  // 地點名稱包含「揚明」即符合
+
+  // 收集符合日期篩選的 week-block
+  const allBlocks = [...document.querySelectorAll('.week-block')];
+  const blocks = allBlocks.filter(b => {
+    const d = b.querySelector('.week-date')?.value || '';
+    if (!d) return (!from && !to);
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  });
+
+  if (blocks.length === 0) {
+    alert('沒有符合條件的資料可匯出。');
+    return;
+  }
+
+  const dayEntries = [];
+
+  blocks.forEach(block => {
+    const date = block.querySelector('.week-date')?.value || '';
+    if (!date) return;
+
+    const wid  = block.id.replace('block_', '');
+    const info = weekDataMap[wid] || {};
+    const hLocs = info.hLocs || [];
+    const wLocs = info.wLocs || [];
+
+    // 解析所有地點名稱
+    const locSels = [...block.querySelectorAll('.loc-sel')];
+    const locInps = [...block.querySelectorAll('.loc-inp')];
+    let locIdx = 0;
+    const resolvedAll = [...hLocs, ...wLocs].map(() => {
+      const s   = locSels[locIdx];
+      const inp = locInps[locIdx];
+      locIdx++;
+      if (!s || s.style.display === 'none') return inp?.value || '';
+      return s.value === '__custom__' ? (inp?.value || '') : s.value;
+    });
+
+    // 找出所有包含「揚明」的欄位，並記錄是健康餐或風味餐
+    // hLocs 佔前 hLocs.length 個欄位，wLocs 接在後面
+    const hCount = hLocs.length;
+    const yangMingCols = [];
+    resolvedAll.forEach((name, i) => {
+      if (name.includes(TARGET)) {
+        yangMingCols.push({ colIdx: i, isHealth: i < hCount });
+      }
+    });
+
+    if (yangMingCols.length === 0) return;  // 本週無揚明，略過
+
+    // 讀取每列各欄的主菜品項
+    // row: { colIdx -> v2 }
+    const colRowData = {};  // colIdx -> { rowName -> v2 }
+    yangMingCols.forEach(({ colIdx: ci }) => { colRowData[ci] = {}; });
+
+    block.querySelectorAll('table tr').forEach(tr => {
+      const catTd = tr.querySelector('.td-cat');
+      if (!catTd) return;
+      if (tr.classList.contains('row-collapsed')) return;
+      const rowName = catTd.textContent.trim();
+      const inps2   = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
+      yangMingCols.forEach(({ colIdx: ci }) => {
+        const inp = inps2[ci];
+        if (!inp) return;
+        const v2 = inp.value.trim();
+        if (v2 && v2 !== '-' && v2 !== '-- 品項 --') {
+          colRowData[ci][rowName] = v2;
+        }
+      });
+    });
+
+    // 解析日期為 M/D 格式
+    const [yyyy, mm, dd] = date.split('-');
+    const shortDate = `${parseInt(mm)}/${parseInt(dd)}`;
+
+    dayEntries.push({ date, shortDate, yangMingCols, colRowData });
+  });
+
+  // 依日期排序
+  dayEntries.sort((a, b) => a.date.localeCompare(b.date));
+
+  if (dayEntries.length === 0) {
+    alert(`篩選範圍內沒有包含「${TARGET}」地點的菜單。`);
+    return;
+  }
+
+  // 標題行：M/D-M/D 揚明光學
+  const startShort = dayEntries[0].shortDate;
+  const endShort   = dayEntries[dayEntries.length - 1].shortDate;
+  const title = `${startShort}-${endShort} 揚明光學`;
+
+  // 組合文字：每日輸出風味餐主菜（無標記）和健康餐主菜（加 (健康餐)）
+  const lines = [title];
+  dayEntries.forEach(entry => {
+    lines.push(entry.shortDate);
+
+    // 風味餐揚明欄（isHealth = false）→ 先輸出
+    entry.yangMingCols
+      .filter(c => !c.isHealth)
+      .forEach(({ colIdx: ci }) => {
+        const v2 = entry.colRowData[ci]['主菜'] || '';
+        if (v2) lines.push(v2);
+      });
+
+    // 健康餐揚明欄（isHealth = true）→ 品項後加 (健康餐)
+    entry.yangMingCols
+      .filter(c => c.isHealth)
+      .forEach(({ colIdx: ci }) => {
+        const v2 = entry.colRowData[ci]['主菜'] || '';
+        if (v2) lines.push(`${v2}(健康餐)`);
+      });
+  });
+
+  const text = lines.join('\n');
+
+  // 下載 .txt 檔
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a    = document.createElement('a');
+  const dateStr = new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `揚明光學_${dateStr}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showSaveToast('📝 揚明光學文字檔已匯出');
 }
 
 // ===== 匯出品項類別 Excel 檔 =====
