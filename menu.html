@@ -1872,15 +1872,15 @@ button {
       </div>
     </div>
 
-    <!-- 文字檔匯出區（休斯微 + 揚明光學） -->
+    <!-- 複製文字檔區 -->
     <div style="background:#e8f5e9;border-radius:10px;padding:14px 14px 10px;margin-bottom:14px;border:1.5px solid #a5d6a7;">
-      <div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:10px;">📋 文字複製</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:10px;">📋 複製文字檔</div>
       <div style="display:flex;gap:8px;">
-        <button onclick="exportHuisMeiText();closeAllDrawers();" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
-          📋 休斯微
+        <button onclick="closeAllDrawers();openLocPickerModal('full');" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
+          📋 完整菜單
         </button>
-        <button onclick="exportYangMingText();closeAllDrawers();" style="flex:1;background:#1565c0;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#0d47a1'" onmouseout="this.style.background='#1565c0'">
-          📋 揚明光學
+        <button onclick="closeAllDrawers();openLocPickerModal('main');" style="flex:1;background:#1565c0;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#0d47a1'" onmouseout="this.style.background='#1565c0'">
+          📋 主餐菜單
         </button>
       </div>
     </div>
@@ -4205,288 +4205,267 @@ function exportAllHistoryExcel() {
   showSaveToast("📊 歷史 Excel 已匯出");
 }
 
-// ===== 匯出休斯微文字檔 =====
-function exportHuisMeiText() {
+// ===== 廠區複選 Modal 控制 =====
+let _locPickerMode = 'full';  // 'full' = 完整菜單, 'main' = 主餐菜單
+
+// 從所有 week-block 中蒐集在日期篩選範圍內出現過的廠區名稱（有內容者）
+function getAvailableLocNames() {
   const from = document.getElementById('export-date-from')?.value || '';
   const to   = document.getElementById('export-date-to')?.value   || '';
+  const nameSet = new Set();
 
-  const TARGET = '休斯微';
-
-  // 收集符合日期篩選的 week-block
-  const allBlocks = [...document.querySelectorAll('.week-block')];
-  const blocks = allBlocks.filter(b => {
-    const d = b.querySelector('.week-date')?.value || '';
-    if (!d) return (!from && !to);
-    if (from && d < from) return false;
-    if (to   && d > to)   return false;
-    return true;
-  });
-
-  if (blocks.length === 0) {
-    alert('沒有符合條件的資料可匯出。');
-    return;
-  }
-
-  // 收集包含休斯微的日期資料
-  const dayEntries = [];
-
-  blocks.forEach(block => {
-    const date = block.querySelector('.week-date')?.value || '';
-    if (!date) return;
+  document.querySelectorAll('.week-block').forEach(block => {
+    const d = block.querySelector('.week-date')?.value || '';
+    if (from && d < from) return;
+    if (to   && d > to)   return;
 
     const wid  = block.id.replace('block_', '');
     const info = weekDataMap[wid] || {};
     const hLocs = info.hLocs || [];
     const wLocs = info.wLocs || [];
-
-    // 解析所有地點名稱
-    const locSels   = [...block.querySelectorAll('.loc-sel')];
-    const locInps   = [...block.querySelectorAll('.loc-inp')];
-    let locIdx = 0;
-    const resolvedAll = [...hLocs, ...wLocs].map(() => {
-      const s   = locSels[locIdx];
-      const inp = locInps[locIdx];
-      locIdx++;
-      if (!s || s.style.display === 'none') return inp?.value || '';
-      return s.value === '__custom__' ? (inp?.value || '') : s.value;
+    const locSels = [...block.querySelectorAll('.loc-sel')];
+    const locInps = [...block.querySelectorAll('.loc-inp')];
+    let idx = 0;
+    [...hLocs, ...wLocs].forEach(() => {
+      const s   = locSels[idx];
+      const inp = locInps[idx];
+      idx++;
+      let name = '';
+      if (!s || s.style.display === 'none') name = inp?.value || '';
+      else name = s.value === '__custom__' ? (inp?.value || '') : s.value;
+      if (name && name !== '--') nameSet.add(name);
     });
-
-    // 找出休斯微是第幾欄（col index）
-    const colIndices = resolvedAll.reduce((acc, name, i) => {
-      if (name === TARGET) acc.push(i);
-      return acc;
-    }, []);
-
-    if (colIndices.length === 0) return;  // 本週沒有休斯微，略過
-
-    // 取第一個找到的欄（通常只有一欄）
-    const colIdx2 = colIndices[0];
-
-    // 讀取該欄的每列品項
-    const rowData = {};  // rowName -> v2
-    block.querySelectorAll('table tr').forEach(tr => {
-      const catTd = tr.querySelector('.td-cat');
-      if (!catTd) return;
-      if (tr.classList.contains('row-collapsed')) return;
-      const rowName = catTd.textContent.trim();
-      const inps2   = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
-      const inp     = inps2[colIdx2];
-      if (!inp) return;
-      const v2 = inp.value.trim();
-      if (v2 && v2 !== '-' && v2 !== '-- 品項 --') {
-        rowData[rowName] = v2;
-      }
-    });
-
-    // 解析日期為 M/D 格式
-    const [yyyy, mm, dd] = date.split('-');
-    const shortDate = `${parseInt(mm)}/${parseInt(dd)}`;
-
-    dayEntries.push({ date, shortDate, rowData });
   });
 
-  // 依日期排序
-  dayEntries.sort((a, b) => a.date.localeCompare(b.date));
+  return [...nameSet].sort((a, b) => a.localeCompare(b, 'zh-TW'));
+}
 
-  if (dayEntries.length === 0) {
-    alert(`篩選範圍內沒有包含「${TARGET}」地點的菜單。`);
+function openLocPickerModal(mode) {
+  _locPickerMode = mode;
+  const overlay = document.getElementById('locPickerOverlay');
+  const title   = document.getElementById('locPickerTitle');
+  const list    = document.getElementById('locPickerList');
+
+  title.textContent = mode === 'full' ? '完整菜單 — 選擇廠區' : '主餐菜單 — 選擇廠區';
+  overlay.style.display = 'flex';
+
+  const names = getAvailableLocNames();
+  if (names.length === 0) {
+    list.innerHTML = '<div style="color:#999;font-size:0.9rem;padding:8px 0;">（篩選範圍內無廠區資料）</div>';
     return;
   }
+  list.innerHTML = names.map(n => `
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;cursor:pointer;font-size:0.9rem;">
+      <input type="checkbox" value="${n}" checked style="width:16px;height:16px;cursor:pointer;">
+      <span>${n}</span>
+    </label>`).join('');
+}
 
-  // 建立標題行：休斯微 startDate-endDate
-  const startShort = dayEntries[0].shortDate;
-  const endShort   = dayEntries[dayEntries.length - 1].shortDate;
-  const title = `${TARGET}${startShort}-${endShort}`;
+function closeLocPickerModal() {
+  document.getElementById('locPickerOverlay').style.display = 'none';
+}
 
-  // 決定要輸出的列順序（主菜、副主菜，其餘數字列）
-  const ALL_ROWS = ROWS || [];
-  const mainRows  = ALL_ROWS.filter(r => ['主菜','副主菜'].includes(r));
-  const sideRows  = ALL_ROWS.filter(r => !['主菜','副主菜','米飯'].includes(r));
+function locPickerSelectAll(checked) {
+  document.querySelectorAll('#locPickerList input[type=checkbox]').forEach(cb => cb.checked = checked);
+}
 
-  // 組合文字
-  const lines = [title, ''];
-  dayEntries.forEach(entry => {
-    lines.push(entry.shortDate);
-    // 主菜 / 副主菜
-    mainRows.forEach(row => {
-      if (entry.rowData[row]) {
-        lines.push(`${row}：${entry.rowData[row]}`);
-      }
-    });
-    // 側菜（1. 2. 3. ...）
-    let sideIdx = 1;
-    sideRows.forEach(row => {
-      if (entry.rowData[row]) {
-        lines.push(`${sideIdx}.${entry.rowData[row]}`);
-        sideIdx++;
-      }
-    });
-    lines.push('');  // 空行分隔
+function confirmLocPicker() {
+  const selected = [...document.querySelectorAll('#locPickerList input[type=checkbox]:checked')].map(cb => cb.value);
+  if (selected.length === 0) { alert('請至少選擇一個廠區。'); return; }
+  closeLocPickerModal();
+
+  if (_locPickerMode === 'full') {
+    copyFullMenuText(selected);
+  } else {
+    copyMainMenuText(selected);
+  }
+}
+
+// ===== 完整菜單複製（原休斯微格式，延伸 1-7） =====
+function copyFullMenuText(selectedLocs) {
+  const from = document.getElementById('export-date-from')?.value || '';
+  const to   = document.getElementById('export-date-to')?.value   || '';
+
+  const allBlocks = [...document.querySelectorAll('.week-block')].filter(b => {
+    const d = b.querySelector('.week-date')?.value || '';
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
   });
 
-  // 移除最後多餘的空行
-  while (lines.length && lines[lines.length - 1] === '') lines.pop();
+  // 每個廠區各自收集資料
+  const locTexts = [];
 
-  // 去除每行品項結尾的 *
-  const text = lines.map(l => l.replace(/\*+$/, '')).join('\n');
+  selectedLocs.forEach(locName => {
+    const dayEntries = [];
 
-  // 複製到剪貼簿
-  navigator.clipboard.writeText(text).then(() => {
-    showSaveToast('📋 休斯微已複製到剪貼簿');
+    allBlocks.forEach(block => {
+      const date = block.querySelector('.week-date')?.value || '';
+      if (!date) return;
+
+      const wid   = block.id.replace('block_', '');
+      const info  = weekDataMap[wid] || {};
+      const hLocs = info.hLocs || [];
+      const wLocs = info.wLocs || [];
+      const locSels = [...block.querySelectorAll('.loc-sel')];
+      const locInps = [...block.querySelectorAll('.loc-inp')];
+      let idx = 0;
+      const resolvedAll = [...hLocs, ...wLocs].map(() => {
+        const s = locSels[idx]; const inp = locInps[idx]; idx++;
+        if (!s || s.style.display === 'none') return inp?.value || '';
+        return s.value === '__custom__' ? (inp?.value || '') : s.value;
+      });
+
+      const matchCols = resolvedAll.reduce((acc, n, i) => { if (n === locName) acc.push(i); return acc; }, []);
+      if (matchCols.length === 0) return;
+      const colIdx2 = matchCols[0];
+
+      const rowData = {};
+      block.querySelectorAll('table tr').forEach(tr => {
+        const catTd = tr.querySelector('.td-cat');
+        if (!catTd || tr.classList.contains('row-collapsed')) return;
+        const rowName = catTd.textContent.trim();
+        const inps2   = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
+        const inp = inps2[colIdx2];
+        if (!inp) return;
+        const v2 = inp.value.trim();
+        if (v2 && v2 !== '-' && v2 !== '-- 品項 --') rowData[rowName] = v2;
+      });
+
+      const [, mm, dd] = date.split('-');
+      dayEntries.push({ date, shortDate: `${parseInt(mm)}/${parseInt(dd)}`, rowData });
+    });
+
+    if (dayEntries.length === 0) return;
+    dayEntries.sort((a, b) => a.date.localeCompare(b.date));
+
+    const startShort = dayEntries[0].shortDate;
+    const endShort   = dayEntries[dayEntries.length - 1].shortDate;
+    const title = `${locName}${startShort}-${endShort}`;
+
+    const SIDE_KEYS = ['1','2','3','4','5','6','7'];
+    const lines = [title, ''];
+    dayEntries.forEach(entry => {
+      lines.push(entry.shortDate);
+      ['主菜','副主菜'].forEach(row => {
+        if (entry.rowData[row]) lines.push(`${row}：${entry.rowData[row]}`);
+      });
+      let sideIdx = 1;
+      SIDE_KEYS.forEach(key => {
+        if (entry.rowData[key]) { lines.push(`${sideIdx}.${entry.rowData[key]}`); sideIdx++; }
+      });
+      lines.push('');
+    });
+    while (lines.length && lines[lines.length - 1] === '') lines.pop();
+    locTexts.push(lines.map(l => l.replace(/\*+$/, '')).join('\n'));
+  });
+
+  if (locTexts.length === 0) { alert('選取的廠區在篩選範圍內無資料。'); return; }
+  const finalText = locTexts.join('\n\n');
+
+  navigator.clipboard.writeText(finalText).then(() => {
+    showSaveToast('📋 完整菜單已複製到剪貼簿');
   }).catch(() => {
-    // fallback
     const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showSaveToast('📋 休斯微已複製到剪貼簿');
+    ta.value = finalText; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showSaveToast('📋 完整菜單已複製到剪貼簿');
   });
 }
 
-// ===== 匯出揚明光學文字檔 =====
-function exportYangMingText() {
+// ===== 主餐菜單複製（原揚明格式：風味餐/健康餐主菜） =====
+function copyMainMenuText(selectedLocs) {
   const from = document.getElementById('export-date-from')?.value || '';
   const to   = document.getElementById('export-date-to')?.value   || '';
 
-  const TARGET = '揚明';  // 地點名稱包含「揚明」即符合
-
-  // 收集符合日期篩選的 week-block
-  const allBlocks = [...document.querySelectorAll('.week-block')];
-  const blocks = allBlocks.filter(b => {
+  const allBlocks = [...document.querySelectorAll('.week-block')].filter(b => {
     const d = b.querySelector('.week-date')?.value || '';
-    if (!d) return (!from && !to);
     if (from && d < from) return false;
     if (to   && d > to)   return false;
     return true;
   });
 
-  if (blocks.length === 0) {
-    alert('沒有符合條件的資料可匯出。');
-    return;
-  }
+  const locTexts = [];
 
-  const dayEntries = [];
+  selectedLocs.forEach(locName => {
+    const dayEntries = [];
 
-  blocks.forEach(block => {
-    const date = block.querySelector('.week-date')?.value || '';
-    if (!date) return;
+    allBlocks.forEach(block => {
+      const date = block.querySelector('.week-date')?.value || '';
+      if (!date) return;
 
-    const wid  = block.id.replace('block_', '');
-    const info = weekDataMap[wid] || {};
-    const hLocs = info.hLocs || [];
-    const wLocs = info.wLocs || [];
-
-    // 解析所有地點名稱
-    const locSels = [...block.querySelectorAll('.loc-sel')];
-    const locInps = [...block.querySelectorAll('.loc-inp')];
-    let locIdx = 0;
-    const resolvedAll = [...hLocs, ...wLocs].map(() => {
-      const s   = locSels[locIdx];
-      const inp = locInps[locIdx];
-      locIdx++;
-      if (!s || s.style.display === 'none') return inp?.value || '';
-      return s.value === '__custom__' ? (inp?.value || '') : s.value;
-    });
-
-    // 找出所有包含「揚明」的欄位，並記錄是健康餐或風味餐
-    // hLocs 佔前 hLocs.length 個欄位，wLocs 接在後面
-    const hCount = hLocs.length;
-    const yangMingCols = [];
-    resolvedAll.forEach((name, i) => {
-      if (name.includes(TARGET)) {
-        yangMingCols.push({ colIdx: i, isHealth: i < hCount });
-      }
-    });
-
-    if (yangMingCols.length === 0) return;  // 本週無揚明，略過
-
-    // 讀取每列各欄的主菜品項
-    // row: { colIdx -> v2 }
-    const colRowData = {};  // colIdx -> { rowName -> v2 }
-    yangMingCols.forEach(({ colIdx: ci }) => { colRowData[ci] = {}; });
-
-    block.querySelectorAll('table tr').forEach(tr => {
-      const catTd = tr.querySelector('.td-cat');
-      if (!catTd) return;
-      if (tr.classList.contains('row-collapsed')) return;
-      const rowName = catTd.textContent.trim();
-      const inps2   = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
-      yangMingCols.forEach(({ colIdx: ci }) => {
-        const inp = inps2[ci];
-        if (!inp) return;
-        const v2 = inp.value.trim();
-        if (v2 && v2 !== '-' && v2 !== '-- 品項 --') {
-          colRowData[ci][rowName] = v2;
-        }
+      const wid   = block.id.replace('block_', '');
+      const info  = weekDataMap[wid] || {};
+      const hLocs = info.hLocs || [];
+      const wLocs = info.wLocs || [];
+      const hCount = hLocs.length;
+      const locSels = [...block.querySelectorAll('.loc-sel')];
+      const locInps = [...block.querySelectorAll('.loc-inp')];
+      let idx = 0;
+      const resolvedAll = [...hLocs, ...wLocs].map(() => {
+        const s = locSels[idx]; const inp = locInps[idx]; idx++;
+        if (!s || s.style.display === 'none') return inp?.value || '';
+        return s.value === '__custom__' ? (inp?.value || '') : s.value;
       });
+
+      const matchCols = [];
+      resolvedAll.forEach((n, i) => { if (n === locName) matchCols.push({ colIdx: i, isHealth: i < hCount }); });
+      if (matchCols.length === 0) return;
+
+      const colRowData = {};
+      matchCols.forEach(({ colIdx: ci }) => { colRowData[ci] = {}; });
+      block.querySelectorAll('table tr').forEach(tr => {
+        const catTd = tr.querySelector('.td-cat');
+        if (!catTd || tr.classList.contains('row-collapsed')) return;
+        const rowName = catTd.textContent.trim();
+        const inps2   = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
+        matchCols.forEach(({ colIdx: ci }) => {
+          const inp = inps2[ci]; if (!inp) return;
+          const v2 = inp.value.trim();
+          if (v2 && v2 !== '-' && v2 !== '-- 品項 --') colRowData[ci][rowName] = v2;
+        });
+      });
+
+      const [, mm, dd] = date.split('-');
+      dayEntries.push({ date, shortDate: `${parseInt(mm)}/${parseInt(dd)}`, matchCols, colRowData });
     });
 
-    // 解析日期為 M/D 格式
-    const [yyyy, mm, dd] = date.split('-');
-    const shortDate = `${parseInt(mm)}/${parseInt(dd)}`;
+    if (dayEntries.length === 0) return;
+    dayEntries.sort((a, b) => a.date.localeCompare(b.date));
 
-    dayEntries.push({ date, shortDate, yangMingCols, colRowData });
-  });
+    const startShort = dayEntries[0].shortDate;
+    const endShort   = dayEntries[dayEntries.length - 1].shortDate;
+    const title = `${startShort}-${endShort} ${locName}`;
 
-  // 依日期排序
-  dayEntries.sort((a, b) => a.date.localeCompare(b.date));
-
-  if (dayEntries.length === 0) {
-    alert(`篩選範圍內沒有包含「${TARGET}」地點的菜單。`);
-    return;
-  }
-
-  // 標題行：M/D-M/D 揚明光學
-  const startShort = dayEntries[0].shortDate;
-  const endShort   = dayEntries[dayEntries.length - 1].shortDate;
-  const title = `${startShort}-${endShort} 揚明光學`;
-
-  // 組合文字：每日輸出風味餐主菜（無標記）和健康餐主菜（加 (健康餐)），日期間空一行
-  const lines = [title, ''];
-  dayEntries.forEach((entry, entryIdx) => {
-    lines.push(entry.shortDate);
-
-    // 風味餐揚明欄（isHealth = false）→ 先輸出
-    entry.yangMingCols
-      .filter(c => !c.isHealth)
-      .forEach(({ colIdx: ci }) => {
+    const lines = [title, ''];
+    dayEntries.forEach(entry => {
+      lines.push(entry.shortDate);
+      // 風味餐先（isHealth = false）
+      entry.matchCols.filter(c => !c.isHealth).forEach(({ colIdx: ci }) => {
         const v2 = (entry.colRowData[ci]['主菜'] || '').replace(/\*+$/, '');
         if (v2) lines.push(v2);
       });
-
-    // 健康餐揚明欄（isHealth = true）→ 品項後加 (健康餐)
-    entry.yangMingCols
-      .filter(c => c.isHealth)
-      .forEach(({ colIdx: ci }) => {
+      // 健康餐後（isHealth = true）
+      entry.matchCols.filter(c => c.isHealth).forEach(({ colIdx: ci }) => {
         const v2 = (entry.colRowData[ci]['主菜'] || '').replace(/\*+$/, '');
         if (v2) lines.push(`${v2}(健康餐)`);
       });
-
-    lines.push('');  // 每個日期後空一行
+      lines.push('');
+    });
+    while (lines.length && lines[lines.length - 1] === '') lines.pop();
+    locTexts.push(lines.map(l => l.replace(/\*+$/, '')).join('\n'));
   });
 
-  // 移除最後多餘的空行
-  while (lines.length && lines[lines.length - 1] === '') lines.pop();
+  if (locTexts.length === 0) { alert('選取的廠區在篩選範圍內無資料。'); return; }
+  const finalText = locTexts.join('\n\n');
 
-  // 去除每行結尾的 *
-  const text = lines.map(l => l.replace(/\*+$/, '')).join('\n');
-
-  // 複製到剪貼簿
-  navigator.clipboard.writeText(text).then(() => {
-    showSaveToast('📋 揚明光學已複製到剪貼簿');
+  navigator.clipboard.writeText(finalText).then(() => {
+    showSaveToast('📋 主餐菜單已複製到剪貼簿');
   }).catch(() => {
-    // fallback
     const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showSaveToast('📋 揚明光學已複製到剪貼簿');
+    ta.value = finalText; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showSaveToast('📋 主餐菜單已複製到剪貼簿');
   });
 }
 
@@ -8328,5 +8307,22 @@ document.addEventListener('mousedown', e => {
 });
 
 </script>
+
+<!-- 廠區複選 Modal -->
+<div id="locPickerOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeLocPickerModal();">
+  <div style="background:#fff;border-radius:14px;padding:20px;width:min(92vw,360px);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:4px;" id="locPickerTitle">選擇廠區</div>
+    <div style="font-size:0.82rem;color:#666;margin-bottom:12px;">可複選，分別輸出各廠區文字</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button onclick="locPickerSelectAll(true)" style="flex:1;font-size:0.8rem;padding:5px;border:1px solid #aaa;border-radius:6px;cursor:pointer;background:#f5f5f5;">全選</button>
+      <button onclick="locPickerSelectAll(false)" style="flex:1;font-size:0.8rem;padding:5px;border:1px solid #aaa;border-radius:6px;cursor:pointer;background:#f5f5f5;">全消</button>
+    </div>
+    <div id="locPickerList" style="overflow-y:auto;flex:1;margin-bottom:14px;display:flex;flex-direction:column;gap:6px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeLocPickerModal()" style="flex:1;padding:10px;border:1.5px solid #bbb;border-radius:8px;cursor:pointer;background:#f5f5f5;font-weight:600;">取消</button>
+      <button onclick="confirmLocPicker()" style="flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;background:#1565c0;color:#fff;font-weight:700;">複製</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
