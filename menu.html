@@ -1874,13 +1874,13 @@ button {
 
     <!-- 文字檔匯出區（休斯微 + 揚明光學） -->
     <div style="background:#e8f5e9;border-radius:10px;padding:14px 14px 10px;margin-bottom:14px;border:1.5px solid #a5d6a7;">
-      <div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:10px;">📝 文字檔匯出</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:10px;">📋 文字複製</div>
       <div style="display:flex;gap:8px;">
         <button onclick="exportHuisMeiText();closeAllDrawers();" style="flex:1;background:#2e7d32;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
-          📝 休斯微
+          📋 休斯微
         </button>
         <button onclick="exportYangMingText();closeAllDrawers();" style="flex:1;background:#1565c0;color:#fff;border:none;border-radius:8px;padding:12px 10px;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;" onmouseover="this.style.background='#0d47a1'" onmouseout="this.style.background='#1565c0'">
-          📝 揚明光學
+          📋 揚明光學
         </button>
       </div>
     </div>
@@ -4327,17 +4327,23 @@ function exportHuisMeiText() {
   // 移除最後多餘的空行
   while (lines.length && lines[lines.length - 1] === '') lines.pop();
 
-  const text = lines.join('\n');
+  // 去除每行品項結尾的 *
+  const text = lines.map(l => l.replace(/\*+$/, '')).join('\n');
 
-  // 下載 .txt 檔
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const a    = document.createElement('a');
-  const dateStr = new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
-  a.href     = URL.createObjectURL(blob);
-  a.download = `休斯微_${dateStr}.txt`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showSaveToast('📝 休斯微文字檔已匯出');
+  // 複製到剪貼簿
+  navigator.clipboard.writeText(text).then(() => {
+    showSaveToast('📋 休斯微已複製到剪貼簿');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showSaveToast('📋 休斯微已複製到剪貼簿');
+  });
 }
 
 // ===== 匯出揚明光學文字檔 =====
@@ -4438,16 +4444,16 @@ function exportYangMingText() {
   const endShort   = dayEntries[dayEntries.length - 1].shortDate;
   const title = `${startShort}-${endShort} 揚明光學`;
 
-  // 組合文字：每日輸出風味餐主菜（無標記）和健康餐主菜（加 (健康餐)）
-  const lines = [title];
-  dayEntries.forEach(entry => {
+  // 組合文字：每日輸出風味餐主菜（無標記）和健康餐主菜（加 (健康餐)），日期間空一行
+  const lines = [title, ''];
+  dayEntries.forEach((entry, entryIdx) => {
     lines.push(entry.shortDate);
 
     // 風味餐揚明欄（isHealth = false）→ 先輸出
     entry.yangMingCols
       .filter(c => !c.isHealth)
       .forEach(({ colIdx: ci }) => {
-        const v2 = entry.colRowData[ci]['主菜'] || '';
+        const v2 = (entry.colRowData[ci]['主菜'] || '').replace(/\*+$/, '');
         if (v2) lines.push(v2);
       });
 
@@ -4455,22 +4461,33 @@ function exportYangMingText() {
     entry.yangMingCols
       .filter(c => c.isHealth)
       .forEach(({ colIdx: ci }) => {
-        const v2 = entry.colRowData[ci]['主菜'] || '';
+        const v2 = (entry.colRowData[ci]['主菜'] || '').replace(/\*+$/, '');
         if (v2) lines.push(`${v2}(健康餐)`);
       });
+
+    lines.push('');  // 每個日期後空一行
   });
 
-  const text = lines.join('\n');
+  // 移除最後多餘的空行
+  while (lines.length && lines[lines.length - 1] === '') lines.pop();
 
-  // 下載 .txt 檔
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const a    = document.createElement('a');
-  const dateStr = new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
-  a.href     = URL.createObjectURL(blob);
-  a.download = `揚明光學_${dateStr}.txt`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showSaveToast('📝 揚明光學文字檔已匯出');
+  // 去除每行結尾的 *
+  const text = lines.map(l => l.replace(/\*+$/, '')).join('\n');
+
+  // 複製到剪貼簿
+  navigator.clipboard.writeText(text).then(() => {
+    showSaveToast('📋 揚明光學已複製到剪貼簿');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showSaveToast('📋 揚明光學已複製到剪貼簿');
+  });
 }
 
 // ===== 匯出品項類別 Excel 檔 =====
