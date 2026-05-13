@@ -1481,7 +1481,16 @@ button {
 <h1>Menu Schedule</h1>
 
 <div class="toolbar">
-  <button class="btn-add" onclick="addWeek()">➕ 新增日期</button>
+  <div class="toolbar-split-group">
+    <button class="btn-add toolbar-parent-btn" id="btnAddDate"
+      onclick="toggleToolbarSub('subAddDate', this)">➕ 新增日期</button>
+    <div class="toolbar-sub-wrap" id="subAddDate">
+      <button class="toolbar-sub-btn btn-add"
+        onclick="addWeek(); closeToolbarSub('subAddDate','btnAddDate')">📄 新增空白日期</button>
+      <button class="toolbar-sub-btn btn-add"
+        onclick="openAddWeekRangeModal(); closeToolbarSub('subAddDate','btnAddDate')">📅 新增一週（五天）</button>
+    </div>
+  </div>
 
   <div class="toolbar-split-group">
     <button class="btn-add-hloc toolbar-parent-btn" id="btnAddLoc"
@@ -1508,7 +1517,8 @@ button {
   </div>
 
   <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreData(this)">
-  <button class="btn-clear" onclick="clearAll()">🗑️ 清除全部</button>
+  <button class="btn-clear" onclick="clearAll()">🗑️ 清除主畫面</button>
+  <button class="btn-add" id="btnCollapseAll" onclick="toggleAllCollapse()" style="background:#f5f5f5;color:var(--ink);border:2px solid var(--ink);">▲ 收合菜單</button>
 </div>
 
 <div class="schedule-area" id="scheduleArea"></div>
@@ -1830,7 +1840,7 @@ button {
 
     <!-- 共用日期篩選 -->
     <div style="background:#fff;border-radius:7px;padding:10px 12px;margin-bottom:12px;border:1.5px solid #cfd8dc;">
-      <div style="font-size:0.85rem;color:#546e7a;font-weight:700;margin-bottom:7px;">📅 日期區間篩選（不選則匯出全部）</div>
+      <div style="font-size:0.85rem;color:#546e7a;font-weight:700;margin-bottom:7px;">📅 日期區間篩選（不選則匯出<span style="color:#c62828;font-weight:700;">主畫面</span>全部）</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <div style="display:flex;flex-direction:column;gap:3px;">
           <label style="font-size:0.85rem;color:#90a4ae;font-weight:600;">開始日期</label>
@@ -5427,6 +5437,7 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
       <span class="week-label">第 ${weekNum} 筆</span>
       <input class="week-date" type="date" id="date_${wid}">
       <span class="week-day" id="day_${wid}">請選日期</span>
+      <div class="week-collapsed-summary" id="summary_${wid}"></div>
       <button class="btn-save-to-history" onclick="saveWeekToHistory('${wid}')">📌 存入歷史</button>
       <button class="btn-del-week" onclick="removeWeek('${wid}')">刪除</button>
     </div>
@@ -5558,6 +5569,8 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
     ROWS.forEach(row => {
       const tr = tbl.insertRow();
       tr.dataset.row = row;
+      // 米飯、1-7 為可收合列
+      if (!['主菜','副主菜'].includes(row)) tr.classList.add('row-menu-collapsible');
       const tdCat = document.createElement("td");
       tdCat.className = "td-cat";
       tdCat.textContent = row;
@@ -5628,6 +5641,128 @@ function buildWeek(weekNum, initHLocs, initWLocs, initHQtys, initWQtys) {
   block._hQtysRef = hQtys;
   block._wQtysRef = wQtys;
   return block;
+}
+
+
+// ===== 新增一週（五天）Modal =====
+function openAddWeekRangeModal() {
+  const overlay = document.getElementById('addWeekRangeOverlay');
+  // 預設日期：下一個週一
+  const today = new Date();
+  const day = today.getDay(); // 0=日, 1=一
+  const daysUntilMonday = day === 0 ? 1 : (8 - day) % 7 || 7;
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + daysUntilMonday);
+  document.getElementById('addWeekRangeStartDate').value = nextMonday.toISOString().slice(0, 10);
+  overlay.style.display = 'flex';
+}
+
+function closeAddWeekRangeModal() {
+  document.getElementById('addWeekRangeOverlay').style.display = 'none';
+}
+
+function confirmAddWeekRange() {
+  const startVal = document.getElementById('addWeekRangeStartDate').value;
+  if (!startVal) { alert('請選擇第一天日期。'); return; }
+
+  const start = new Date(startVal + 'T00:00:00');
+  closeAddWeekRangeModal();
+
+  // 取最後一個 block 的地點設定
+  const blocks = document.querySelectorAll('.week-block');
+  let initHLocs, initWLocs;
+  if (blocks.length > 0) {
+    const lastBlock = blocks[blocks.length - 1];
+    const lastWid = lastBlock.id.replace('block_', '');
+    const lastInfo = weekDataMap[lastWid];
+    if (lastInfo) {
+      const locSels = [...lastBlock.querySelectorAll('.loc-sel')];
+      const locInps = [...lastBlock.querySelectorAll('.loc-inp')];
+      const allNames = locSels.map((s, i) => {
+        if (s.style.display === 'none') return locInps[i]?.value || '';
+        return s.value === '__custom__' ? (locInps[i]?.value || '') : s.value;
+      });
+      initHLocs = allNames.slice(0, lastInfo.hLocs.length);
+      initWLocs = allNames.slice(lastInfo.hLocs.length, lastInfo.hLocs.length + lastInfo.wLocs.length);
+    }
+  }
+
+  // 新增週一到週五共五天（用本地日期避免 UTC 時區偏移）
+  const [sy, sm, sd] = startVal.split('-').map(Number);
+  for (let i = 0; i < 5; i++) {
+    weekCount++;
+    const d = new Date(sy, sm - 1, sd + i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const block = buildWeek(weekCount, initHLocs, initWLocs);
+    appendWeekBlock(block);
+    // 寫入日期
+    const dateInput = block.querySelector('.week-date');
+    if (dateInput) {
+      dateInput.value = dateStr;
+      dateInput.dispatchEvent(new Event('change'));
+    }
+  }
+  scheduleAutoSave();
+}
+
+
+// ===== 全域收合／展開 =====
+let _allCollapsed = false;
+function toggleAllCollapse() {
+  _allCollapsed = !_allCollapsed;
+  const btn = document.getElementById('btnCollapseAll');
+  document.querySelectorAll('.week-block table tr').forEach(tr => {
+    const rowName = tr.dataset.row || '';
+    if (['主菜','副主菜',''].includes(rowName)) return; // 保留這幾列
+    tr.style.display = _allCollapsed ? 'none' : '';
+  });
+  btn.textContent = _allCollapsed ? '▼ 展開菜單' : '▲ 收合菜單';
+}
+
+function updateWeekSummary(wid) {
+  const block   = document.getElementById('block_' + wid);
+  const summDiv = document.getElementById('summary_' + wid);
+  if (!block || !summDiv) return;
+
+  const info  = weekDataMap[wid] || {};
+  const hLocs = info.hLocs || [];
+  const wLocs = info.wLocs || [];
+  const locSels = [...block.querySelectorAll('.loc-sel')];
+  const locInps = [...block.querySelectorAll('.loc-inp')];
+  let idx = 0;
+  const locNames = [...hLocs, ...wLocs].map(() => {
+    const s = locSels[idx]; const inp = locInps[idx]; idx++;
+    if (!s || s.style.display === 'none') return inp?.value || '';
+    return s.value === '__custom__' ? (inp?.value || '') : s.value;
+  });
+
+  // 讀主菜/副主菜
+  const mainData = {};  // locIdx -> { 主菜, 副主菜 }
+  block.querySelectorAll('table tr').forEach(tr => {
+    const catTd = tr.querySelector('.td-cat');
+    if (!catTd) return;
+    const rowName = catTd.textContent.trim();
+    if (rowName !== '主菜' && rowName !== '副主菜') return;
+    const inps2 = [...tr.querySelectorAll('td.td-l2 input.sel-l2-inp')];
+    inps2.forEach((inp, i) => {
+      if (!mainData[i]) mainData[i] = {};
+      const v = (inp.value || '').replace(/\*+$/, '').trim();
+      if (v && v !== '-' && v !== '-- 品項 --') mainData[i][rowName] = v;
+    });
+  });
+
+  // 組摘要 HTML
+  const parts = locNames.map((name, i) => {
+    if (!name) return '';
+    const m  = mainData[i]?.['主菜']  || '';
+    const sm = mainData[i]?.['副主菜'] || '';
+    const items = [m, sm].filter(Boolean).map(v => `<span class="cs-item">${v}</span>`).join('');
+    return `<span class="cs-loc">${name}</span>${items}`;
+  }).filter(Boolean);
+
+  summDiv.innerHTML = parts.length
+    ? parts.join('<span style="color:#ccc;">｜</span>')
+    : '<span style="color:#bbb;">（尚無品項）</span>';
 }
 
 function addWeek() {
@@ -5711,10 +5846,33 @@ function removeWeek(wid) {
 }
 
 function clearAll() {
-  if (!confirm("確定清除全部？這將同時清除儲存的資料。")) return;
-  document.getElementById("scheduleArea").innerHTML="";
-  weekCount=0; weekDataMap={};
-  if (_menuAutoSave) _menuAutoSave(); // 以空資料覆寫 Firestore
+  // 自訂警告 Modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:24px 22px;width:min(92vw,360px);box-shadow:0 8px 32px rgba(0,0,0,0.25);text-align:center;">
+      <div style="font-size:2rem;margin-bottom:10px;">⚠️</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#b71c1c;margin-bottom:10px;">清除主畫面</div>
+      <div style="font-size:0.9rem;color:#333;line-height:1.6;margin-bottom:6px;">
+        此操作將清除主畫面所有日期與菜單資料，<strong>且無法復原</strong>。
+      </div>
+      <div style="font-size:0.88rem;background:#fff8e1;border:1.5px solid #ffe082;border-radius:8px;padding:10px 12px;margin:12px 0 18px;color:#5d4037;line-height:1.6;">
+        ⚠️ 請確認所有菜單資料<br>已存入歷史資料後再繼續。
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button id="_clearCancelBtn" style="flex:1;padding:11px;border:1.5px solid #bbb;border-radius:8px;cursor:pointer;background:#f5f5f5;font-weight:600;font-size:0.95rem;font-family:inherit;">取消</button>
+        <button id="_clearConfirmBtn" style="flex:1;padding:11px;border:none;border-radius:8px;cursor:pointer;background:#c62828;color:#fff;font-weight:700;font-size:0.95rem;font-family:inherit;">確認清除</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_clearCancelBtn').onclick = () => document.body.removeChild(overlay);
+  overlay.querySelector('#_clearConfirmBtn').onclick = () => {
+    document.body.removeChild(overlay);
+    document.getElementById("scheduleArea").innerHTML = "";
+    weekCount = 0; weekDataMap = {};
+    if (_menuAutoSave) _menuAutoSave();
+    showSaveToast('🗑️ 主畫面已清除');
+  };
 }
 
 function getLocName(sel, inp) {
@@ -5887,6 +6045,30 @@ select { display:none; }
   body { background:#fff; padding:6px; }
   .week-block { page-break-inside:avoid; box-shadow:none; }
 }
+
+/* ===== 週次折疊 ===== */
+.btn-collapse-week {
+  background: #f5f5f5; border: 2px solid var(--ink); border-radius: 8px;
+  padding: 3px 10px; cursor: pointer; font-size: 0.85rem; font-family: inherit;
+  font-weight: 700; color: var(--ink); box-shadow: 2px 2px 0 0 var(--shadow);
+  transition: all 0.1s; white-space: nowrap; margin-left: auto;
+}
+.btn-collapse-week:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--shadow); }
+.week-collapsed-summary {
+  display: none; font-size: 0.82rem; color: #555;
+  flex-wrap: wrap; gap: 6px 12px; align-items: center;
+  padding: 2px 0;
+}
+.week-collapsed-summary .cs-loc {
+  background: #e8f5e9; border: 1.5px solid #a5d6a7; border-radius: 5px;
+  padding: 1px 7px; font-weight: 700; color: #2e7d32; white-space: nowrap;
+}
+.week-collapsed-summary .cs-item {
+  background: #fff8e7; border: 1.5px solid #ffe082; border-radius: 5px;
+  padding: 1px 7px; color: #5d4037; white-space: nowrap;
+}
+/* 全域收合：隱藏米飯以下的 tr */
+.schedule-collapsed .week-block tr.row-menu-collapsible { display: none; }
 </style>
 </head>
 <body>
@@ -8321,6 +8503,19 @@ document.addEventListener('mousedown', e => {
     <div style="display:flex;gap:8px;">
       <button onclick="closeLocPickerModal()" style="flex:1;padding:10px;border:1.5px solid #bbb;border-radius:8px;cursor:pointer;background:#f5f5f5;font-weight:600;">取消</button>
       <button onclick="confirmLocPicker()" style="flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;background:#1565c0;color:#fff;font-weight:700;">複製</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增一週 Modal -->
+<div id="addWeekRangeOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeAddWeekRangeModal();">
+  <div style="background:#fff;border-radius:14px;padding:20px;width:min(92vw,340px);box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:1.1rem;font-weight:700;margin-bottom:6px;">📅 新增一週（五天）</div>
+    <div style="font-size:0.85rem;color:#666;margin-bottom:14px;">請選擇第一天（週一）日期</div>
+    <input type="date" id="addWeekRangeStartDate" style="width:100%;padding:10px;border:1.5px solid #90caf9;border-radius:8px;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:16px;">
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeAddWeekRangeModal()" style="flex:1;padding:10px;border:1.5px solid #bbb;border-radius:8px;cursor:pointer;background:#f5f5f5;font-weight:600;">取消</button>
+      <button onclick="confirmAddWeekRange()" style="flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;background:#1565c0;color:#fff;font-weight:700;">新增五天</button>
     </div>
   </div>
 </div>
