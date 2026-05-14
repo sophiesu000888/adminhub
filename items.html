@@ -1161,6 +1161,27 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 }
 .pn-item-del:hover { color: #c62828; }
 .pn-empty { color: #bbb; font-size: 0.9rem; text-align: center; padding: 20px 0; }
+
+/* ===== 管理抽屜：廠區分類 ===== */
+.mgr-site-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 0.95rem;
+}
+.mgr-site-name { flex: 1; font-weight: 500; }
+.mgr-type-btn {
+  padding: 4px 10px; border-radius: 6px; border: 2px solid transparent;
+  font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: all .1s;
+}
+.mgr-type-btn.health {
+  background: #e8f5e9; color: #2e7d32; border-color: #2e7d32;
+}
+.mgr-type-btn.wind {
+  background: #e3f2fd; color: #1565c0; border-color: #1565c0;
+}
+.mgr-type-btn.inactive {
+  background: #f5f5f5; color: #aaa; border-color: #ddd;
+}
 </style>
 </head>
 <body>
@@ -1390,6 +1411,10 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     <span class="st-icon">💰</span>
     <span class="st-label">價位</span>
   </div>
+  <div class="side-tab" id="tab-mgr" onclick="toggleDrawer('mgr')">
+    <span class="st-icon">⚙️</span>
+    <span class="st-label">管理</span>
+  </div>
 </div>
 
 <!-- 餐盒價位備註抽屜 -->
@@ -1420,6 +1445,18 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     </div>
     <!-- 清單 -->
     <div id="pn-list"></div>
+  </div>
+</div>
+
+<!-- 管理抽屜 -->
+<div class="side-drawer" id="drawer-mgr">
+  <div class="drawer-header">
+    <h2>⚙️ 廠區分類管理</h2>
+    <button class="drawer-close-btn" onclick="closeAllDrawers()">✕ 關閉</button>
+  </div>
+  <div class="drawer-body">
+    <div style="font-size:0.85rem;color:#888;margin-bottom:12px;">設定每個廠區屬於健康餐或風味餐，影響一覽表的主分類列顯示。</div>
+    <div id="mgr-site-list"></div>
   </div>
 </div>
 
@@ -2565,25 +2602,24 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     superBlank.colSpan = 2;
     superBlank.style.cssText = 'width:336px;min-width:336px;';  // 240 + 96
     superRow.appendChild(superBlank);
-    // 計算健康/風味/其他各有幾欄
-    const kenSites  = visibleSites.filter(s => s.includes('健'));
-    const fengSites = visibleSites.filter(s => s.includes('風'));
-    const otherSites = visibleSites.filter(s => !s.includes('健') && !s.includes('風'));
-    if (kenSites.length) {
+    // 計算健康/風味各有幾欄（依管理抽屜設定）
+    // 合併相鄰同類的欄位成一格跨欄
+    let runType = null, runCount = 0;
+    function flushSuperRun() {
+      if (!runCount) return;
       const th = document.createElement('th');
-      th.className = 'super-health'; th.colSpan = kenSites.length;
-      th.textContent = '🥗 健康餐'; superRow.appendChild(th);
+      if (runType === 'health') { th.className = 'super-health'; th.textContent = '🥗 健康餐'; }
+      else                      { th.className = 'super-wind';   th.textContent = '🍱 風味餐'; }
+      th.colSpan = runCount;
+      superRow.appendChild(th);
+      runCount = 0; runType = null;
     }
-    if (fengSites.length) {
-      const th = document.createElement('th');
-      th.className = 'super-wind'; th.colSpan = fengSites.length;
-      th.textContent = '🍱 風味餐'; superRow.appendChild(th);
-    }
-    if (otherSites.length) {
-      const th = document.createElement('th');
-      th.className = 'super-wind'; th.colSpan = otherSites.length;
-      th.textContent = '🍱 風味餐'; superRow.appendChild(th);
-    }
+    visibleSites.forEach(s => {
+      const t = window.getSiteType ? window.getSiteType(s) : (s.includes('健') ? 'health' : 'wind');
+      if (t === runType) { runCount++; }
+      else { flushSuperRun(); runType = t; runCount = 1; }
+    });
+    flushSuperRun();
     thead.appendChild(superRow);
 
     // ── 一般欄標題列 ──
@@ -2609,7 +2645,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     visibleSites.forEach((site, siteIdx) => {
       const th = document.createElement('th');
       const isCollapsed = window._mxCollapsedSites.has(site);
-      const isKen = site.includes('健');
+      const isKen = window.getSiteType ? window.getSiteType(site) === 'health' : site.includes('健');
       const displayLabel = site;  // 顯示原廠區名稱
       const label = document.createElement('span');
       label.className = 'mx-site-label';
@@ -2835,7 +2871,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
   _pnLoad();
 
-  const _ALL_DRAWERS = ['add','export','price'];
+  const _ALL_DRAWERS = ['add','export','price','mgr'];
   function toggleDrawer(name) {
     const drawer  = document.getElementById('drawer-' + name);
     const tab     = document.getElementById('tab-' + name);
@@ -2854,6 +2890,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         setTimeout(() => { const el = document.getElementById('f-name'); if (el) el.focus(); }, 320);
       }
       if (name === 'price') pnRender();
+      if (name === 'mgr') mgrRender();
     }
   }
   function closeAllDrawers() {
@@ -2866,6 +2903,59 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function openDrawer()  { toggleDrawer('export'); }
   function closeDrawer() { closeAllDrawers(); }
 
+
+  // ===== 廠區分類管理 =====
+  // 儲存格式：{ '揚明光學(健)': 'health', '休斯微(風)': 'wind', ... }
+  function _mgrLoad() {
+    try { return JSON.parse(localStorage.getItem('bento_site_types') || '{}'); } catch(e) { return {}; }
+  }
+  function _mgrSave(map) {
+    try { localStorage.setItem('bento_site_types', JSON.stringify(map)); } catch(e) {}
+  }
+
+  // 猜測預設分類（名稱含「健」→health，否則 wind）
+  function _mgrGuess(site) {
+    return site.includes('健') ? 'health' : 'wind';
+  }
+
+  // 取得廠區分類（有儲存用儲存，否則用猜測）
+  window.getSiteType = function(site) {
+    const map = _mgrLoad();
+    return map[site] || _mgrGuess(site);
+  };
+
+  function mgrSetType(site, type) {
+    const map = _mgrLoad();
+    map[site] = type;
+    _mgrSave(map);
+    mgrRender();
+    renderMatrix();  // 立即更新一覽表
+  }
+
+  function mgrRender() {
+    const listEl = document.getElementById('mgr-site-list');
+    if (!listEl) return;
+    const allSites = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])].sort((a,b) => a.localeCompare(b,'zh-TW'));
+    const map = _mgrLoad();
+    listEl.innerHTML = '';
+    if (allSites.length === 0) {
+      listEl.innerHTML = '<div style="color:#bbb;text-align:center;padding:20px 0;">尚無廠區資料</div>';
+      return;
+    }
+    allSites.forEach(site => {
+      const type = map[site] || _mgrGuess(site);
+      const row = document.createElement('div');
+      row.className = 'mgr-site-row';
+      row.innerHTML = `
+        <span class="mgr-site-name">${site}</span>
+        <button class="mgr-type-btn ${type === 'health' ? 'health' : 'inactive'}"
+          onclick="mgrSetType('${site.replace(/'/g,"\'")}','health')">🥗 健康餐</button>
+        <button class="mgr-type-btn ${type === 'wind' ? 'wind' : 'inactive'}"
+          onclick="mgrSetType('${site.replace(/'/g,"\'")}','wind')">🍱 風味餐</button>`;
+      listEl.appendChild(row);
+    });
+  }
+
   // 掛到 window，讓 HTML inline onclick 可以呼叫
   window.toggleDrawer   = toggleDrawer;
   window.closeAllDrawers = closeAllDrawers;
@@ -2873,6 +2963,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   window.pnDeleteEntry  = pnDeleteEntry;
   window.pnEditEntry    = pnEditEntry;
   window.pnRender       = pnRender;
+  window.mgrSetType     = mgrSetType;
+  window.mgrRender      = mgrRender;
 
   function deduplicateItems() {
     const seen = new Set();
