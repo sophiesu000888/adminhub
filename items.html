@@ -751,6 +751,12 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   padding: 8px 6px; text-align: center; font-weight: 700;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+/* 廠區資料欄（風味/健康）固定寬度：4個全型字 ≈ 80px */
+#matrix-table td.mx-site-cell,
+#matrix-table th.mx-site-th {
+  width: 80px; min-width: 80px; max-width: 80px;
+  text-align: center;
+}
 #matrix-wrap thead th.th-name {
   text-align: center; width: 240px;
   background: #2e7d32; color: #fff;
@@ -2696,12 +2702,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       if (wind) {
         const th = document.createElement('th');
         th.textContent = '風味餐';
+        th.className = 'mx-site-th';
         th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#1565c0;color:#fff;white-space:nowrap;border-left:2px solid #546e7a;';
         hr2.appendChild(th);
       }
       if (health) {
         const th = document.createElement('th');
         th.textContent = '健康餐';
+        th.className = 'mx-site-th';
         th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#2e7d32;color:#fff;white-space:nowrap;border-left:1px solid #388e3c;';
         hr2.appendChild(th);
       }
@@ -2741,6 +2749,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
             if (!site) return;
             const isHealth = si === 1;
             const td = document.createElement('td');
+            td.className = 'mx-site-cell';
             td.style.borderLeft = isHealth ? '1px solid #c8e6c9' : '2px solid #90caf9';
             const key = name + '|||' + site;
             const prices = priceMap[key];
