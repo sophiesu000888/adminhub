@@ -1182,6 +1182,35 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .mgr-type-btn.inactive {
   background: #f5f5f5; color: #aaa; border-color: #ddd;
 }
+
+/* ===== 管理抽屜分頁 ===== */
+.mgr-tab-btn {
+  flex:1; padding:10px 4px; border:none; background:none;
+  font-size:0.95rem; font-weight:700; cursor:pointer;
+  border-bottom:3px solid transparent; font-family:inherit; color:#aaa;
+  transition: color .15s, border-color .15s;
+}
+.mgr-tab-btn.active { color:var(--ink); border-bottom-color:var(--ink); }
+.mgr-opt-row {
+  display:flex; align-items:center; gap:6px;
+  padding:8px 10px; border-bottom:1px solid #eee; font-size:0.95rem;
+}
+.mgr-opt-val { flex:1; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mgr-opt-sort { display:flex; flex-direction:column; gap:1px; }
+.mgr-opt-sort-btn {
+  background:#f0f0f0; border:1px solid #ddd; border-radius:3px;
+  font-size:0.7rem; cursor:pointer; padding:1px 5px; line-height:1.3;
+}
+.mgr-opt-sort-btn:disabled { opacity:0.3; cursor:default; }
+.mgr-opt-edit {
+  background:none; border:1.5px solid #ccc; border-radius:5px;
+  color:#888; font-size:0.8rem; cursor:pointer; padding:2px 6px; font-family:inherit;
+}
+.mgr-opt-edit:hover { border-color:#555; color:#333; }
+.mgr-opt-del {
+  background:none; border:none; color:#ccc; font-size:1rem; cursor:pointer; padding:2px 4px;
+}
+.mgr-opt-del:hover { color:#c62828; }
 </style>
 </head>
 <body>
@@ -1451,12 +1480,21 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 <!-- 管理抽屜 -->
 <div class="side-drawer" id="drawer-mgr">
   <div class="drawer-header">
-    <h2>⚙️ 廠區分類管理</h2>
+    <h2>⚙️ 管理</h2>
     <button class="drawer-close-btn" onclick="closeAllDrawers()">✕ 關閉</button>
   </div>
-  <div class="drawer-body">
-    <div style="font-size:0.85rem;color:#888;margin-bottom:12px;">設定每個廠區屬於健康餐或風味餐，影響一覽表的主分類列顯示。</div>
-    <div id="mgr-site-list"></div>
+  <div class="drawer-body" style="padding-top:0;">
+    <div id="mgr-tabs" style="display:flex;border-bottom:2px solid #eee;margin-bottom:14px;margin-left:-16px;margin-right:-16px;padding:0 16px;">
+      <button id="mgr-tab-site" onclick="mgrSwitchTab('site')" class="mgr-tab-btn">廠區</button>
+      <button id="mgr-tab-cat"  onclick="mgrSwitchTab('cat')"  class="mgr-tab-btn">類別</button>
+      <button id="mgr-tab-box"  onclick="mgrSwitchTab('box')"  class="mgr-tab-btn">餐盒</button>
+    </div>
+    <div class="pn-add-row" style="margin-bottom:12px;">
+      <input id="mgr-new-input" placeholder="輸入名稱…" style="flex:1;padding:8px 10px;border:2px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;" onkeydown="if(event.key==='Enter')mgrAddOption()">
+      <button class="pn-add-btn" style="background:#444;" onclick="mgrAddOption()">＋ 新增</button>
+    </div>
+    <div id="mgr-site-hint" style="font-size:0.82rem;color:#aaa;margin-bottom:8px;display:none;">🥗／🍱 設定主分類　｜　▲▼ 調整順序</div>
+    <div id="mgr-opt-list"></div>
   </div>
 </div>
 
@@ -1474,7 +1512,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <label>廠區</label>
       <div class="add-combo">
         <select id="f-site"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('site')">⚙</button>
+        <button type="button" class="combo-add-btn" onclick="mgrOpenDrawer('site')">⚙</button>
       </div>
     </div>
     <div class="add-field">
@@ -1493,14 +1531,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <label>類別</label>
       <div class="add-combo">
         <select id="f-cat"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('cat')">⚙</button>
+        <button type="button" class="combo-add-btn" onclick="mgrOpenDrawer('cat')">⚙</button>
       </div>
     </div>
     <div class="add-field">
       <label>餐盒</label>
       <div class="add-combo">
         <select id="f-box"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('box')">⚙</button>
+        <button type="button" class="combo-add-btn" onclick="mgrOpenDrawer('box')">⚙</button>
       </div>
     </div>
     <button class="add-submit" onclick="addItem()">＋ 新增</button>
@@ -1556,7 +1594,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <label>廠區 Site</label>
       <div class="combo-wrap" style="width:100%;">
         <select id="m-site" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('site')">⚙</button>
+        <button type="button" class="combo-add-btn" onclick="mgrOpenDrawer('site')">⚙</button>
       </div>
     </div>
     <div class="modal-field">
@@ -1571,14 +1609,14 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       <label>類別 Category</label>
       <div class="combo-wrap" style="width:100%;">
         <select id="m-cat" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('cat')">⚙</button>
+        <button type="button" class="combo-add-btn" onclick="mgrOpenDrawer('cat')">⚙</button>
       </div>
     </div>
     <div class="modal-field">
       <label>餐盒 Box</label>
       <div class="combo-wrap" style="width:100%;">
         <select id="m-box" style="flex:1;border-radius:6px 0 0 6px;width:100%;"></select>
-        <button type="button" class="combo-add-btn" onclick="openManage('box')">⚙</button>
+        <button type="button" class="combo-add-btn" onclick="mgrOpenDrawer('box')">⚙</button>
       </div>
     </div>
     <div class="modal-actions">
@@ -2890,7 +2928,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         setTimeout(() => { const el = document.getElementById('f-name'); if (el) el.focus(); }, 320);
       }
       if (name === 'price') pnRender();
-      if (name === 'mgr') mgrRender();
+      if (name === 'mgr') mgrSwitchTab(_mgrTab || 'site');
     }
   }
   function closeAllDrawers() {
@@ -2904,21 +2942,18 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function closeDrawer() { closeAllDrawers(); }
 
 
-  // ===== 廠區分類管理 =====
-  // 儲存格式：{ '揚明光學(健)': 'health', '休斯微(風)': 'wind', ... }
+  // ===== 管理抽屜：廠區 / 類別 / 餐盒 =====
+  let _mgrTab = 'site';  // 目前分頁
+
+  // 廠區分類（健康/風味）
   function _mgrLoad() {
     try { return JSON.parse(localStorage.getItem('bento_site_types') || '{}'); } catch(e) { return {}; }
   }
   function _mgrSave(map) {
     try { localStorage.setItem('bento_site_types', JSON.stringify(map)); } catch(e) {}
   }
+  function _mgrGuess(site) { return site.includes('健') ? 'health' : 'wind'; }
 
-  // 猜測預設分類（名稱含「健」→health，否則 wind）
-  function _mgrGuess(site) {
-    return site.includes('健') ? 'health' : 'wind';
-  }
-
-  // 取得廠區分類（有儲存用儲存，否則用猜測）
   window.getSiteType = function(site) {
     const map = _mgrLoad();
     return map[site] || _mgrGuess(site);
@@ -2928,43 +2963,158 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const map = _mgrLoad();
     map[site] = type;
     _mgrSave(map);
-    mgrRender();
-    renderMatrix();  // 立即更新一覽表
+    mgrRenderList();
+    renderMatrix();
   }
 
-  function mgrRender() {
-    const listEl = document.getElementById('mgr-site-list');
+  function mgrOpenDrawer(tab) {
+    // 關掉其他 drawer，開管理抽屜並切到對應分頁
+    _ALL_DRAWERS.forEach(n => {
+      document.getElementById('drawer-' + n).classList.remove('open');
+      document.getElementById('tab-' + n).classList.remove('open');
+    });
+    document.getElementById('drawer-overlay').classList.remove('show');
+    document.getElementById('drawer-mgr').classList.add('open');
+    document.getElementById('tab-mgr').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('show');
+    mgrSwitchTab(tab);
+  }
+
+  function mgrSwitchTab(tab) {
+    _mgrTab = tab;
+    ['site','cat','box'].forEach(t => {
+      document.getElementById('mgr-tab-' + t).classList.toggle('active', t === tab);
+    });
+    const hint = document.getElementById('mgr-site-hint');
+    if (hint) hint.style.display = tab === 'site' ? '' : 'none';
+    const inp = document.getElementById('mgr-new-input');
+    const placeholders = { site:'輸入廠區名稱…', cat:'輸入類別名稱…', box:'輸入餐盒名稱…' };
+    if (inp) inp.placeholder = placeholders[tab] || '輸入名稱…';
+    mgrRenderList();
+  }
+
+  function mgrAddOption() {
+    const inp = document.getElementById('mgr-new-input');
+    const val = inp.value.trim();
+    if (!val) { inp.focus(); return; }
+    const list = _mgrTab === 'cat' ? CATS : _mgrTab === 'box' ? BOXES : SITES;
+    if (list.includes(val)) { alert(`「${val}」已存在`); return; }
+    list.push(val);
+    syncSelects(_mgrTab);
+    if (_mgrTab === 'site') { buildFilterBtns(); renderMatrix(); }
+    if (autoSaveOptions) autoSaveOptions();
+    inp.value = '';
+    mgrRenderList();
+    inp.focus();
+  }
+
+  function mgrRenderList() {
+    const listEl = document.getElementById('mgr-opt-list');
     if (!listEl) return;
-    const allSites = [...new Set([...SITES, ...items.map(i => i.site).filter(Boolean)])].sort((a,b) => a.localeCompare(b,'zh-TW'));
-    const map = _mgrLoad();
+    const list = _mgrTab === 'cat' ? CATS : _mgrTab === 'box' ? BOXES : SITES;
+    const map  = _mgrLoad();
     listEl.innerHTML = '';
-    if (allSites.length === 0) {
-      listEl.innerHTML = '<div style="color:#bbb;text-align:center;padding:20px 0;">尚無廠區資料</div>';
+    if (list.length === 0) {
+      listEl.innerHTML = '<div style="color:#bbb;text-align:center;padding:20px 0;">尚無資料</div>';
       return;
     }
-    allSites.forEach(site => {
-      const type = map[site] || _mgrGuess(site);
+    list.forEach((val, idx) => {
+      const type = map[val] || _mgrGuess(val);
       const row = document.createElement('div');
-      row.className = 'mgr-site-row';
-      row.innerHTML = `
-        <span class="mgr-site-name">${site}</span>
-        <button class="mgr-type-btn ${type === 'health' ? 'health' : 'inactive'}"
-          onclick="mgrSetType('${site.replace(/'/g,"\'")}','health')">🥗 健康餐</button>
-        <button class="mgr-type-btn ${type === 'wind' ? 'wind' : 'inactive'}"
-          onclick="mgrSetType('${site.replace(/'/g,"\'")}','wind')">🍱 風味餐</button>`;
+      row.className = 'mgr-opt-row';
+
+      // 上下移動
+      const sortDiv = document.createElement('div');
+      sortDiv.className = 'mgr-opt-sort';
+      const upBtn = document.createElement('button');
+      upBtn.className = 'mgr-opt-sort-btn'; upBtn.textContent = '▲';
+      upBtn.disabled = idx === 0;
+      upBtn.onclick = () => {
+        list.splice(idx - 1, 0, list.splice(idx, 1)[0]);
+        syncSelects(_mgrTab); buildFilterBtns();
+        if (_mgrTab === 'site') renderMatrix();
+        if (autoSaveOptions) autoSaveOptions();
+        mgrRenderList();
+      };
+      const downBtn = document.createElement('button');
+      downBtn.className = 'mgr-opt-sort-btn'; downBtn.textContent = '▼';
+      downBtn.disabled = idx === list.length - 1;
+      downBtn.onclick = () => {
+        list.splice(idx + 1, 0, list.splice(idx, 1)[0]);
+        syncSelects(_mgrTab); buildFilterBtns();
+        if (_mgrTab === 'site') renderMatrix();
+        if (autoSaveOptions) autoSaveOptions();
+        mgrRenderList();
+      };
+      sortDiv.appendChild(upBtn); sortDiv.appendChild(downBtn);
+      row.appendChild(sortDiv);
+
+      // 名稱
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'mgr-opt-val'; nameSpan.textContent = val;
+      row.appendChild(nameSpan);
+
+      // 廠區分類按鈕（僅 site tab）
+      if (_mgrTab === 'site') {
+        const hBtn = document.createElement('button');
+        hBtn.className = 'mgr-type-btn ' + (type === 'health' ? 'health' : 'inactive');
+        hBtn.textContent = '🥗 健';
+        hBtn.onclick = () => mgrSetType(val, 'health');
+        const wBtn = document.createElement('button');
+        wBtn.className = 'mgr-type-btn ' + (type === 'wind' ? 'wind' : 'inactive');
+        wBtn.textContent = '🍱 風';
+        wBtn.onclick = () => mgrSetType(val, 'wind');
+        row.appendChild(hBtn); row.appendChild(wBtn);
+      }
+
+      // 改名
+      const editBtn = document.createElement('button');
+      editBtn.className = 'mgr-opt-edit'; editBtn.textContent = '✏️';
+      editBtn.onclick = () => {
+        const newName = prompt(`將「${val}」改名為：`, val);
+        if (!newName || !newName.trim() || newName.trim() === val) return;
+        const n = newName.trim();
+        if (list.includes(n)) { alert(`「${n}」已存在`); return; }
+        if (_mgrTab === 'site') {
+          items.forEach(it => { if (it.site === val) it.site = n; });
+          const siteMap = _mgrLoad();
+          if (siteMap[val] !== undefined) { siteMap[n] = siteMap[val]; delete siteMap[val]; _mgrSave(siteMap); }
+          autoSave(); buildFilterBtns(); renderMatrix();
+        } else if (_mgrTab === 'cat') {
+          items.forEach(it => { if (it.cat === val) it.cat = n; }); autoSave();
+        } else if (_mgrTab === 'box') {
+          items.forEach(it => { if (it.box === val) it.box = n; }); autoSave();
+        }
+        list[idx] = n;
+        syncSelects(_mgrTab);
+        if (autoSaveOptions) autoSaveOptions();
+        mgrRenderList();
+      };
+      row.appendChild(editBtn);
+
+      // 刪除
+      const delBtn = document.createElement('button');
+      delBtn.className = 'mgr-opt-del'; delBtn.textContent = '🗑';
+      delBtn.onclick = () => {
+        if (!confirm(`刪除「${val}」？`)) return;
+        list.splice(idx, 1);
+        syncSelects(_mgrTab);
+        if (_mgrTab === 'site') { buildFilterBtns(); renderMatrix(); }
+        if (autoSaveOptions) autoSaveOptions();
+        mgrRenderList();
+      };
+      row.appendChild(delBtn);
       listEl.appendChild(row);
     });
   }
 
-  // 掛到 window，讓 HTML inline onclick 可以呼叫
-  window.toggleDrawer   = toggleDrawer;
-  window.closeAllDrawers = closeAllDrawers;
-  window.pnAddEntry     = pnAddEntry;
-  window.pnDeleteEntry  = pnDeleteEntry;
-  window.pnEditEntry    = pnEditEntry;
-  window.pnRender       = pnRender;
+  function mgrRender() { mgrRenderList(); }  // 相容舊呼叫
+
   window.mgrSetType     = mgrSetType;
   window.mgrRender      = mgrRender;
+  window.mgrSwitchTab   = mgrSwitchTab;
+  window.mgrAddOption   = mgrAddOption;
+  window.mgrOpenDrawer  = mgrOpenDrawer;
 
   function deduplicateItems() {
     const seen = new Set();
