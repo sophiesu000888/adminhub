@@ -2678,6 +2678,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function setHealthyByName(name, checked) {
     items.forEach(it => { if (it.name === name) it.isHealthy = checked; });
     autoSave();
+    renderMatrix();
   }
 
   let _siteColCollapsed = false;
@@ -2752,7 +2753,27 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         const t = window.getSiteType ? window.getSiteType(s) : (s.includes('健') ? 'health' : 'wind');
         return s.replace(/[（(][健風][）)]/g, '').trim() === base && t === 'health';
       });
-      return { base, wind, health };
+
+      // 若只有風味餐欄，但有品項在此廠區勾了健康餐 → 自動補健康欄（用 wind 欄名稱代替）
+      let needHealthCol = health;
+      let autoHealth = false;
+      if (!health && wind) {
+        const hasHealthyItem = filteredItems.some(it =>
+          it.isHealthy && it.site === wind
+        );
+        if (hasHealthyItem) { needHealthCol = wind; autoHealth = true; }
+      }
+      // 若只有健康餐欄，但有品項在此廠區沒勾健康餐 → 自動補風味欄
+      let needWindCol = wind;
+      let autoWind = false;
+      if (!wind && health) {
+        const hasWindItem = filteredItems.some(it =>
+          !it.isHealthy && it.site === health
+        );
+        if (hasWindItem) { needWindCol = health; autoWind = true; }
+      }
+
+      return { base, wind: needWindCol, health: needHealthCol, autoHealth, autoWind };
     });
 
     // 計算總欄數（每個 base：有wind+1, 有health+1）
@@ -2870,51 +2891,61 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         tdH.appendChild(cbH);
         tr.appendChild(tdH);
 
-        siteGroups.forEach(({ base, wind, health }) => {
-          [wind, health].forEach((site, si) => {
-            if (!site) return;
-            const isHealth = si === 1;
+        siteGroups.forEach(({ base, wind, health, autoHealth, autoWind }) => {
+          // wind 欄
+          if (wind) {
             const td = document.createElement('td');
             td.className = 'mx-site-cell';
-            td.style.borderLeft = isHealth ? '1px solid #c8e6c9' : '2px solid #90caf9';
-
-            const key = name + '|||' + site;
-            let prices = priceMap[key];
-            let crossFill = false;  // 是否是從對側欄借來的價格
-
-            // 若打勾健康餐且此欄沒有價格，從同地點另一欄借
-            if ((!prices || !prices.length) && healthyNames.has(name)) {
-              const pairSite = isHealth ? wind : health;
-              if (pairSite) {
-                const pairPrices = priceMap[name + '|||' + pairSite];
-                if (pairPrices && pairPrices.length) {
-                  prices = pairPrices;
-                  crossFill = true;
-                }
-              }
-            }
-
-            if (prices && prices.length) {
+            td.style.borderLeft = '2px solid #90caf9';
+            // 自動補的風味欄：只顯示非健康餐品項
+            const showWind = !autoWind || !healthyNames.has(name);
+            const prices = priceMap[name + '|||' + wind];
+            if (prices && prices.length && showWind) {
               td.classList.add('price-cell');
-              td.style.color = isHealth ? '#2e7d32' : '#1565c0';
-              td.style.fontWeight = '700';
+              td.style.color = '#1565c0'; td.style.fontWeight = '700';
               td.textContent = prices.map(p => '$' + p).join(' / ');
-              if (crossFill) {
-                // 借用顯示：稍微淡一點 + tooltip 說明
-                td.style.opacity = '0.65';
-                td.title = `健康餐勾選，顯示同地點另一餐別的價格`;
-              } else {
-                td.title = `點擊編輯「${site}」×「${name}」的價格`;
-                td.onclick = () => _matrixEditItem(name, site, cat);
-              }
-            } else {
+              td.title = `點擊編輯「${wind}」×「${name}」的價格`;
+              td.onclick = () => _matrixEditItem(name, wind, cat);
+            } else if (!prices && !autoWind) {
               td.classList.add('dash-cell', 'mx-add-cell');
               td.textContent = '—';
-              td.title = `點擊為「${site}」新增「${name}」的價格`;
-              td.onclick = () => _matrixAddItem(name, site, cat);
+              td.title = `點擊為「${wind}」新增「${name}」的價格`;
+              td.onclick = () => _matrixAddItem(name, wind, cat);
+            } else {
+              td.classList.add('dash-cell'); td.textContent = '—';
             }
             tr.appendChild(td);
-          });
+          }
+          // health 欄
+          if (health) {
+            const td = document.createElement('td');
+            td.className = 'mx-site-cell';
+            td.style.borderLeft = '1px solid #c8e6c9';
+            // autoHealth：用 wind 欄名找價格，只有 isHealthy 品項才顯示
+            const srcSite = autoHealth ? wind : health;
+            const showHealth = !autoHealth || healthyNames.has(name);
+            const prices = priceMap[name + '|||' + srcSite];
+            if (prices && prices.length && showHealth) {
+              td.classList.add('price-cell');
+              td.style.color = '#2e7d32'; td.style.fontWeight = '700';
+              td.textContent = prices.map(p => '$' + p).join(' / ');
+              if (autoHealth) {
+                td.style.opacity = '0.8';
+                td.title = `健康餐（同價格）`;
+              } else {
+                td.title = `點擊編輯「${health}」×「${name}」的價格`;
+                td.onclick = () => _matrixEditItem(name, health, cat);
+              }
+            } else if (!prices && !autoHealth) {
+              td.classList.add('dash-cell', 'mx-add-cell');
+              td.textContent = '—';
+              td.title = `點擊為「${health}」新增「${name}」的價格`;
+              td.onclick = () => _matrixAddItem(name, health, cat);
+            } else {
+              td.classList.add('dash-cell'); td.textContent = '—';
+            }
+            tr.appendChild(td);
+          }
         });
         tbody.appendChild(tr);
       });
