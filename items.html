@@ -1162,55 +1162,71 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 .pn-item-del:hover { color: #c62828; }
 .pn-empty { color: #bbb; font-size: 0.9rem; text-align: center; padding: 20px 0; }
 
-/* ===== 管理抽屜：廠區分類 ===== */
-.mgr-site-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 0.95rem;
-}
-.mgr-site-name { flex: 1; font-weight: 500; }
-.mgr-type-btn {
-  padding: 4px 10px; border-radius: 6px; border: 2px solid transparent;
-  font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit;
-  transition: all .1s;
-}
-.mgr-type-btn.health {
-  background: #e8f5e9; color: #2e7d32; border-color: #2e7d32;
-}
-.mgr-type-btn.wind {
-  background: #e3f2fd; color: #1565c0; border-color: #1565c0;
-}
-.mgr-type-btn.inactive {
-  background: #f5f5f5; color: #aaa; border-color: #ddd;
-}
-
-/* ===== 管理抽屜分頁 ===== */
+/* ===== 管理抽屜 ===== */
 .mgr-tab-btn {
   flex:1; padding:10px 4px; border:none; background:none;
-  font-size:0.95rem; font-weight:700; cursor:pointer;
-  border-bottom:3px solid transparent; font-family:inherit; color:#aaa;
+  font-size:0.92rem; font-weight:700; cursor:pointer; letter-spacing:.5px;
+  border-bottom:3px solid transparent; font-family:inherit; color:#bbb;
   transition: color .15s, border-color .15s;
 }
 .mgr-tab-btn.active { color:var(--ink); border-bottom-color:var(--ink); }
+
+/* 每列 */
 .mgr-opt-row {
-  display:flex; align-items:center; gap:6px;
-  padding:8px 10px; border-bottom:1px solid #eee; font-size:0.95rem;
+  display: grid;
+  grid-template-columns: 18px 1fr auto auto auto;
+  align-items: center; gap: 8px;
+  padding: 7px 10px; border-bottom: 1px solid #f0f0f0;
+  font-size: 0.92rem; background: #fff;
+  transition: background .1s;
 }
-.mgr-opt-val { flex:1; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mgr-opt-sort { display:flex; flex-direction:column; gap:1px; }
-.mgr-opt-sort-btn {
-  background:#f0f0f0; border:1px solid #ddd; border-radius:3px;
-  font-size:0.7rem; cursor:pointer; padding:1px 5px; line-height:1.3;
+.mgr-opt-row:hover { background: #fafafa; }
+.mgr-opt-row.drag-over { border-top: 2px solid #1565c0; }
+.mgr-opt-row.dragging { opacity: .35; }
+
+/* 拖曳把手 */
+.mgr-drag-handle {
+  color: #ccc; cursor: grab; font-size: 0.85rem;
+  user-select: none; text-align: center; line-height: 1;
 }
-.mgr-opt-sort-btn:disabled { opacity:0.3; cursor:default; }
+.mgr-drag-handle:active { cursor: grabbing; }
+
+/* 名稱 */
+.mgr-opt-val {
+  font-weight: 600; font-size: 0.9rem; color: #333;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 健/風 pill（僅廠區 tab） */
+.mgr-type-pill {
+  font-size: 0.75rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; cursor: pointer; border: none;
+  transition: all .12s; white-space: nowrap;
+}
+.mgr-type-pill.health  { background: #e8f5e9; color: #2e7d32; }
+.mgr-type-pill.wind    { background: #e3f2fd; color: #1565c0; }
+.mgr-type-pill.inactive { background: #f5f5f5; color: #ccc; }
+
+/* 操作按鈕 */
 .mgr-opt-edit {
-  background:none; border:1.5px solid #ccc; border-radius:5px;
-  color:#888; font-size:0.8rem; cursor:pointer; padding:2px 6px; font-family:inherit;
+  background: none; border: none; color: #bbb; font-size: 0.85rem;
+  cursor: pointer; padding: 3px 5px; border-radius: 4px; line-height:1;
 }
-.mgr-opt-edit:hover { border-color:#555; color:#333; }
+.mgr-opt-edit:hover { color: #555; background: #eee; }
 .mgr-opt-del {
-  background:none; border:none; color:#ccc; font-size:1rem; cursor:pointer; padding:2px 4px;
+  background: none; border: none; color: #ddd; font-size: 0.9rem;
+  cursor: pointer; padding: 3px 5px; border-radius: 4px; line-height:1;
 }
-.mgr-opt-del:hover { color:#c62828; }
+.mgr-opt-del:hover { color: #c62828; background: #fce4e4; }
+
+/* 廠區 tab：5欄（handle name pill edit del） */
+.mgr-opt-row.site-row {
+  grid-template-columns: 18px 1fr auto auto auto;
+}
+/* 類別/餐盒 tab：4欄（handle name edit del） */
+.mgr-opt-row.other-row {
+  grid-template-columns: 18px 1fr auto auto;
+}
 </style>
 </head>
 <body>
@@ -2628,81 +2644,69 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const table = document.getElementById('matrix-table');
     table.innerHTML = '';
 
-    // thead
+    // ── 以地點為主：同地點的風味餐(藍) + 健康餐(綠) 並排 ──
+    // 收集所有「地點基底名稱」（去掉(健)/(風)後綴，依 SITES 順序）
+    const baseSiteOrder = [];
+    const seenBase = new Set();
+    visibleSites.forEach(s => {
+      const base = s.replace(/[（(][健風][）)]/g, '').trim();
+      if (!seenBase.has(base)) { seenBase.add(base); baseSiteOrder.push(base); }
+    });
+
+    // 為每個 base 找出對應的風味餐欄 & 健康餐欄
+    const siteGroups = baseSiteOrder.map(base => {
+      const wind   = visibleSites.find(s => {
+        const t = window.getSiteType ? window.getSiteType(s) : (s.includes('健') ? 'health' : 'wind');
+        return s.replace(/[（(][健風][）)]/g, '').trim() === base && t === 'wind';
+      });
+      const health = visibleSites.find(s => {
+        const t = window.getSiteType ? window.getSiteType(s) : (s.includes('健') ? 'health' : 'wind');
+        return s.replace(/[（(][健風][）)]/g, '').trim() === base && t === 'health';
+      });
+      return { base, wind, health };
+    });
+
+    // 計算總欄數（每個 base：有wind+1, 有health+1）
+    const totalCols = siteGroups.reduce((n, g) => n + (g.wind ? 1 : 0) + (g.health ? 1 : 0), 0);
+
+    // thead：第一列 地點名稱（跨風味+健康欄），第二列 風/健 小標
     const thead = document.createElement('thead');
 
-    // ── 主分類列（健康餐 / 風味餐 / 其他）──
-    const superRow = document.createElement('tr');
-    superRow.className = 'mx-super-row';
-    // 空白佔位（品項 + 健康餐勾選欄）
-    const superBlank = document.createElement('th');
-    superBlank.className = 'super-blank';
-    superBlank.colSpan = 2;
-    superBlank.style.cssText = 'width:336px;min-width:336px;';  // 240 + 96
-    superRow.appendChild(superBlank);
-    // 計算健康/風味各有幾欄（依管理抽屜設定）
-    // 合併相鄰同類的欄位成一格跨欄
-    let runType = null, runCount = 0;
-    function flushSuperRun() {
-      if (!runCount) return;
-      const th = document.createElement('th');
-      if (runType === 'health') { th.className = 'super-health'; th.textContent = '🥗 健康餐'; }
-      else                      { th.className = 'super-wind';   th.textContent = '🍱 風味餐'; }
-      th.colSpan = runCount;
-      superRow.appendChild(th);
-      runCount = 0; runType = null;
-    }
-    visibleSites.forEach(s => {
-      const t = window.getSiteType ? window.getSiteType(s) : (s.includes('健') ? 'health' : 'wind');
-      if (t === runType) { runCount++; }
-      else { flushSuperRun(); runType = t; runCount = 1; }
-    });
-    flushSuperRun();
-    thead.appendChild(superRow);
-
-    // ── 一般欄標題列 ──
-    const hr = document.createElement('tr');
+    // 第一列：品項 | 地點（跨欄）...
+    const hr1 = document.createElement('tr');
     const th0 = document.createElement('th');
     th0.className = 'th-name'; th0.textContent = '品項';
-    hr.appendChild(th0);
-    const thH = document.createElement('th');
-    thH.textContent = '健康餐'; thH.title = '勾選代表可同時當作健康餐';
-    thH.className = 'col-healthy';
-    thH.style.cssText = 'width:96px;min-width:96px;text-align:center;white-space:nowrap;';
-    hr.appendChild(thH);
-    // 折疊狀態：記錄哪些廠區被折疊
-    if (!window._mxCollapsedSites) window._mxCollapsedSites = new Set();
+    th0.rowSpan = 2;
+    hr1.appendChild(th0);
 
-    // 健康餐廠區改顯示為 價位（80/90/110）
-    const _KEN_PRICE_LABELS = {
-      '台耀/旭興(健)': '80元',
-      '3C/P8(健)':    '90元',
-      '揚明光學(健)':  '110元',
-    };
-
-    visibleSites.forEach((site, siteIdx) => {
+    siteGroups.forEach(({ base, wind, health }) => {
+      const span = (wind ? 1 : 0) + (health ? 1 : 0);
+      if (!span) return;
       const th = document.createElement('th');
-      const isCollapsed = window._mxCollapsedSites.has(site);
-      const isKen = window.getSiteType ? window.getSiteType(site) === 'health' : site.includes('健');
-      const displayLabel = site;  // 顯示原廠區名稱
-      const label = document.createElement('span');
-      label.className = 'mx-site-label';
-      label.textContent = displayLabel;
-      // 顯示原廠區名為 tooltip
-      th.title = isCollapsed ? `展開「${site}」` : `${site}　點擊折疊`;
-      th.appendChild(label);
-      if (isKen) th.classList.add('col-ken');
-      else if (site.includes('風')) th.classList.add('col-feng');
-      if (isCollapsed) th.classList.add('mx-site-col-collapsed');
-      th.style.cursor = 'pointer';
-      th.addEventListener('click', () => {
-        if (window._mxCollapsedSites.has(site)) window._mxCollapsedSites.delete(site);
-        else window._mxCollapsedSites.add(site);
-        renderMatrix();
-      });
-      hr.appendChild(th);
+      th.textContent = base;
+      th.colSpan = span;
+      th.style.cssText = 'text-align:center;background:#37474f;color:#fff;border-left:2px solid #546e7a;';
+      hr1.appendChild(th);
     });
-    thead.appendChild(hr);
+    thead.appendChild(hr1);
+
+    // 第二列：風 / 健 小標
+    const hr2 = document.createElement('tr');
+    siteGroups.forEach(({ base, wind, health }) => {
+      if (wind) {
+        const th = document.createElement('th');
+        th.textContent = '風味餐';
+        th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#1565c0;color:#fff;white-space:nowrap;border-left:2px solid #546e7a;';
+        hr2.appendChild(th);
+      }
+      if (health) {
+        const th = document.createElement('th');
+        th.textContent = '健康餐';
+        th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#2e7d32;color:#fff;white-space:nowrap;border-left:1px solid #388e3c;';
+        hr2.appendChild(th);
+      }
+    });
+    thead.appendChild(hr2);
     table.appendChild(thead);
 
     // tbody — 依類別分組
@@ -2715,56 +2719,46 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     });
 
     cats.forEach(cat => {
-      // 類別 group header row
       const grpTr = document.createElement('tr');
       grpTr.className = 'mx-group-row';
       const grpTd = document.createElement('td');
-      grpTd.colSpan = 1;
-      grpTd.textContent = cat;
+      grpTd.colSpan = 1; grpTd.textContent = cat;
       grpTr.appendChild(grpTd);
-      // 補齊其餘欄位，讓分類列不留空白底色
       const grpRest = document.createElement('td');
-      grpRest.colSpan = visibleSites.length + 1;
+      grpRest.colSpan = totalCols;
       grpRest.style.cssText = 'background:var(--s2);border-bottom:1px solid var(--border2);';
       grpTr.appendChild(grpRest);
       tbody.appendChild(grpTr);
 
-      // 品項列
       [...catMap[cat]].sort((a,b) => a.localeCompare(b,'zh-TW')).forEach(name => {
         const tr = document.createElement('tr');
         const tdName = document.createElement('td');
         tdName.className = 'td-name'; tdName.textContent = name;
         tr.appendChild(tdName);
-        const tdH = document.createElement('td');
-        tdH.className = 'col-healthy';
-        tdH.style.cssText = 'text-align:center;';
-        const cbH = document.createElement('input');
-        cbH.type = 'checkbox'; cbH.checked = healthyNames.has(name);
-        cbH.style.cssText = 'width:18px;height:18px;cursor:pointer;accent-color:#27ae60;';
-        cbH.title = '勾選代表可同時當作健康餐';
-        cbH.addEventListener('change', () => { setHealthyByName(name, cbH.checked); if (cbH.checked) healthyNames.add(name); else healthyNames.delete(name); });
-        tdH.appendChild(cbH); tr.appendChild(tdH);
-        visibleSites.forEach(site => {
-          const td = document.createElement('td');
-          if (site.includes('健')) td.classList.add('col-ken');
-          else if (site.includes('風')) td.classList.add('col-feng');
-          if (window._mxCollapsedSites && window._mxCollapsedSites.has(site)) {
-            td.classList.add('mx-site-col-collapsed');
-          }
-          const key = name + '|||' + site;
-          const prices = priceMap[key];
-          if (prices && prices.length) {
-            td.classList.add('price-cell');
-            td.textContent = prices.map(p => '$' + p).join(' / ');
-            td.title = `點擊編輯「${site}」×「${name}」的價格`;
-            td.onclick = () => _matrixEditItem(name, site, cat);
-          } else {
-            td.classList.add('dash-cell', 'mx-add-cell');
-            td.textContent = '—';
-            td.title = `點擊為「${site}」新增「${name}」的價格`;
-            td.onclick = () => _matrixAddItem(name, site, cat);
-          }
-          tr.appendChild(td);
+
+        siteGroups.forEach(({ base, wind, health }) => {
+          [wind, health].forEach((site, si) => {
+            if (!site) return;
+            const isHealth = si === 1;
+            const td = document.createElement('td');
+            td.style.borderLeft = isHealth ? '1px solid #c8e6c9' : '2px solid #90caf9';
+            const key = name + '|||' + site;
+            const prices = priceMap[key];
+            if (prices && prices.length) {
+              td.classList.add('price-cell');
+              td.style.color = isHealth ? '#2e7d32' : '#1565c0';
+              td.style.fontWeight = '700';
+              td.textContent = prices.map(p => '$' + p).join(' / ');
+              td.title = `點擊編輯「${site}」×「${name}」的價格`;
+              td.onclick = () => _matrixEditItem(name, site, cat);
+            } else {
+              td.classList.add('dash-cell', 'mx-add-cell');
+              td.textContent = '—';
+              td.title = `點擊為「${site}」新增「${name}」的價格`;
+              td.onclick = () => _matrixAddItem(name, site, cat);
+            }
+            tr.appendChild(td);
+          });
         });
         tbody.appendChild(tr);
       });
@@ -2773,7 +2767,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     if (!cats.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = visibleSites.length + 1;
+      td.colSpan = totalCols + 1;
       td.style.cssText = 'text-align:center;padding:40px;color:var(--muted);font-size:28px;';
       td.textContent = '沒有符合的品項';
       tr.appendChild(td); tbody.appendChild(tr);
@@ -3008,73 +3002,60 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     inp.focus();
   }
 
+  // 拖曳狀態
+  let _mgrDragSrc = null;
+
   function mgrRenderList() {
     const listEl = document.getElementById('mgr-opt-list');
     if (!listEl) return;
     const list = _mgrTab === 'cat' ? CATS : _mgrTab === 'box' ? BOXES : SITES;
     const map  = _mgrLoad();
+    const isSite = _mgrTab === 'site';
     listEl.innerHTML = '';
+
     if (list.length === 0) {
-      listEl.innerHTML = '<div style="color:#bbb;text-align:center;padding:20px 0;">尚無資料</div>';
+      listEl.innerHTML = '<div style="color:#bbb;text-align:center;padding:24px 0;font-size:0.9rem;">尚無資料</div>';
       return;
     }
+
     list.forEach((val, idx) => {
       const type = map[val] || _mgrGuess(val);
       const row = document.createElement('div');
-      row.className = 'mgr-opt-row';
+      row.className = 'mgr-opt-row ' + (isSite ? 'site-row' : 'other-row');
+      row.draggable = true;
+      row.dataset.idx = idx;
 
-      // 上下移動
-      const sortDiv = document.createElement('div');
-      sortDiv.className = 'mgr-opt-sort';
-      const upBtn = document.createElement('button');
-      upBtn.className = 'mgr-opt-sort-btn'; upBtn.textContent = '▲';
-      upBtn.disabled = idx === 0;
-      upBtn.onclick = () => {
-        list.splice(idx - 1, 0, list.splice(idx, 1)[0]);
-        syncSelects(_mgrTab); buildFilterBtns();
-        if (_mgrTab === 'site') renderMatrix();
-        if (autoSaveOptions) autoSaveOptions();
-        mgrRenderList();
-      };
-      const downBtn = document.createElement('button');
-      downBtn.className = 'mgr-opt-sort-btn'; downBtn.textContent = '▼';
-      downBtn.disabled = idx === list.length - 1;
-      downBtn.onclick = () => {
-        list.splice(idx + 1, 0, list.splice(idx, 1)[0]);
-        syncSelects(_mgrTab); buildFilterBtns();
-        if (_mgrTab === 'site') renderMatrix();
-        if (autoSaveOptions) autoSaveOptions();
-        mgrRenderList();
-      };
-      sortDiv.appendChild(upBtn); sortDiv.appendChild(downBtn);
-      row.appendChild(sortDiv);
+      // ── 拖曳把手
+      const handle = document.createElement('span');
+      handle.className = 'mgr-drag-handle';
+      handle.innerHTML = '&#9776;';
+      row.appendChild(handle);
 
-      // 名稱
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'mgr-opt-val'; nameSpan.textContent = val;
-      row.appendChild(nameSpan);
+      // ── 名稱
+      const nameEl = document.createElement('span');
+      nameEl.className = 'mgr-opt-val';
+      nameEl.textContent = val;
+      row.appendChild(nameEl);
 
-      // 廠區分類按鈕（僅 site tab）
-      if (_mgrTab === 'site') {
-        const hBtn = document.createElement('button');
-        hBtn.className = 'mgr-type-btn ' + (type === 'health' ? 'health' : 'inactive');
-        hBtn.textContent = '🥗 健';
-        hBtn.onclick = () => mgrSetType(val, 'health');
-        const wBtn = document.createElement('button');
-        wBtn.className = 'mgr-type-btn ' + (type === 'wind' ? 'wind' : 'inactive');
-        wBtn.textContent = '🍱 風';
-        wBtn.onclick = () => mgrSetType(val, 'wind');
-        row.appendChild(hBtn); row.appendChild(wBtn);
+      // ── 健/風 pill（僅廠區）
+      if (isSite) {
+        const pill = document.createElement('button');
+        pill.className = 'mgr-type-pill ' + type;
+        pill.textContent = type === 'health' ? '🥗 健康餐' : '🍱 風味餐';
+        pill.onclick = () => mgrSetType(val, type === 'health' ? 'wind' : 'health');
+        row.appendChild(pill);
       }
 
-      // 改名
+      // ── 改名
       const editBtn = document.createElement('button');
-      editBtn.className = 'mgr-opt-edit'; editBtn.textContent = '✏️';
+      editBtn.className = 'mgr-opt-edit';
+      editBtn.title = '改名';
+      editBtn.textContent = '✏️';
       editBtn.onclick = () => {
-        const newName = prompt(`將「${val}」改名為：`, val);
+        const newName = prompt(\`將「\${val}」改名為：\`, val);
         if (!newName || !newName.trim() || newName.trim() === val) return;
         const n = newName.trim();
-        if (list.includes(n)) { alert(`「${n}」已存在`); return; }
+        if (list.includes(n)) { alert(\`「\${n}」已存在\`); return; }
         if (_mgrTab === 'site') {
           items.forEach(it => { if (it.site === val) it.site = n; });
           const siteMap = _mgrLoad();
@@ -3092,11 +3073,13 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       };
       row.appendChild(editBtn);
 
-      // 刪除
+      // ── 刪除
       const delBtn = document.createElement('button');
-      delBtn.className = 'mgr-opt-del'; delBtn.textContent = '🗑';
+      delBtn.className = 'mgr-opt-del';
+      delBtn.title = '刪除';
+      delBtn.textContent = '✕';
       delBtn.onclick = () => {
-        if (!confirm(`刪除「${val}」？`)) return;
+        if (!confirm(\`刪除「\${val}」？\`)) return;
         list.splice(idx, 1);
         syncSelects(_mgrTab);
         if (_mgrTab === 'site') { buildFilterBtns(); renderMatrix(); }
@@ -3104,6 +3087,34 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         mgrRenderList();
       };
       row.appendChild(delBtn);
+
+      // ── 拖曳事件
+      row.addEventListener('dragstart', e => {
+        _mgrDragSrc = idx;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        listEl.querySelectorAll('.mgr-opt-row').forEach(r => r.classList.remove('drag-over'));
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+        listEl.querySelectorAll('.mgr-opt-row').forEach(r => r.classList.remove('drag-over'));
+        if (_mgrDragSrc !== idx) row.classList.add('drag-over');
+      });
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        if (_mgrDragSrc === null || _mgrDragSrc === idx) return;
+        const moved = list.splice(_mgrDragSrc, 1)[0];
+        list.splice(idx, 0, moved);
+        syncSelects(_mgrTab); buildFilterBtns();
+        if (_mgrTab === 'site') renderMatrix();
+        if (autoSaveOptions) autoSaveOptions();
+        _mgrDragSrc = null;
+        mgrRenderList();
+      });
+
       listEl.appendChild(row);
     });
   }
