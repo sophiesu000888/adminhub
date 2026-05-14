@@ -2877,15 +2877,36 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
             const td = document.createElement('td');
             td.className = 'mx-site-cell';
             td.style.borderLeft = isHealth ? '1px solid #c8e6c9' : '2px solid #90caf9';
+
             const key = name + '|||' + site;
-            const prices = priceMap[key];
+            let prices = priceMap[key];
+            let crossFill = false;  // 是否是從對側欄借來的價格
+
+            // 若打勾健康餐且此欄沒有價格，從同地點另一欄借
+            if ((!prices || !prices.length) && healthyNames.has(name)) {
+              const pairSite = isHealth ? wind : health;
+              if (pairSite) {
+                const pairPrices = priceMap[name + '|||' + pairSite];
+                if (pairPrices && pairPrices.length) {
+                  prices = pairPrices;
+                  crossFill = true;
+                }
+              }
+            }
+
             if (prices && prices.length) {
               td.classList.add('price-cell');
               td.style.color = isHealth ? '#2e7d32' : '#1565c0';
               td.style.fontWeight = '700';
               td.textContent = prices.map(p => '$' + p).join(' / ');
-              td.title = `點擊編輯「${site}」×「${name}」的價格`;
-              td.onclick = () => _matrixEditItem(name, site, cat);
+              if (crossFill) {
+                // 借用顯示：稍微淡一點 + tooltip 說明
+                td.style.opacity = '0.65';
+                td.title = `健康餐勾選，顯示同地點另一餐別的價格`;
+              } else {
+                td.title = `點擊編輯「${site}」×「${name}」的價格`;
+                td.onclick = () => _matrixEditItem(name, site, cat);
+              }
             } else {
               td.classList.add('dash-cell', 'mx-add-cell');
               td.textContent = '—';
