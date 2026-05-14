@@ -1401,7 +1401,11 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   <div class="drawer-body">
     <!-- 新增區 -->
     <div class="pn-add-row">
-      <select id="pn-new-price">
+      <select id="pn-new-type" style="flex:0 0 auto;">
+        <option value="health">🥗 健康餐</option>
+        <option value="wind">🍱 風味餐</option>
+      </select>
+      <select id="pn-new-price" style="flex:0 0 auto;">
         <option value="80">80元</option>
         <option value="90">90元</option>
         <option value="100">100元</option>
@@ -1409,6 +1413,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         <option value="120">120元</option>
         <option value="130">130元</option>
       </select>
+    </div>
+    <div class="pn-add-row" style="margin-top:-6px;">
       <input id="pn-new-site" placeholder="廠區名稱" onkeydown="if(event.key==='Enter')pnAddEntry()">
       <button class="pn-add-btn" onclick="pnAddEntry()">＋ 新增</button>
     </div>
@@ -2557,6 +2563,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const superBlank = document.createElement('th');
     superBlank.className = 'super-blank';
     superBlank.colSpan = 2;
+    superBlank.style.cssText = 'width:336px;min-width:336px;';  // 240 + 96
     superRow.appendChild(superBlank);
     // 計算健康/風味/其他各有幾欄
     const kenSites  = visibleSites.filter(s => s.includes('健'));
@@ -2603,7 +2610,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       const th = document.createElement('th');
       const isCollapsed = window._mxCollapsedSites.has(site);
       const isKen = site.includes('健');
-      const displayLabel = isKen && _KEN_PRICE_LABELS[site] ? _KEN_PRICE_LABELS[site] : site;
+      const displayLabel = site;  // 顯示原廠區名稱
       const label = document.createElement('span');
       label.className = 'mx-site-label';
       label.textContent = displayLabel;
@@ -2725,17 +2732,18 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   }
 
   function pnAddEntry() {
+    const typeEl  = document.getElementById('pn-new-type');
     const priceEl = document.getElementById('pn-new-price');
     const siteEl  = document.getElementById('pn-new-site');
+    const type  = typeEl.value;   // 'health' | 'wind'
     const price = priceEl.value.trim();
     const site  = siteEl.value.trim();
     if (!site) { siteEl.focus(); return; }
     _pnLoad();
-    // 避免重複
-    if (_pnEntries.some(e => e.price === price && e.site === site)) {
+    if (_pnEntries.some(e => e.price === price && e.type === type && e.site === site)) {
       alert('此組合已存在。'); return;
     }
-    _pnEntries.push({ price, site });
+    _pnEntries.push({ price, type, site });
     _pnSave();
     siteEl.value = '';
     pnRender();
@@ -2751,14 +2759,17 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   function pnEditEntry(idx) {
     _pnLoad();
     const entry = _pnEntries[idx];
-    const newSite = prompt(`修改廠區名稱（價位：${entry.price}元）：`, entry.site);
+    const typeLabel = entry.type === 'wind' ? '風味餐' : '健康餐';
+    const newSite = prompt(`修改廠區名稱（${typeLabel} ${entry.price}元）：`, entry.site);
     if (newSite === null) return;
-    const newPrice = prompt(`修改價位（廠區：${newSite.trim() || entry.site}）：`, entry.price);
+    const newPrice = prompt(`修改價位：`, entry.price);
     if (newPrice === null) return;
-    const s = newSite.trim();
-    const p = newPrice.trim();
+    const newType = prompt(`修改類型（health=健康餐 / wind=風味餐）：`, entry.type || 'health');
+    if (newType === null) return;
+    const s = newSite.trim(); const p = newPrice.trim();
+    const t = (newType.trim() === 'wind') ? 'wind' : 'health';
     if (!s || !p) return;
-    _pnEntries[idx] = { price: p, site: s };
+    _pnEntries[idx] = { price: p, type: t, site: s };
     _pnSave();
     pnRender();
   }
@@ -2771,31 +2782,54 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       listEl.innerHTML = '<div class="pn-empty">尚無備註，請在上方新增</div>';
       return;
     }
-    // 依價位分組
-    const groups = {};
-    _pnEntries.forEach((e, i) => {
-      if (!groups[e.price]) groups[e.price] = [];
-      groups[e.price].push({ ...e, idx: i });
-    });
-    const sorted = Object.keys(groups).sort((a, b) => Number(a) - Number(b));
     listEl.innerHTML = '';
-    sorted.forEach(price => {
-      const div = document.createElement('div');
-      div.className = 'pn-group';
-      const title = document.createElement('div');
-      title.className = 'pn-group-title';
-      title.textContent = price + ' 元';
-      div.appendChild(title);
-      groups[price].forEach(({ site, idx }) => {
-        const row = document.createElement('div');
-        row.className = 'pn-item';
-        row.innerHTML = `
-          <span class="pn-item-name">${site}</span>
-          <button class="pn-item-edit" onclick="pnEditEntry(${idx})">✏️ 編輯</button>
-          <button class="pn-item-del" onclick="pnDeleteEntry(${idx})">🗑</button>`;
-        div.appendChild(row);
+
+    // 健康餐 / 風味餐 兩大區塊
+    const sections = [
+      { key: 'health', label: '🥗 健康餐', headerColor: '#2e7d32' },
+      { key: 'wind',   label: '🍱 風味餐', headerColor: '#1565c0' },
+    ];
+
+    sections.forEach(({ key, label, headerColor }) => {
+      const entries = _pnEntries.map((e, i) => ({ ...e, idx: i }))
+                                 .filter(e => (e.type || 'health') === key);
+      if (entries.length === 0) return;
+
+      // 大分類標題
+      const secTitle = document.createElement('div');
+      secTitle.style.cssText = `background:${headerColor};color:#fff;font-size:1rem;font-weight:700;padding:7px 12px;border-radius:8px 8px 0 0;margin-top:12px;letter-spacing:1px;`;
+      secTitle.textContent = label;
+      listEl.appendChild(secTitle);
+
+      // 依價位分組
+      const groups = {};
+      entries.forEach(e => {
+        if (!groups[e.price]) groups[e.price] = [];
+        groups[e.price].push(e);
       });
-      listEl.appendChild(div);
+      const sorted = Object.keys(groups).sort((a, b) => Number(a) - Number(b));
+
+      const secWrap = document.createElement('div');
+      secWrap.style.cssText = 'border:1.5px solid #ffe082;border-top:none;border-radius:0 0 8px 8px;margin-bottom:4px;overflow:hidden;';
+
+      sorted.forEach((price, pi) => {
+        const priceTitle = document.createElement('div');
+        priceTitle.className = 'pn-group-title';
+        priceTitle.style.borderRadius = '0';
+        priceTitle.textContent = price + ' 元';
+        secWrap.appendChild(priceTitle);
+
+        groups[price].forEach(({ site, idx }) => {
+          const row = document.createElement('div');
+          row.className = 'pn-item';
+          row.innerHTML = `
+            <span class="pn-item-name">${site}</span>
+            <button class="pn-item-edit" onclick="pnEditEntry(${idx})">✏️ 編輯</button>
+            <button class="pn-item-del" onclick="pnDeleteEntry(${idx})">🗑</button>`;
+          secWrap.appendChild(row);
+        });
+      });
+      listEl.appendChild(secWrap);
     });
   }
 
