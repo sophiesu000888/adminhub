@@ -2566,26 +2566,34 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   let mxSearchQ = '';
   let mxFilterHealthy = false;
 
-  // 欄寬拖曳調整
-  function _initColResizer(rz, th) {
-    let startX, startW;
+  // 欄寬拖曳：全域事件方式，更可靠
+  let _rzTarget = null, _rzStartX = 0, _rzStartW = 0;
+  document.addEventListener('mousemove', e => {
+    if (!_rzTarget) return;
+    const w = Math.max(48, _rzStartW + e.clientX - _rzStartX);
+    _rzTarget.style.width = w + 'px';
+    // 同步同欄的 col 元素
+    const colIdx = _rzTarget.dataset.colIdx;
+    if (colIdx !== undefined) {
+      const col = document.getElementById('mx-col-' + colIdx);
+      if (col) col.style.width = w + 'px';
+    }
+  });
+  document.addEventListener('mouseup', () => {
+    if (_rzTarget) {
+      document.querySelectorAll('.col-resizer').forEach(r => r.classList.remove('active'));
+      _rzTarget = null;
+    }
+  });
+
+  function _initColResizer(rz, th, colIdx) {
+    th.dataset.colIdx = colIdx;
     rz.addEventListener('mousedown', e => {
-      e.preventDefault();
-      startX = e.clientX;
-      startW = th.offsetWidth;
+      e.preventDefault(); e.stopPropagation();
+      _rzTarget = th;
+      _rzStartX = e.clientX;
+      _rzStartW = th.offsetWidth;
       rz.classList.add('active');
-      const onMove = e2 => {
-        const w = Math.max(48, startW + e2.clientX - startX);
-        th.style.width = w + 'px';
-        th.style.minWidth = w + 'px';
-      };
-      const onUp = () => {
-        rz.classList.remove('active');
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
-      };
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
     });
   }
 
@@ -2706,6 +2714,18 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const totalCols = siteGroups.reduce((n, g) => n + (g.wind ? 1 : 0) + (g.health ? 1 : 0), 0);
 
     // thead：第一列 地點名稱（跨風味+健康欄），第二列 風/健 小標
+    // colgroup for resizable columns
+    const colgroup = document.createElement('colgroup');
+    const col0 = document.createElement('col'); col0.style.width = '240px'; colgroup.appendChild(col0);
+    const colH = document.createElement('col'); colH.style.width = '72px';  colgroup.appendChild(colH);
+    let _colIdx = 0;
+    siteGroups.forEach(({ wind, health }) => {
+      if (wind)   { const c = document.createElement('col'); c.style.width='80px'; c.id='mx-col-'+(_colIdx++); colgroup.appendChild(c); }
+      if (health) { const c = document.createElement('col'); c.style.width='80px'; c.id='mx-col-'+(_colIdx++); colgroup.appendChild(c); }
+    });
+    table.appendChild(colgroup);
+    _colIdx = 0;  // reset for th assignment
+
     const thead = document.createElement('thead');
 
     // 第一列：品項 | 地點（跨欄）...
@@ -2741,18 +2761,18 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         const th = document.createElement('th');
         th.textContent = '風味餐';
         th.className = 'mx-site-th';
-        th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#1565c0;color:#fff;white-space:nowrap;border-left:2px solid #546e7a;';
+        th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#1565c0;color:#fff;white-space:nowrap;border-left:2px solid #546e7a;position:relative;overflow:visible;';
         const rz1 = document.createElement('div'); rz1.className = 'col-resizer';
-        _initColResizer(rz1, th); th.appendChild(rz1);
+        _initColResizer(rz1, th, _colIdx++); th.appendChild(rz1);
         hr2.appendChild(th);
       }
       if (health) {
         const th = document.createElement('th');
         th.textContent = '健康餐';
         th.className = 'mx-site-th';
-        th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#2e7d32;color:#fff;white-space:nowrap;border-left:1px solid #388e3c;';
+        th.style.cssText = 'text-align:center;font-size:0.78rem;font-weight:700;background:#2e7d32;color:#fff;white-space:nowrap;border-left:1px solid #388e3c;position:relative;overflow:visible;';
         const rz2 = document.createElement('div'); rz2.className = 'col-resizer';
-        _initColResizer(rz2, th); th.appendChild(rz2);
+        _initColResizer(rz2, th, _colIdx++); th.appendChild(rz2);
         hr2.appendChild(th);
       }
     });
@@ -2841,6 +2861,7 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     table.appendChild(tbody);
 
     // 自動縮放：讓所有欄位完整顯示，不需左右滑動
+    table.style.tableLayout = 'fixed';
     table.style.zoom = '';
     requestAnimationFrame(function () {
       const wrap = document.getElementById('matrix-wrap');
