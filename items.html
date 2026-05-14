@@ -738,7 +738,28 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
   border: 2.5px solid var(--ink);
   border-radius: var(--card-radius);
   box-shadow: 4px 4px 0 0 var(--ink);
-  overflow: visible;
+  overflow: auto;
+  position: relative;
+  width: 100%;
+  min-width: 200px;
+  box-sizing: border-box;
+}
+/* 容器右側拖曳把手 */
+#matrix-wrap-resizer {
+  width: 8px; cursor: col-resize;
+  background: transparent;
+  border-radius: 4px;
+  transition: background .15s;
+  flex-shrink: 0;
+  align-self: stretch;
+  min-height: 40px;
+}
+#matrix-wrap-resizer:hover, #matrix-wrap-resizer.active {
+  background: rgba(100,149,237,0.45);
+}
+#matrix-wrap-outer {
+  display: flex; align-items: flex-start; gap: 0;
+  width: 100%;
 }
 #matrix-wrap table {
   width: 100%;
@@ -1360,10 +1381,12 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
         <button id="clear-mx-search-btn" class="clear-row-btn" onclick="document.getElementById('mx-search').value='';mxSearchQ='';renderMatrix();" style="display:none;">✕ 清除</button>
       </div>
     </div>
+    <div id="matrix-wrap-outer">
     <div id="matrix-wrap">
       <table id="matrix-table"></table>
     </div>
-  </div>
+    <div id="matrix-wrap-resizer" title="拖曳調整寬度"></div>
+    </div>
 
   <!-- 料理庫 view -->
   <div id="dish-view" style="display:none;">
@@ -2585,6 +2608,28 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
       _rzTarget = null;
     }
   });
+
+  // 容器寬度拖曳
+  (function() {
+    const rz  = document.getElementById('matrix-wrap-resizer');
+    const wrap = document.getElementById('matrix-wrap');
+    if (!rz || !wrap) return;
+    let startX, startW;
+    rz.addEventListener('mousedown', e => {
+      e.preventDefault();
+      startX = e.clientX;
+      startW = wrap.offsetWidth;
+      rz.classList.add('active');
+    });
+    document.addEventListener('mousemove', e => {
+      if (!rz.classList.contains('active')) return;
+      const w = Math.max(200, startW + e.clientX - startX);
+      wrap.style.width = w + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      rz.classList.remove('active');
+    });
+  })();
 
   function _initColResizer(rz, th, colIdx) {
     th.dataset.colIdx = colIdx;
