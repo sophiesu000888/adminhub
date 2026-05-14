@@ -2716,8 +2716,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     // thead：第一列 地點名稱（跨風味+健康欄），第二列 風/健 小標
     // colgroup for resizable columns
     const colgroup = document.createElement('colgroup');
-    const col0 = document.createElement('col'); col0.style.width = '240px'; colgroup.appendChild(col0);
-    const colH = document.createElement('col'); colH.style.width = '72px';  colgroup.appendChild(colH);
+    const col0 = document.createElement('col'); col0.style.width = '240px'; col0.id = 'mx-col-name';   colgroup.appendChild(col0);
+    const colH = document.createElement('col'); colH.style.width = '72px';  colH.id = 'mx-col-healthy'; colgroup.appendChild(colH);
     let _colIdx = 0;
     siteGroups.forEach(({ wind, health }) => {
       if (wind)   { const c = document.createElement('col'); c.style.width='80px'; c.id='mx-col-'+(_colIdx++); colgroup.appendChild(c); }
@@ -2733,6 +2733,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     const th0 = document.createElement('th');
     th0.className = 'th-name'; th0.textContent = '品項';
     th0.rowSpan = 2;
+    th0.style.position = 'relative'; th0.style.overflow = 'visible';
+    const rz0 = document.createElement('div'); rz0.className = 'col-resizer';
+    _initColResizer(rz0, th0, 'name'); th0.appendChild(rz0);
     hr1.appendChild(th0);
     // 健康餐勾選欄標題
     const thH = document.createElement('th');
@@ -2740,7 +2743,9 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
     thH.rowSpan = 2;
     thH.textContent = '健康餐';
     thH.title = '勾選代表可同時當作健康餐';
-    thH.style.cssText = 'width:72px;min-width:72px;text-align:center;white-space:nowrap;';
+    thH.style.cssText = 'width:72px;min-width:72px;text-align:center;white-space:nowrap;position:relative;overflow:visible;';
+    const rzH = document.createElement('div'); rzH.className = 'col-resizer';
+    _initColResizer(rzH, thH, 'healthy'); thH.appendChild(rzH);
     hr1.appendChild(thH);
 
     siteGroups.forEach(({ base, wind, health }) => {
@@ -2860,17 +2865,8 @@ tr.group-row.site-c8 td { background: var(--site-c8); }
 
     table.appendChild(tbody);
 
-    // 自動縮放：讓所有欄位完整顯示，不需左右滑動
     table.style.tableLayout = 'fixed';
     table.style.zoom = '';
-    requestAnimationFrame(function () {
-      const wrap = document.getElementById('matrix-wrap');
-      const avail = wrap.clientWidth;
-      const need  = table.scrollWidth;
-      if (need > avail && avail > 0) {
-        table.style.zoom = String((avail / need).toFixed(4));
-      }
-    });
   }
 
   // ── DRAWERS ──
