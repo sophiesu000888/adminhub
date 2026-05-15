@@ -7,6 +7,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -2149,7 +2150,7 @@ function renderLocThHtml(mainLoc, mainQty, subs, cls, innerOnly) {
   const nameBadge = (name) =>
     `<span style="position:relative;display:inline-block;background:rgba(0,0,0,0.06);border-radius:8px;padding:3px 18px 3px 9px;font-size:0.85rem;font-weight:700;white-space:nowrap;">${name}<span style="position:absolute;right:5px;top:50%;transform:translateY(-60%);font-size:0.6rem;opacity:0.4;">*</span></span>`;
   const qtyText = (q) =>
-    q ? `<span style="font-size:1rem;font-weight:700;">${q}份</span>` : `<span style="font-size:1rem;font-weight:400;opacity:0.35;">數量份</span>`;
+    q ? `<span style="font-size:1rem;font-weight:700;">${q}份</span>` : ``;
   const makeItem = (name, qty) =>
     `<span style="display:inline-flex;flex-direction:column;align-items:center;gap:2px;">${nameBadge(name)}${qtyText(qty)}</span>`;
 
