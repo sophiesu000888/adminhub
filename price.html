@@ -170,8 +170,8 @@ body {
 
 /* ══ SIDE-DRAWER（menu 同款） ══ */
 .side-drawer {
-  position: fixed; top: 44px; right: -66vw;
-  width: 64vw; max-width: 640px; height: calc(100vh - 44px);
+  position: fixed; top: 44px; right: -42%;
+  width: 40%; min-width: 360px; height: calc(100vh - 44px);
   background-color: #f5f3ee;
   background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
   background-size: 22px 22px;
@@ -301,12 +301,15 @@ body {
   resize: both;
   min-width: 320px; min-height: 200px;
   width: calc(100vw - 120px);
-  height: calc(100vh - 200px);
+  height: calc(100vh - 180px);
   border: 2.5px solid var(--ink);
-  border-radius: 8px 3px 8px 3px / 3px 8px 3px 8px;
+  border-radius: 4px;
   box-shadow: 4px 4px 0 var(--shadow);
   background: white;
   display: block;
+  position: relative;
+  /* resize handle 需要 overflow:auto 且明顯可見 */
+  box-sizing: border-box;
 }
 table { width: auto; min-width: 0; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: fixed; }
 thead th {
@@ -521,14 +524,14 @@ tr.filter-row th.col-filter-th {
 /* ── PURCHASE DETAIL HISTORY ── */
 .detail-hist-meta { font-size:0.9rem; color:#aaa; margin-bottom:12px; line-height:1.6; }
 .detail-hist-meta strong { color:var(--ink); }
-.detail-hist-table { width:100%; border-collapse:collapse; font-size:0.92rem; table-layout:fixed; }
+.detail-hist-table { width:100%; border-collapse:collapse; font-size:0.92rem; table-layout:auto; }
 .detail-hist-table th {
   text-align:left; padding:6px 8px; background:#f0f4ff;
   border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;
-  position:sticky; top:0; z-index:2; overflow:hidden; text-overflow:ellipsis;
+  position:sticky; top:0; z-index:2;
 }
 .detail-hist-table td { padding:7px 8px; border-bottom:1px solid rgba(45,45,45,0.08); white-space:nowrap; }
-.detail-hist-table td:nth-child(3) { overflow:hidden; text-overflow:ellipsis; } /* 只有廠商欄截斷 */
+.detail-hist-table td:nth-child(3) { max-width:120px; overflow:hidden; text-overflow:ellipsis; }
 .detail-hist-table tr:hover td { background:#fff9e6; }
 .detail-hist-table td.num { text-align:right; font-family:'DM Mono',monospace; font-weight:700; color:var(--green-dark); }
 .detail-hist-chk { width:16px; height:16px; cursor:pointer; accent-color:var(--red); }
@@ -1891,13 +1894,6 @@ window.showDetail = function(filteredIdx) {
     </div>
     <div class="detail-table-area">
       <table class="detail-hist-table">
-        <colgroup>
-          <col style="width:32px">
-          <col style="width:106px">
-          <col style="width:auto">
-          <col style="width:84px">
-          <col style="width:52px">
-        </colgroup>
         <thead><tr>
           <th></th>
           <th>日期</th>
