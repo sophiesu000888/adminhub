@@ -6,6 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <title>Price Check & Purchase Log</title>
 
 <style>@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');</style>
@@ -2498,7 +2499,8 @@ requireAuth((user) => {
     }
   });
 
-  document.getElementById('searchInput').addEventListener('input', e => {
+  const si = document.getElementById('searchInput');
+  if (si) si.addEventListener('input', e => {
     state.search = e.target.value;
     state.page = 1;
     applyFilter();
