@@ -170,8 +170,8 @@ body {
 
 /* ══ SIDE-DRAWER（menu 同款） ══ */
 .side-drawer {
-  position: fixed; top: 44px; right: -58vw;
-  width: 56vw; max-width: 560px; height: calc(100vh - 44px);
+  position: fixed; top: 44px; right: -66vw;
+  width: 64vw; max-width: 640px; height: calc(100vh - 44px);
   background-color: #f5f3ee;
   background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
   background-size: 22px 22px;
@@ -295,7 +295,7 @@ body {
 .fav-vendor-item label { cursor: pointer; flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── TABLE ── */
-.content { display: flex; flex-direction: column; min-height: 0; padding: 0 12px 12px; }
+.content { display: block; padding: 0 12px 12px; }
 .table-wrap {
   overflow: auto;
   resize: both;
@@ -306,6 +306,7 @@ body {
   border-radius: 8px 3px 8px 3px / 3px 8px 3px 8px;
   box-shadow: 4px 4px 0 var(--shadow);
   background: white;
+  display: block;
 }
 table { width: auto; min-width: 0; border-collapse: collapse; font-family: 'Noto Sans TC', sans-serif; font-size: 1rem; table-layout: fixed; }
 thead th {
@@ -526,7 +527,8 @@ tr.filter-row th.col-filter-th {
   border-bottom:2px solid var(--ink); font-weight:700; white-space:nowrap;
   position:sticky; top:0; z-index:2; overflow:hidden; text-overflow:ellipsis;
 }
-.detail-hist-table td { padding:7px 8px; border-bottom:1px solid rgba(45,45,45,0.08); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.detail-hist-table td { padding:7px 8px; border-bottom:1px solid rgba(45,45,45,0.08); white-space:nowrap; }
+.detail-hist-table td:nth-child(3) { overflow:hidden; text-overflow:ellipsis; } /* 只有廠商欄截斷 */
 .detail-hist-table tr:hover td { background:#fff9e6; }
 .detail-hist-table td.num { text-align:right; font-family:'DM Mono',monospace; font-weight:700; color:var(--green-dark); }
 .detail-hist-chk { width:16px; height:16px; cursor:pointer; accent-color:var(--red); }
@@ -1890,11 +1892,11 @@ window.showDetail = function(filteredIdx) {
     <div class="detail-table-area">
       <table class="detail-hist-table">
         <colgroup>
-          <col style="width:28px">
-          <col style="width:96px">
+          <col style="width:32px">
+          <col style="width:106px">
           <col style="width:auto">
-          <col style="width:80px">
-          <col style="width:44px">
+          <col style="width:84px">
+          <col style="width:52px">
         </colgroup>
         <thead><tr>
           <th></th>
