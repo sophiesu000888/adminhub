@@ -2452,18 +2452,28 @@ requireAuth((user) => {
     renderTable();
   });
 
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    state.pageSize = 50;
+    quoteState.pageSize = 50;
+  }
+
   // ── price 主資料：分頁儲存（繞過 Firestore 1MB 限制）──
   // catalog 可能數萬筆，用 makeChunkedAutoSave 切成每塊 300 筆
   autoSave = makeChunkedAutoSave('price', () => catalog);
   startChunkedSync('price', user, (data, isLegacy) => {
     if (isLegacy) {
-      // 舊格式：content = { catalog, history }
       catalog     = Array.isArray(data && data.catalog) ? data.catalog : (Array.isArray(data) ? data : []);
       historyList = Array.isArray(data && data.history) ? data.history : [];
-      // 立即用新格式覆寫 Firestore（自動遷移）
       if (autoSave) autoSave.now();
     } else {
       catalog = Array.isArray(data) ? data : [];
+    }
+    // 手機：超過 1 萬筆只保留最新的（按日期排序後取前 N 筆）
+    if (isMobile && catalog.length > 10000) {
+      catalog.sort((a, b) => (fmtDate(b)||'').localeCompare(fmtDate(a)||''));
+      catalog = catalog.slice(0, 10000);
+      showToast('📱 手機模式：顯示最新 10,000 筆', 'warn');
     }
     renderAll();
   });
