@@ -1,0 +1,404 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:var(--font-sans)}
+.col-map{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:6px}
+.col-map2{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:1rem}
+.col-cell{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 3px;text-align:center}
+.col-letter{font-size:13px;font-weight:600;color:var(--color-text-info);font-family:var(--font-mono)}
+.col-label{font-size:9px;color:var(--color-text-secondary);margin-top:2px}
+.upload-zone{border:2px dashed var(--color-border-secondary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);padding:1.6rem 1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:1rem}
+.upload-zone:hover,.upload-zone.drag{background:var(--color-background-info);border-color:var(--color-border-info)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-text{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-top:6px}
+.uz-hint{font-size:12px;color:var(--color-text-tertiary);margin-top:3px}
+.thumb-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.thumb{position:relative;width:84px;border-radius:var(--border-radius-md);border:1.5px solid var(--color-border-tertiary);background:var(--color-background-primary);overflow:hidden}
+.thumb img{width:100%;height:62px;object-fit:cover;display:block}
+.thumb-name{font-size:10px;padding:2px 4px;color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thumb.done{border-color:#1D9E75}.thumb.err{border-color:#E24B4A}.thumb.scanning{border-color:#378ADD;box-shadow:0 0 0 2px #B5D4F4}
+.thumb-badge{position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:var(--color-background-primary);font-size:10px;display:flex;align-items:center;justify-content:center}
+.thumb-del{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.thumb-del:hover{background:#E24B4A}
+.btn-row{display:flex;gap:8px;margin-bottom:1rem}
+.scan-btn{flex:1;padding:10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-info);color:var(--color-text-info);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .2s}
+.scan-btn:disabled{opacity:.4;cursor:not-allowed}
+.scan-btn:not(:disabled):hover{opacity:.85}
+.reset-btn{padding:10px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-secondary);font-size:13px;cursor:pointer;display:none}
+.reset-btn:hover{border-color:#E24B4A;color:#E24B4A}
+.prog-wrap{margin-bottom:1rem;display:none}
+.prog-bg{background:var(--color-background-secondary);border-radius:20px;height:6px;overflow:hidden}
+.prog-fill{background:#1D9E75;height:6px;border-radius:20px;transition:width .3s;width:0%}
+.prog-txt{font-size:12px;color:var(--color-text-secondary);margin-top:5px;text-align:center}
+.status-bar{font-size:13px;padding:8px 12px;border-radius:var(--border-radius-md);margin-bottom:1rem;display:none;text-align:center}
+.status-bar.ok{background:var(--color-background-success);color:var(--color-text-success);display:block}
+.status-bar.err{background:var(--color-background-danger);color:var(--color-text-danger);display:block}
+.status-bar.info{background:var(--color-background-info);color:var(--color-text-info);display:block}
+.cards-wrap{margin-bottom:1rem}
+.inv-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px 14px;margin-bottom:8px;border-left:3px solid #378ADD}
+.inv-card.err-card{border-left-color:#E24B4A}
+.card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.card-fn{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.card-tag{font-size:11px;padding:2px 8px;border-radius:20px}
+.tag-blue{background:var(--color-background-info);color:var(--color-text-info)}
+.tag-green{background:var(--color-background-success);color:var(--color-text-success)}
+.tag-gray{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.card-errmsg{font-size:12px;color:var(--color-text-danger)}
+.mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.mini-table th{padding:4px 5px;text-align:center;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.mini-table td{padding:4px 5px;text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)}
+.mini-table tr:last-child td{border-bottom:none}
+.c-code{font-family:var(--font-mono);font-weight:500;color:var(--color-text-info)}
+.c-qty{font-weight:500;color:var(--color-text-success)}
+.c-price{color:var(--color-text-secondary)}
+.result-box{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;display:none;margin-bottom:1rem}
+.res-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.res-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.res-stat{font-size:11px;background:var(--color-background-secondary);color:var(--color-text-secondary);padding:2px 10px;border-radius:20px}
+.big-table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.big-table th{padding:6px 4px;text-align:center;background:var(--color-background-secondary);color:var(--color-text-secondary);font-weight:500;font-size:10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.big-table td{padding:6px 4px;text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)}
+.big-table tr:last-child td{border-bottom:none}
+.big-table tr:hover td{background:var(--color-background-secondary)}
+.col-hint{font-size:8px;color:var(--color-text-tertiary);display:block;font-weight:400}
+.day-sep td{background:var(--color-background-secondary)!important;font-size:10px;color:var(--color-text-tertiary);font-weight:500;letter-spacing:.5px;text-align:left;padding-left:8px!important}
+.ta{width:13%}.tb{width:11%}.tc{width:6%}.td{width:5%}.te{width:5%}.tf{width:11%}
+.tg{font-family:var(--font-mono);font-weight:500;color:var(--color-text-info);width:13%}
+.th{font-weight:500;color:var(--color-text-success);width:7%}
+.ti{color:var(--color-text-secondary);width:10%}
+.tj{width:6%;color:var(--color-text-tertiary)}
+.vendor-pill{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--color-background-success);color:var(--color-text-success)}
+.date-pill{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--color-background-info);color:var(--color-text-info)}
+.export-row{display:flex;gap:8px;margin-top:12px}
+.exp-btn{flex:1;padding:8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer}
+.exp-btn:hover{background:var(--color-background-primary)}
+</style>
+
+<div class="wrap">
+  <div class="col-map">
+    <div class="col-cell"><div class="col-letter">A</div><div class="col-label">客戶編號</div></div>
+    <div class="col-cell"><div class="col-letter">B</div><div class="col-label">廠商</div></div>
+    <div class="col-cell"><div class="col-letter">C</div><div class="col-label">年(西元)</div></div>
+    <div class="col-cell"><div class="col-letter">D</div><div class="col-label">月</div></div>
+    <div class="col-cell"><div class="col-letter">E</div><div class="col-label">日</div></div>
+  </div>
+  <div class="col-map2">
+    <div class="col-cell" style="border-color:#378ADD;background:var(--color-background-info)"><div class="col-letter">F</div><div class="col-label">完整日期</div></div>
+    <div class="col-cell"><div class="col-letter">G</div><div class="col-label">貨號</div></div>
+    <div class="col-cell"><div class="col-letter">H</div><div class="col-label">數量</div></div>
+    <div class="col-cell"><div class="col-letter">I</div><div class="col-label">金額/單價</div></div>
+    <div class="col-cell"><div class="col-letter">J</div><div class="col-label">頁次</div></div>
+  </div>
+
+  <div class="upload-zone" id="dz">
+    <input type="file" accept="image/*" multiple id="fi">
+    <div style="font-size:2rem">📷</div>
+    <div class="uz-text">點擊選擇圖片（可多選）</div>
+    <div class="uz-hint">支援 JPG、PNG、HEIC</div>
+  </div>
+
+  <div class="thumb-strip" id="thumbs"></div>
+
+  <div class="btn-row">
+    <button class="scan-btn" id="scanBtn" disabled>🔍 開始 AI 批次辨識</button>
+    <button class="reset-btn" id="resetBtn" onclick="resetAll()">🗑</button>
+  </div>
+
+  <div class="prog-wrap" id="pw">
+    <div class="prog-bg"><div class="prog-fill" id="pf"></div></div>
+    <div class="prog-txt" id="pt"></div>
+  </div>
+
+  <div class="status-bar" id="sb"></div>
+  <div class="cards-wrap" id="cards"></div>
+
+  <div class="result-box" id="rb">
+    <div class="res-hd">
+      <span class="res-title">📊 彙總結果（依日期→頁次排序）</span>
+      <span class="res-stat" id="rs"></span>
+    </div>
+    <table class="big-table">
+      <thead>
+        <tr>
+          <th class="ta">A<span class="col-hint">客戶編號</span></th>
+          <th class="tb">B<span class="col-hint">廠商</span></th>
+          <th class="tc">C<span class="col-hint">年</span></th>
+          <th class="td">D<span class="col-hint">月</span></th>
+          <th class="te">E<span class="col-hint">日</span></th>
+          <th class="tf">F<span class="col-hint">完整日期</span></th>
+          <th class="tg">G<span class="col-hint">貨號</span></th>
+          <th class="th">H<span class="col-hint">數量</span></th>
+          <th class="ti">I<span class="col-hint">金額/單價</span></th>
+          <th class="tj">J<span class="col-hint">頁次</span></th>
+        </tr>
+      </thead>
+      <tbody id="rtb"></tbody>
+    </table>
+    <div class="export-row">
+      <button class="exp-btn" onclick="copyTSV()">📋 複製</button>
+      <button class="exp-btn" onclick="dlXLSX()">📥 下載 Excel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let files=[], allInvoices=[];
+
+const fi=document.getElementById('fi');
+const scanBtn=document.getElementById('scanBtn');
+const resetBtn=document.getElementById('resetBtn');
+const sb=document.getElementById('sb');
+const rb=document.getElementById('rb');
+const thumbs=document.getElementById('thumbs');
+const cards=document.getElementById('cards');
+const pw=document.getElementById('pw');
+const pf=document.getElementById('pf');
+const pt=document.getElementById('pt');
+const dz=document.getElementById('dz');
+
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');addFiles([...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')))});
+fi.addEventListener('change',()=>{addFiles([...fi.files]);fi.value='';});
+
+function addFiles(newFs){
+  newFs.forEach(f=>{
+    if(files.find(x=>x.file.name===f.name&&x.file.size===f.size))return;
+    const e={file:f,dataUrl:null,status:'pending',result:null};
+    files.push(e);
+    const r=new FileReader();
+    r.onload=ev=>{e.dataUrl=ev.target.result;renderThumbs()};
+    r.readAsDataURL(f);
+  });
+  renderThumbs();updateScanBtn();
+  resetBtn.style.display=files.length?'block':'none';
+}
+
+function renderThumbs(){
+  thumbs.innerHTML=files.map((f,i)=>{
+    const badge=f.status==='done'?'✅':f.status==='err'?'❌':f.status==='scanning'?'⏳':'';
+    const cls=f.status==='done'?'done':f.status==='err'?'err':f.status==='scanning'?'scanning':'';
+    return`<div class="thumb ${cls}">
+      <span class="thumb-del" onclick="rmFile(${i})">✕</span>
+      ${f.dataUrl?`<img src="${f.dataUrl}" alt="">`:`<div style="height:62px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:20px">📄</div>`}
+      <div class="thumb-name">${f.file.name}</div>
+      ${badge?`<div class="thumb-badge">${badge}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function rmFile(i){files.splice(i,1);renderThumbs();updateScanBtn();resetBtn.style.display=files.length?'block':'none';}
+
+function updateScanBtn(){
+  scanBtn.disabled=files.length===0;
+  scanBtn.textContent=`🔍 開始 AI 批次辨識${files.length?' ('+files.length+' 張)':''}`;
+}
+
+function resetAll(){
+  files=[];allInvoices=[];
+  thumbs.innerHTML='';cards.innerHTML='';
+  rb.style.display='none';pw.style.display='none';
+  setStatus('');scanBtn.disabled=true;resetBtn.style.display='none';
+  scanBtn.textContent='🔍 開始 AI 批次辨識';
+}
+
+function setStatus(msg,type=''){
+  sb.innerHTML=msg;sb.className='status-bar'+(type?' '+type:'');
+  if(!type)sb.style.display='none';
+}
+
+function rocToAD(y){
+  const n=parseInt(y);
+  if(isNaN(n))return new Date().getFullYear();
+  return n>1900?n:n+1911;
+}
+
+function fullDate(year,month,day){
+  return `${year}/${month}/${day}`;
+}
+
+scanBtn.addEventListener('click',async()=>{
+  if(!files.length)return;
+  scanBtn.disabled=true;resetBtn.style.display='none';
+  allInvoices=[];cards.innerHTML='';rb.style.display='none';
+  pw.style.display='block';setStatus('');
+  const total=files.length;
+
+  for(let i=0;i<total;i++){
+    const entry=files[i];
+    entry.status='scanning';renderThumbs();
+    pf.style.width=Math.round(i/total*100)+'%';
+    pt.textContent=`辨識第 ${i+1} / ${total} 張：${entry.file.name}`;
+
+    try{
+      const base64=entry.dataUrl.split(',')[1];
+      const mime=entry.dataUrl.startsWith('data:image/png')?'image/png':'image/jpeg';
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',max_tokens:1000,
+          system:`你是銷貨憑單 OCR 助手。從圖片擷取資料，回傳純 JSON（不含 markdown 或說明）：
+{
+  "customer_id": "客戶編號欄的完整內容",
+  "vendor": "廠商公司名稱（單據抬頭，如：三憶食品、美食家）",
+  "year": 年份數字（民國年請加1911轉西元，如115→2026；已是西元則直接填）,
+  "month": 月份數字,
+  "day": 日期數字,
+  "page": 頁次數字（右上角送貨順序或頁碼，找不到填1）,
+  "items": [{"code":"貨號/產品編號","qty":數量數字,"price":金額或單價數字（找不到填0）}]
+}
+規則：
+- 廠商常見：三憶食品、美食家
+- items 只含有貨號+數量的行，空白行忽略
+- price 純數字不含貨幣符號，找不到填0`,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:mime,data:base64}},
+            {type:'text',text:'請擷取這張銷貨憑單資料，年份轉換為西元，回傳 JSON。'}
+          ]}]
+        })
+      });
+      const json=await resp.json();
+      if(json.error)throw new Error(json.error.message);
+      const txt=json.content.map(b=>b.text||'').join('');
+      const data=JSON.parse(txt.replace(/```json|```/g,'').trim());
+      if(!data.items?.length)throw new Error('未辨識到商品');
+      data.year=rocToAD(data.year);
+      entry.status='done';entry.result=data;
+      allInvoices.push({
+        customer_id:data.customer_id||'',
+        vendor:data.vendor||'',
+        year:data.year,
+        month:data.month||0,
+        day:data.day||0,
+        page:data.page||1,
+        items:data.items,
+        src:entry.file.name
+      });
+      appendCard(entry.file.name,data,null);
+    }catch(err){
+      entry.status='err';
+      appendCard(entry.file.name,null,err.message);
+    }
+    renderThumbs();
+    if(i<total-1)await new Promise(r=>setTimeout(r,400));
+  }
+
+  pf.style.width='100%';
+  const ok=files.filter(f=>f.status==='done').length;
+  const fail=total-ok;
+  pt.textContent=`完成！${ok} 張成功${fail?'，'+fail+' 張失敗':''}`;
+  if(allInvoices.length){
+    renderTable();
+    const total_rows=allInvoices.reduce((s,inv)=>s+inv.items.length,0);
+    setStatus(`完成：${ok} 張成功${fail?'，'+fail+' 張失敗':''}，共 ${total_rows} 筆`,fail?'info':'ok');
+  }else{
+    setStatus('全部辨識失敗，請確認圖片是否清晰','err');
+  }
+  scanBtn.disabled=false;resetBtn.style.display='block';updateScanBtn();
+});
+
+function getSortedRows(){
+  const sorted=[...allInvoices].sort((a,b)=>{
+    if(a.year!==b.year)return a.year-b.year;
+    if(a.month!==b.month)return a.month-b.month;
+    if(a.day!==b.day)return a.day-b.day;
+    return a.page-b.page;
+  });
+  const rows=[];
+  sorted.forEach(inv=>{
+    inv.items.forEach(it=>{
+      rows.push({
+        customer_id:inv.customer_id,
+        vendor:inv.vendor,
+        year:inv.year,
+        month:inv.month,
+        day:inv.day,
+        full_date:fullDate(inv.year,inv.month,inv.day),
+        code:it.code,
+        qty:it.qty,
+        price:it.price||0,
+        page:inv.page
+      });
+    });
+  });
+  return rows;
+}
+
+function appendCard(fn,data,err){
+  const d=document.createElement('div');
+  d.className='inv-card'+(err?' err-card':'');
+  if(data){
+    d.innerHTML=`<div class="card-hd">
+      <span class="card-fn">📄 ${fn}</span>
+      <span style="display:flex;gap:5px;flex-wrap:wrap">
+        <span class="card-tag tag-green">${data.vendor||'—'}</span>
+        <span class="card-tag tag-blue">${fullDate(data.year,data.month,data.day)}</span>
+        <span class="card-tag tag-gray">頁次 ${data.page||'?'}</span>
+        <span class="card-tag tag-gray">客戶 ${data.customer_id||'—'}</span>
+      </span>
+    </div>
+    <table class="mini-table">
+      <thead><tr><th>#</th><th>貨號</th><th>數量</th><th>金額/單價</th></tr></thead>
+      <tbody>${data.items.map((it,j)=>`<tr><td>${j+1}</td><td class="c-code">${it.code}</td><td class="c-qty">${it.qty}</td><td class="c-price">${it.price||'—'}</td></tr>`).join('')}</tbody>
+    </table>`;
+  }else{
+    d.innerHTML=`<div class="card-hd"><span class="card-fn">📄 ${fn}</span><span class="card-errmsg">❌ ${err}</span></div>`;
+  }
+  cards.appendChild(d);
+}
+
+function renderTable(){
+  const rows=getSortedRows();
+  let lastKey='';
+  document.getElementById('rtb').innerHTML=rows.map((r,i)=>{
+    const key=`${r.year}-${r.month}-${r.day}`;
+    let sep='';
+    if(key!==lastKey){
+      lastKey=key;
+      if(i>0)sep=`<tr class="day-sep"><td colspan="10">── ${r.full_date} ──</td></tr>`;
+    }
+    return sep+`<tr>
+      <td class="ta">${r.customer_id||'—'}</td>
+      <td class="tb"><span class="vendor-pill">${r.vendor||'—'}</span></td>
+      <td class="tc">${r.year}</td>
+      <td class="td">${r.month}</td>
+      <td class="te">${r.day}</td>
+      <td class="tf"><span class="date-pill">${r.full_date}</span></td>
+      <td class="tg">${r.code}</td>
+      <td class="th">${r.qty}</td>
+      <td class="ti">${r.price||'—'}</td>
+      <td class="tj">${r.page}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rs').textContent=`共 ${rows.length} 筆`;
+  rb.style.display='block';
+}
+
+function copyTSV(){
+  const rows=getSortedRows();
+  if(!rows.length)return;
+  const lines=['客戶編號(A)\t廠商(B)\t年(C)\t月(D)\t日(E)\t完整日期(F)\t貨號(G)\t數量(H)\t金額/單價(I)\t頁次(J)'].concat(
+    rows.map(r=>`${r.customer_id}\t${r.vendor}\t${r.year}\t${r.month}\t${r.day}\t${r.full_date}\t${r.code}\t${r.qty}\t${r.price||''}\t${r.page}`)
+  );
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('已複製！可直接貼到 Excel'));
+}
+
+function dlXLSX(){
+  const rows=getSortedRows();
+  if(!rows.length||typeof XLSX==='undefined')return;
+  const wb=XLSX.utils.book_new();
+  // A=0,B=1,C=2,D=3,E=4,F=5,G=6,H=7,I=8,J=9
+  const hdr=['客戶編號','廠商','年','月','日','完整日期','貨號','數量','金額/單價','頁次'];
+  const data=[hdr,...rows.map(r=>[
+    r.customer_id, r.vendor, r.year, r.month, r.day,
+    r.full_date, r.code, r.qty, r.price||'', r.page
+  ])];
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:16},{wch:12},{wch:6},{wch:5},{wch:5},{wch:12},{wch:14},{wch:7},{wch:10},{wch:6}];
+  XLSX.utils.book_append_sheet(wb,ws,'進貨記錄');
+  const d=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,`進貨記錄_${d}.xlsx`);
+}
+</script>
