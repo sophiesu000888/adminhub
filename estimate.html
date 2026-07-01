@@ -6,6 +6,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -875,7 +876,7 @@ function recompAll() {
 
 // 取得有效的庫存起始基準：
 // 若有 monthInit 紀錄，以最新一筆的 date 為基準（realQty 為當日庫存，qty 為 diff）
-// 回傳 { baseQty, baseDate }：baseDate 之後（含）的 stockLog 才計入，週次消耗也只算 baseDate 之後
+// 回傳 { baseQty, baseDate }：baseDate 之後（不含當天）的 stockLog 才計入
 function calcStockBase() {
   var lastInit = null;
   S.stockLog.forEach(function(e) {
@@ -892,16 +893,14 @@ function calcStockBase() {
 function calcStock() {
   var base = calcStockBase();
   var t = base.baseQty;
-  // 加上 baseDate 之後的非 monthInit 進貨（含 baseDate 當天之後的 monthInit diff 也不再計，因為已用 realQty）
+  // baseDate 之後（不含當天以前）的普通進貨才累加
+  // monthInit 本身已用 realQty 作基準，一律跳過
   S.stockLog.forEach(function(e) {
-    if(e.type === 'monthInit') {
-      // 只有比 baseDate 更新的 monthInit 才計入（理論上不會有，因為 base 已是最新）
-      if(base.baseDate && e.date > base.baseDate) t += e.qty;
-      return;
-    }
-    if(!base.baseDate || e.date >= base.baseDate) t += e.qty;
+    if(e.type === 'monthInit') return;
+    if(base.baseDate && e.date <= base.baseDate) return; // 基準當天及以前全部忽略
+    t += e.qty;
   });
-  // 扣掉 baseDate 之後所有週次的消耗
+  // 扣掉 baseDate 之後（不含）所有週次的消耗
   var u = 0;
   Object.keys(S.weekData).forEach(function(wi) {
     var monDs = WEEK_MONS[+wi];
@@ -910,7 +909,7 @@ function calcStock() {
       DK.forEach(function(dk, di) {
         var ds = wkDs(+wi, di);
         if(!ds) return;
-        if(base.baseDate && ds < base.baseDate) return; // 基準日之前不計
+        if(base.baseDate && ds <= base.baseDate) return;
         var d = S.weekData[wi][site][dk];
         u += (d.act !== null ? d.act : d.est);
       });
@@ -1078,11 +1077,9 @@ function renderTopStats() {
   // 計算基準日當天的庫存起始值（含基準日之後、非 monthInit 的進出）
   var totalIn = base.baseQty;
   S.stockLog.forEach(function(e) {
-    if(e.type === 'monthInit') {
-      if(base.baseDate && e.date > base.baseDate) totalIn += e.qty;
-      return;
-    }
-    if(!base.baseDate || e.date >= base.baseDate) totalIn += e.qty;
+    if(e.type === 'monthInit') return;
+    if(base.baseDate && e.date <= base.baseDate) return;
+    totalIn += e.qty;
   });
   var running = totalIn;
   var shortDate = null, shortQty = 0;
@@ -1092,7 +1089,7 @@ function renderTopStats() {
       var ds = wkDs(wi, di);
       if(!ds) continue;
       var dayTotal = 0;
-      if(base.baseDate && ds < base.baseDate) { continue; } // 基準日之前跳過
+      if(base.baseDate && ds <= base.baseDate) { continue; } // 基準日當天及以前跳過
       SITES.forEach(function(site){
         var cell = S.weekData[wi][site][DK[di]];
         dayTotal += (cell.act !== null ? cell.act : cell.est);
@@ -1259,11 +1256,9 @@ function renderOverview() {
   var base = calcStockBase();
   var stockIn = base.baseQty;
   S.stockLog.forEach(function(e) {
-    if(e.type === 'monthInit') {
-      if(base.baseDate && e.date > base.baseDate) stockIn += e.qty;
-      return;
-    }
-    if(!base.baseDate || e.date >= base.baseDate) stockIn += e.qty;
+    if(e.type === 'monthInit') return;
+    if(base.baseDate && e.date <= base.baseDate) return;
+    stockIn += e.qty;
   });
   var usedBefore=0;
   Object.keys(S.weekData).forEach(function(wi2){
@@ -1272,7 +1267,7 @@ function renderOverview() {
       DK.forEach(function(dk, di2){
         var ds2 = wkDs(+wi2, di2);
         if(!ds2) return;
-        if(base.baseDate && ds2 < base.baseDate) return;
+        if(base.baseDate && ds2 <= base.baseDate) return;
         var d=S.weekData[wi2][site][dk];
         usedBefore+=(d.act!==null?d.act:d.est);
       });
