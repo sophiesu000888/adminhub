@@ -3019,7 +3019,7 @@ function _readSubLocs(block, startCol, count) {
     const th = ths[i + startCol]; // +1 for sticky "品項" th that is rowspan=3
     if (!th || !th._subList) { result.push([]); continue; }
     const subs = [];
-    th._subList.querySelectorAll(".loc-sub-item").forEach(item => {
+    th._subList.querySelectorAll(".loc-sub-item:not(.loc-main-item)").forEach(item => {
       subs.push({
         name: item._nameInp?.value || "",
         qty:  item._qtyInp?.value  || ""
@@ -5260,7 +5260,7 @@ function makeLocTh(loc, type, onDelete, locIndex, initQty, onCopy, onPaste, onCl
 
   // ── 主地點：跟子地點同樣的 column 佈局 ──
   const mainItem = document.createElement("div");
-  mainItem.className = "loc-sub-item";
+  mainItem.className = "loc-sub-item loc-main-item";
 
   // 名稱那行：badge wrapper（含 * 標記）
   const inpWrap = document.createElement("div");
