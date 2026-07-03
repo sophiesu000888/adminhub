@@ -1514,6 +1514,8 @@ button {
         onclick="backupData(); closeToolbarSub('subDataMgr','btnDataMgr')">💾 備份資料</button>
       <button class="toolbar-sub-btn btn-restore"
         onclick="document.getElementById('restoreFileInput').click(); closeToolbarSub('subDataMgr','btnDataMgr')">📂 匯入恢復</button>
+      <button class="toolbar-sub-btn" style="background:#fff5f5!important;color:#c62828!important;border-color:#e53935!important;box-shadow:3px 3px 0 0 #e53935!important;"
+        onclick="deleteEmptyLocs(); closeToolbarSub('subDataMgr','btnDataMgr')">🧹 刪除空白地點</button>
     </div>
   </div>
 
@@ -1795,6 +1797,16 @@ button {
         <select id="mgmt-rowcat-add-sel" style="display:none;"></select>
       </div>
 
+    </div>
+
+    <!-- 一鍵刪除空白地點（下方） -->
+    <div style="background:#fff;border:1.5px solid #d0d0d0;border-radius:8px;padding:10px 12px;margin-top:14px;">
+      <div style="font-size:1rem;font-weight:800;color:var(--ink);margin-bottom:6px;font-family:'Kalam','Noto Sans TC',sans-serif;">🧹 清理空白地點</div>
+      <div style="font-size:0.82rem;color:#90a4ae;margin-bottom:8px;">刪除所有日期中，名稱為空的主地點與附加地點（子地點）。</div>
+      <button onclick="deleteEmptyLocs()" style="width:100%;padding:10px;border:2px solid #e53935;border-radius:8px;background:#fff5f5;color:#c62828;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;box-shadow:2px 2px 0 0 #e53935;transition:all 0.1s;" onmouseover="this.style.transform='translate(1px,1px)';this.style.boxShadow='1px 1px 0 0 #e53935'" onmouseout="this.style.transform='';this.style.boxShadow='2px 2px 0 0 #e53935'">
+        🗑️ 一鍵刪除空白地點（全部日期）
+      </button>
+      <div id="delete-empty-locs-result" style="font-size:0.82rem;margin-top:6px;min-height:14px;color:#2e7d32;font-weight:700;"></div>
     </div>
 
     <!-- 欄寬設定（下方） -->
@@ -5828,6 +5840,42 @@ function addGlobalWLoc() {
   scheduleAutoSave();
 }
 
+
+// ===== 一鍵刪除空白地點 =====
+function deleteEmptyLocs() {
+  const blocks = document.querySelectorAll(".week-block");
+  if (blocks.length === 0) { alert("目前沒有任何日期菜單。"); return; }
+  let totalDelMain = 0, totalDelSub = 0;
+  blocks.forEach(block => {
+    const wid = block.id.replace("block_", "");
+    const info = weekDataMap[wid];
+    if (!info) return;
+    block.querySelectorAll(".loc-sub-item:not(.loc-main-item)").forEach(item => {
+      if (!(item._nameInp?.value || "").trim()) { item.remove(); totalDelSub++; }
+    });
+    block.querySelectorAll("table tr:nth-child(2) th").forEach(th => { if (th._updateTotal) th._updateTotal(); });
+    const locInps = [...block.querySelectorAll(".loc-inp")];
+    const hLen = info.hLocs.length, wLen = info.wLocs.length;
+    const hQtys = block._hQtysRef || [], wQtys = block._wQtysRef || [];
+    const emptyH = [];
+    for (let i = 0; i < hLen; i++) { if (!(locInps[i]?.value || "").trim()) emptyH.push(i); }
+    const emptyW = [];
+    for (let i = 0; i < wLen; i++) { if (!(locInps[hLen+i]?.value || "").trim()) emptyW.push(i); }
+    const safeH = emptyH.length < hLen ? emptyH : emptyH.slice(0, hLen-1);
+    const safeW = emptyW.length < wLen ? emptyW : emptyW.slice(0, wLen-1);
+    if (safeH.length === 0 && safeW.length === 0) return;
+    [...safeH].reverse().forEach(i => { info.hLocs.splice(i,1); if (i<hQtys.length) hQtys.splice(i,1); totalDelMain++; });
+    [...safeW].reverse().forEach(i => { info.wLocs.splice(i,1); if (i<wQtys.length) wQtys.splice(i,1); totalDelMain++; });
+    block._rebuildTable && block._rebuildTable();
+  });
+  scheduleAutoSave();
+  const resultEl = document.getElementById("delete-empty-locs-result");
+  if (resultEl) {
+    if (totalDelMain===0 && totalDelSub===0) { resultEl.style.color="#90a4ae"; resultEl.textContent="✓ 沒有發現空白地點。"; }
+    else { resultEl.style.color="#2e7d32"; const parts=[]; if (totalDelMain>0) parts.push("主地點 "+totalDelMain+" 個"); if (totalDelSub>0) parts.push("附加地點 "+totalDelSub+" 個"); resultEl.textContent="✓ 已刪除 "+parts.join("、")+"。"; }
+    setTimeout(() => { if (resultEl) resultEl.textContent=""; }, 4000);
+  }
+}
 function appendWeekBlock(block) {
   const scrollWrap = document.createElement("div");
   scrollWrap.className = "week-block-scroll-wrap";
