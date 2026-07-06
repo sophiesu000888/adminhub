@@ -1291,7 +1291,7 @@ function renderOverview() {
     var bgR = isPinkR ? 'background:#fff0f2;' : '';
     var extraStyle = stockUpdateDays[_dsR] ? 'outline:1.5px solid var(--red);outline-offset:-2px;' : '';
     // 基準日之前的天：不扣庫存，顯示 —
-    if(base.baseDate && _dsR < base.baseDate){
+    if(base.baseDate && _dsR <= base.baseDate){
       b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
@@ -1450,11 +1450,9 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
   var base2 = calcStockBase();
   var stockIn = base2.baseQty;
   S.stockLog.forEach(function(e) {
-    if(e.type === 'monthInit') {
-      if(base2.baseDate && e.date > base2.baseDate) stockIn += e.qty;
-      return;
-    }
-    if(!base2.baseDate || e.date >= base2.baseDate) stockIn += e.qty;
+    if(e.type === 'monthInit') return;
+    if(base2.baseDate && e.date <= base2.baseDate) return;
+    stockIn += e.qty;
   });
   var usedBefore = 0;
   Object.keys(S.weekData).forEach(function(wi2){
@@ -1463,7 +1461,7 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
       DK.forEach(function(dk, di2){
         var ds2 = wkDs(+wi2, di2);
         if(!ds2) return;
-        if(base2.baseDate && ds2 < base2.baseDate) return;
+        if(base2.baseDate && ds2 <= base2.baseDate) return;
         var d = S.weekData[wi2][site][dk];
         usedBefore += (d.act!==null ? d.act : d.est);
       });
@@ -1475,7 +1473,7 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
   vd.forEach(function(x){
     var _dsR = wkDs(wi,x.i); if(!_dsR) return; var dowR = new Date(_dsR).getDay();
     var clsR = 'dc '+(dowR===6?'cs': dowR===0?'cu': '');
-    if(base2.baseDate && _dsR < base2.baseDate){
+    if(base2.baseDate && _dsR <= base2.baseDate){
       b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
       return;
     }
