@@ -1,4 +1,12 @@
 
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -1283,8 +1291,13 @@ function renderOverview() {
     var bgR = isPinkR ? 'background:#fff0f2;' : '';
     var extraStyle = stockUpdateDays[_dsR] ? 'outline:1.5px solid var(--red);outline-offset:-2px;' : '';
     // 基準日之前的天：不扣庫存，顯示 —
-    if(base.baseDate && _dsR <= base.baseDate){
+    if(base.baseDate && _dsR < base.baseDate){
       b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+extraStyle+'"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      return;
+    }
+    if(base.baseDate && _dsR === base.baseDate){
+      var colorB=base.baseQty<0?'var(--red)':base.baseQty<S.threshold?'var(--est)':'var(--gold2)';
+      b+='<td class="'+clsR+'" style="text-align:center;padding:6px 4px;'+bgR+'outline:2px solid var(--gold);outline-offset:-2px;"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:'+colorB+';">'+base.baseQty+'</span></td>';
       return;
     }
     runningStock-=colTotal[x.dk];
@@ -1465,8 +1478,13 @@ function renderPreviewWeek(wi, headId, bodyId, labelId, isPrev) {
   vd.forEach(function(x){
     var _dsR = wkDs(wi,x.i); if(!_dsR) return; var dowR = new Date(_dsR).getDay();
     var clsR = 'dc '+(dowR===6?'cs': dowR===0?'cu': '');
-    if(base2.baseDate && _dsR <= base2.baseDate){
+    if(base2.baseDate && _dsR < base2.baseDate){
       b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:var(--muted);">—</span></td>';
+      return;
+    }
+    if(base2.baseDate && _dsR === base2.baseDate){
+      var colorB2=base2.baseQty<0?'var(--red)':base2.baseQty<S.threshold?'var(--est)':'var(--gold2)';
+      b += '<td class="'+clsR+'" style="text-align:center;padding:6px 4px;outline:2px solid var(--gold);outline-offset:-2px;"><span style="font-family:Kalam,sans-serif;font-weight:700;font-size:30px;color:'+colorB2+';">'+base2.baseQty+'</span></td>';
       return;
     }
     runningStock -= colTotal[x.dk];
