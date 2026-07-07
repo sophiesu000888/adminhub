@@ -778,11 +778,15 @@ var qlCfg = {main:6, dbl:3};
 var qunlianWeeks = {};
 
 function qunlianDayQty(ds) {
-  if(isWeekend(ds)||isNatHoli(ds)) return 0;
+  var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
+  if(dow!==4) return 0;  // 只有週四
+  if(isNatHoli(ds)) return 0;
   var mon = weekMonForDate(ds);
   var w = qunlianWeeks[mon];
   if(!w) return 0;
-  return (w.main==='on'?qlCfg.main:0)+(w.double==='on'?qlCfg.dbl:0);
+  if(w.type==='main')   return qlCfg.main;
+  if(w.type==='double') return qlCfg.dbl;
+  return 0;
 }
 
 var ycCfg = {main:2, dbl:1};
@@ -1587,7 +1591,7 @@ function renderAccBlock(id, content) {
   var emoji = {F20:'🏢',AP6B:'🏢',P8:'🍱','群聯':'🏭','央廚':'🍳','聯電':'🏭'}[id]||'🏢';
   var desc  = {F20:'午餐固定 '+f20Cfg.lunchBase+'隻・15:00 +'+f20Cfg.lunch1500+'隻・晚餐 +'+f20Cfg.dinnerQty+'隻',
                AP6B:'固定午餐・偶數週晚餐',P8:'每週固定'+p8Cfg.wkQty+'隻',
-               '群聯':'主餐'+qlCfg.main+'隻/天 / 雙拼'+qlCfg.dbl+'隻/天','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
+               '群聯':'每週四 主餐'+qlCfg.main+'隻 / 雙拼'+qlCfg.dbl+'隻','央廚':'主餐'+ycCfg.main+'隻/天 / 雙拼'+ycCfg.dbl+'隻/天（以日為單位）',
                '聯電':'主餐'+lianDianCfg.main+'隻 / 雙拼'+lianDianCfg.dbl+'隻 / 晚餐'+lianDianCfg.dinner+'隻（以日為單位）'}[id]||'';
   var headerCls = 'acc-header' + (open?' open':'');
   var progress = getSiteConfirmProgress(id);
@@ -1639,7 +1643,7 @@ function siteHasActiveWeek(site, mon) {
   }
   if (site === '群聯') {
     var w = qunlianWeeks[mon];
-    return w && (w.main === 'on' || w.double === 'on');
+    return w && (w.type === 'main' || w.type === 'double');
   }
   if (site === '央廚') {
     // 央廚每週的 weekHeader 都顯示 cfgConfirmBtn，只要該週有任何平日即算 active
@@ -1665,8 +1669,8 @@ function getBlockBadge(id) {
     return pc?pc+'週・'+(pc*p8Cfg.wkQty)+'隻':'未選擇';
   }
   if(id==='群聯'){
-    var qm=tmw.filter(function(m){return qunlianWeeks[m]&&qunlianWeeks[m].main==='on';}).length;
-    var qd=tmw.filter(function(m){return qunlianWeeks[m]&&qunlianWeeks[m].double==='on';}).length;
+    var qm=tmw.filter(function(m){return qunlianWeeks[m]&&qunlianWeeks[m].type==='main';}).length;
+    var qd=tmw.filter(function(m){return qunlianWeeks[m]&&qunlianWeeks[m].type==='double';}).length;
     return (qm||qd)?'主餐'+qm+'週 / 雙拼'+qd+'週':'未設定';
   }
   if(id==='央廚'){
@@ -2164,8 +2168,8 @@ function toggleP8Week(mon){
 function buildQunlianBlock(tmw) {
   var qtyPanel='<div class="cfg-qty-panel">'+
     '<span style="font-size:24px;color:var(--ink);font-weight:700;font-family:&apos;Patrick Hand&apos;,sans-serif;align-self:center;white-space:nowrap;">設定</span>'+
-    cfgQtyField('主餐','ql-main',qlCfg.main,'隻/天','var(--est)')+
-    cfgQtyField('雙拼','ql-dbl',qlCfg.dbl,'隻/天','var(--purple)')+
+    cfgQtyField('主餐','ql-main',qlCfg.main,'隻/次','var(--est)')+
+    cfgQtyField('雙拼','ql-dbl',qlCfg.dbl,'隻/次','var(--purple)')+
     '<button class="btn btn-sm" style="padding:3px 10px;font-size:24px;" onclick="applyQlQty()">套用</button>'+
     '</div>';
 
@@ -2175,26 +2179,23 @@ function buildQunlianBlock(tmw) {
     },
     getWeekTotal: function(mon, wi){
       var w=qunlianWeeks[mon]||{};
-      var wd=workdaysInWeek(mon);
-      var t=((w.main==='on'?qlCfg.main:0)+(w.double==='on'?qlCfg.dbl:0))*wd;
+      var thu=addDays(mon,3); // 週四
+      if(isNatHoli(thu)){return '—';}
+      var t=w.type==='main'?qlCfg.main:w.type==='double'?qlCfg.dbl:0;
       return t?t+'隻':'—';
     },
     getCellContent: function(ds, mon, wi){
       var p=ds.split('-'), dow=new Date(+p[0],+p[1]-1,+p[2]).getDay();
       var html='';
-      if(dow===1){
-        var w=qunlianWeeks[mon]||{main:'',double:''};
-        var c1=w.main==='on'?'state-on-amber':w.main==='skip'?'state-skip':'state-off';
-        var c2=w.double==='on'?'state-on-purple':w.double==='skip'?'state-skip':'state-off';
-        html+='<button class="cfg-day-btn '+c1+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)">'+(w.main==='on'?'✓ 主餐':w.main==='skip'?'— 主餐':'+ 主餐')+'</button>';
-        html+='<button class="cfg-day-btn '+c2+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)">'+(w.double==='on'?'✓ 雙拼':w.double==='skip'?'— 雙拼':'+ 雙拼')+'</button>';
+      if(dow===4){  // 週四才顯示按鈕
+        var w=qunlianWeeks[mon]||{type:''};
+        var c1=w.type==='main'?'state-on-amber':'state-off';
+        var c2=w.type==='double'?'state-on-purple':'state-off';
+        html+='<button class="cfg-day-btn '+c1+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;main&apos;)">'+(w.type==='main'?'✓ 主餐':'+ 主餐')+'</button>';
+        html+='<button class="cfg-day-btn '+c2+'" onclick="toggleQunlian(&apos;'+mon+'&apos;,&apos;double&apos;)">'+(w.type==='double'?'✓ 雙拼':'+ 雙拼')+'</button>';
+        if(w.type==='main') html+='<div style="font-family:Patrick Hand,sans-serif;font-size:15px;font-weight:700;text-align:center;margin-top:2px;color:var(--est);">主'+qlCfg.main+'隻</div>';
+        if(w.type==='double') html+='<div style="font-family:Patrick Hand,sans-serif;font-size:15px;font-weight:700;text-align:center;margin-top:2px;color:var(--purple);">雙'+qlCfg.dbl+'隻</div>';
       }
-      var q=qunlianDayQty(ds); if(!q) return html;
-      var w=qunlianWeeks[mon]||{};
-      var parts=[];
-      if(w.main==='on') parts.push('<span style="color:var(--est);">主'+qlCfg.main+'</span>');
-      if(w.double==='on') parts.push('<span style="color:var(--purple);">雙'+qlCfg.dbl+'</span>');
-      if(parts.length) html+='<div style="font-family:Patrick Hand,sans-serif;font-size:15px;font-weight:700;text-align:center;margin-top:2px;">'+parts.join('+')+'</div>';
       return html;
     }
   });
@@ -2211,8 +2212,9 @@ function applyQlQty(){
 }
 
 function toggleQunlian(mon,type){
-  if(!qunlianWeeks[mon]) qunlianWeeks[mon]={main:'',double:''};
-  qunlianWeeks[mon][type]=cycle3(qunlianWeeks[mon][type]);
+  if(!qunlianWeeks[mon]) qunlianWeeks[mon]={type:''};
+  // 互斥單選：已選同類則取消，否則切換到該類
+  qunlianWeeks[mon].type = qunlianWeeks[mon].type===type ? '' : type;
   recompSite('群聯');renderConfig();renderOverview();renderTopStats();saveState();
 }
 
